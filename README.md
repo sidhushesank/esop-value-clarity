@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ESOP Value Clarity
 
-## Getting Started
+A lightweight, educational ESOP value simulator built to help employees
+understand the real-world value of equity — without spreadsheets or jargon.
 
-First, run the development server:
+This project focuses on clarity, explainable math, and realistic scenarios.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Why this exists
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ESOPs are often explained poorly.
+Employees are given numbers without context, making it hard to understand:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- how vesting affects ownership  
+- how dilution impacts value  
+- what equity might mean at exit  
 
-## Learn More
+This tool exists to bridge that gap — visually and transparently.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What the tool does
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Models ESOP value using simple, visible assumptions
+- Shows value today, after dilution, and at exit
+- Explains outcomes without black-box calculations
+- Designed as an educational SaaS-style prototype
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+---
+
+## Disclaimer
+
+This tool is for **educational purposes only**.
+It does not provide financial, legal, or tax advice.
+Figures shown are illustrative, not guarantees.
+
+---
+
+## About the creator
+
+Built by **Sheshank**  
+Portfolio: https://sheshank-portfolio.netlify.app/ 
+LinkedIn: https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/
