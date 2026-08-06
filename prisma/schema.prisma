@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String @id @default(cuid())
+  name         String
+  email        String @unique
+  passwordHash String
+
+  calculations Calculation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GuestSession {
+  id         String   @id @default(cuid())
+  guestId    String   @unique
+  usageCount Int      @default(0)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Calculation {
+  id String @id @default(cuid())
+
+  // User Inputs
+  esopsGranted       Int
+  vestedPercentage   Float
+  currentValuation   Float
+  dilutionPercentage Float
+  exitValuation      Float
+
+  // Calculated Results
+  vestedShares  Float
+  valueToday    Float
+  afterDilution Float
+  exitValue     Float
+
+  // Relation
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}

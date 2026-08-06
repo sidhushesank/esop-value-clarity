@@ -1,8 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import NavBar from "@/components/ui/NavBar";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "ESOP Value Clarity",
@@ -16,7 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-50 text-slate-900`}>
+      <body
+        className={`${inter.className} bg-slate-50 text-slate-900`}
+      >
+        <NavBar />
+
         {children}
       </body>
     </html>

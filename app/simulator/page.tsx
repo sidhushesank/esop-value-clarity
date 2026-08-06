@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+
+import { Button } from "@/components/ui/button";
 
 export default function SimulatorPage() {
   const router = useRouter();
@@ -16,133 +25,281 @@ export default function SimulatorPage() {
   const [dilution, setDilution] = useState(0);
   const [exitValuation, setExitValuation] = useState(0);
 
-  const vestedShares = (esops * vested) / 100;
-  const valueToday = (vestedShares / 1_000_000) * valuation;
-  const afterDilution = valueToday * (1 - dilution / 100);
-  const exitValue =
-    (vestedShares / 1_000_000) * exitValuation * (1 - dilution / 100);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const [result, setResult] = useState<{
+    vestedShares: number;
+    valueToday: number;
+    afterDilution: number;
+    exitValue: number;
+  } | null>(null);
+
+  async function handleCalculate() {
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const response = await fetch("/api/calculator", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          esopsGranted: esops,
+          vestedPercentage: vested,
+          currentValuation: valuation,
+          dilutionPercentage: dilution,
+          exitValuation,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || "Unable to calculate.");
+        return;
+      }
+
+      setResult(data.calculation);
+      setMessage("Calculation saved successfully.");
+
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
 
-        {/* Back Navigation */}
+      <div className="mx-auto max-w-7xl px-5 py-6 md:px-6 md:py-10 space-y-6 md:space-y-8">
+
+        {/* Back */}
+
         <button
           onClick={() => router.back()}
-          className="text-sm text-slate-500 hover:text-slate-900 flex items-center gap-1"
+          className="text-sm text-slate-500 transition hover:text-slate-900"
         >
           ← Back
         </button>
 
-        {/* Page Header */}
+        {/* Heading */}
+
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
+
+          <h1 className="text-2xl md:text-3xl font-bold">
             ESOP Value Simulator
           </h1>
-          <p className="text-slate-600 mt-2 max-w-2xl">
-            Estimate the real value of your ESOPs across vesting, dilution,
-            and exit scenarios using transparent assumptions.
+
+          <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-600 leading-6">
+            Estimate the value of your ESOPs using vesting,
+            dilution and future valuation assumptions.
           </p>
+
         </div>
 
-        {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid gap-6 lg:grid-cols-3">
 
-          {/* Inputs */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>ESOP Inputs</CardTitle>
+          {/* LEFT */}
+
+          <Card>
+
+            <CardHeader className="pb-4">
+
+              <CardTitle className="text-lg md:text-xl">
+                ESOP Inputs
+              </CardTitle>
+
             </CardHeader>
 
             <CardContent className="space-y-5">
+
               <div>
-                <Label>ESOPs Granted</Label>
+
+                <Label>
+                  ESOPs Granted
+                </Label>
+
                 <Input
+                  className="mt-2 h-11"
                   type="number"
-                  placeholder="e.g. 5000"
-                  onChange={(e) => setEsops(+e.target.value || 0)}
+                  value={esops}
+                  onChange={(e) =>
+                    setEsops(Number(e.target.value))
+                  }
                 />
+
               </div>
 
               <div>
-                <Label>Vested %</Label>
+
+                <Label>
+                  Vested %
+                </Label>
+
                 <Input
+                  className="mt-2 h-11"
                   type="number"
-                  placeholder="e.g. 75"
-                  onChange={(e) => setVested(+e.target.value || 0)}
+                  value={vested}
+                  onChange={(e) =>
+                    setVested(Number(e.target.value))
+                  }
                 />
+
               </div>
 
               <Separator />
 
               <div>
-                <Label>Current Company Valuation (₹)</Label>
+
+                <Label>
+                  Current Company Valuation (₹)
+                </Label>
+
                 <Input
+                  className="mt-2 h-11"
                   type="number"
-                  placeholder="e.g. 50,00,00,000"
-                  onChange={(e) => setValuation(+e.target.value || 0)}
+                  value={valuation}
+                  onChange={(e) =>
+                    setValuation(Number(e.target.value))
+                  }
                 />
+
               </div>
 
               <div>
-                <Label>Dilution % (Future Rounds)</Label>
+
+                <Label>
+                  Dilution %
+                </Label>
+
                 <Input
+                  className="mt-2 h-11"
                   type="number"
-                  placeholder="e.g. 20"
-                  onChange={(e) => setDilution(+e.target.value || 0)}
+                  value={dilution}
+                  onChange={(e) =>
+                    setDilution(Number(e.target.value))
+                  }
                 />
+
               </div>
 
               <div>
-                <Label>Exit Valuation (₹)</Label>
+
+                <Label>
+                  Exit Valuation (₹)
+                </Label>
+
                 <Input
+                  className="mt-2 h-11"
                   type="number"
-                  placeholder="e.g. 300,00,00,000"
-                  onChange={(e) => setExitValuation(+e.target.value || 0)}
+                  value={exitValuation}
+                  onChange={(e) =>
+                    setExitValuation(Number(e.target.value))
+                  }
                 />
+
               </div>
+
+              <Button
+                onClick={handleCalculate}
+                disabled={loading}
+                className="h-11 w-full"
+              >
+                {loading
+                  ? "Calculating..."
+                  : "Calculate ESOP Value"}
+              </Button>
+
+              {message && (
+
+                <div
+                  className={`rounded-lg border p-3 text-center text-sm ${
+                    message.includes("successfully")
+                      ? "border-green-200 bg-green-50 text-green-700"
+                      : "border-red-200 bg-red-50 text-red-700"
+                  }`}
+                >
+                  {message}
+                </div>
+
+              )}
+
             </CardContent>
+
           </Card>
 
-          {/* Results */}
+          {/* RIGHT */}
+
           <Card className="lg:col-span-2">
+
             <CardHeader>
-              <CardTitle>Estimated ESOP Value</CardTitle>
+
+              <CardTitle className="text-lg md:text-xl">
+                Estimated ESOP Value
+              </CardTitle>
+
             </CardHeader>
 
             <CardContent className="space-y-6">
 
-              {/* Value Tiles */}
-              <div className="grid md:grid-cols-3 gap-4">
-                <ValueBox label="Value Today" value={valueToday} />
-                <ValueBox label="After Dilution" value={afterDilution} />
-                <ValueBox label="At Exit" value={exitValue} highlight />
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+
+                <ValueBox
+                  label="Value Today"
+                  value={result?.valueToday ?? 0}
+                />
+
+                <ValueBox
+                  label="After Dilution"
+                  value={result?.afterDilution ?? 0}
+                />
+
+                <ValueBox
+                  label="At Exit"
+                  value={result?.exitValue ?? 0}
+                  highlight
+                />
+
               </div>
 
               <Separator />
 
-              {/* Assumptions */}
-              <div className="text-sm text-slate-600 space-y-2">
-                <p className="font-medium text-slate-700">
+              <div className="text-sm text-slate-600">
+
+                <p className="mb-3 font-semibold">
                   Assumptions
                 </p>
-                <ul className="list-disc ml-5 space-y-1">
+
+                <ul className="ml-5 list-disc space-y-2">
+
                   <li>Total shares assumed: 1,000,000</li>
+
                   <li>Linear dilution applied</li>
-                  <li>No tax implications included</li>
-                  <li>Illustrative estimates only</li>
+
+                  <li>No taxation included</li>
+
+                  <li>Illustrative purposes only</li>
+
                 </ul>
+
               </div>
+
             </CardContent>
+
           </Card>
+
         </div>
+
       </div>
+
     </div>
   );
 }
-
-/* --- Helper component --- */
-
 function ValueBox({
   label,
   value,
@@ -154,22 +311,25 @@ function ValueBox({
 }) {
   return (
     <div
-      className={`rounded-xl border p-4 ${
+      className={`rounded-2xl border p-5 md:p-6 transition-all duration-300 hover:shadow-md ${
         highlight
-          ? "bg-slate-900 text-white border-slate-900"
+          ? "border-slate-900 bg-slate-900 text-white"
           : "bg-white"
       }`}
     >
       <p
-        className={`text-sm ${
-          highlight ? "text-slate-300" : "text-slate-500"
+        className={`text-xs md:text-sm font-medium ${
+          highlight
+            ? "text-slate-300"
+            : "text-slate-500"
         }`}
       >
         {label}
       </p>
-      <p className="text-2xl font-semibold mt-1">
+
+      <h2 className="mt-3 break-words text-2xl md:text-3xl font-bold leading-tight">
         ₹{value.toLocaleString("en-IN")}
-      </p>
+      </h2>
     </div>
   );
 }
