@@ -55,15 +55,14 @@ export default function UserMenu() {
       );
   }, []);
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
+ async function handleLogout() {
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
 
-    router.push("/login");
-    router.refresh();
-  }
+  window.location.href = "/login";
+}
 
   if (!user) return null;
 

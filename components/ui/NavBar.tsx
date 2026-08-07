@@ -18,16 +18,27 @@ export default function NavBar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setUser(data.user);
-        }
+  async function loadUser() {
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
       });
-  }, []);
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    }
+  }
+
+  loadUser();
+}, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur">

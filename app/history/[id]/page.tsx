@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import EquityGrowthChart from "@/components/history/EquityGrowthChart";
 
 import { Button } from "@/components/ui/button";
 
@@ -86,67 +87,43 @@ export default function CalculationDetailsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-
       <div className="mx-auto max-w-7xl px-6 py-10">
-
         <Link href="/history">
-
           <Button variant="outline" className="mb-8 gap-2">
-
             <ArrowLeft className="h-4 w-4" />
-
             Back to History
-
           </Button>
-
         </Link>
 
         {/* HERO */}
-
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 p-10 text-white shadow-xl">
-
           <div className="absolute -top-10 -right-10 h-60 w-60 rounded-full bg-blue-500/10 blur-3xl" />
-
           <div className="absolute -bottom-12 -left-10 h-60 w-60 rounded-full bg-indigo-500/10 blur-3xl" />
 
           <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
-
             <div>
-
               <h1 className="text-5xl font-extrabold tracking-tight">
-
                 ESOP Calculation
-
               </h1>
 
               <div className="mt-5 flex items-center gap-3 text-slate-300">
-
                 <CalendarDays className="h-5 w-5" />
-
                 {new Date(calculation.createdAt).toLocaleDateString("en-IN", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 })}
-
               </div>
-
             </div>
 
             <div className="rounded-full bg-emerald-500/20 px-6 py-3 font-semibold text-emerald-300">
-
               Saved Scenario
-
             </div>
-
           </div>
-
         </div>
 
         {/* KPI */}
-
         <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-
           <KpiCard
             title="Current Value"
             value={calculation.valueToday}
@@ -167,45 +144,32 @@ export default function CalculationDetailsPage() {
             icon={<Rocket className="h-7 w-7" />}
             color="emerald"
           />
-
         </div>
 
+        <EquityGrowthChart
+          currentValue={calculation.valueToday}
+          afterDilution={calculation.afterDilution}
+          exitValue={calculation.exitValue}
+        />
+
         {/* MAIN GRID */}
-
         <div className="mt-8 grid gap-8 xl:grid-cols-3">
-
           {/* LEFT */}
-
           <div className="xl:col-span-2 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
             <div className="mb-8 flex items-center gap-4">
-
               <div className="rounded-2xl bg-slate-100 p-4">
-
                 <BarChart3 className="h-7 w-7 text-slate-700" />
-
               </div>
 
               <div>
-
-                <h2 className="text-2xl font-bold">
-
-                  Calculation Inputs
-
-                </h2>
-
+                <h2 className="text-2xl font-bold">Calculation Inputs</h2>
                 <p className="mt-1 text-slate-500">
-
                   Values used for this calculation
-
                 </p>
-
               </div>
-
             </div>
 
             <div className="grid gap-5 lg:grid-cols-2">
-
               <InfoRow
                 icon={<Coins className="h-5 w-5" />}
                 label="ESOPs Granted"
@@ -229,7 +193,7 @@ export default function CalculationDetailsPage() {
                 label="Current Valuation"
                 value={`₹${calculation.currentValuation.toLocaleString("en-IN")}`}
               />
-                            <InfoRow
+              <InfoRow
                 icon={<Percent className="h-5 w-5" />}
                 label="Dilution Percentage"
                 value={`${calculation.dilutionPercentage}%`}
@@ -240,17 +204,12 @@ export default function CalculationDetailsPage() {
                 label="Exit Valuation"
                 value={`₹${calculation.exitValuation.toLocaleString("en-IN")}`}
               />
-
             </div>
-
           </div>
 
           {/* RIGHT PANEL */}
-
           <div className="space-y-6">
-
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white shadow-xl">
-
               <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
                 Estimated Wealth
               </p>
@@ -266,17 +225,12 @@ export default function CalculationDetailsPage() {
               <p className="mt-5 text-sm text-slate-300">
                 Based on your assumptions and vesting details.
               </p>
-
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-
-              <h2 className="text-xl font-bold">
-                Quick Summary
-              </h2>
+              <h2 className="text-xl font-bold">Quick Summary</h2>
 
               <div className="mt-6 space-y-5">
-
                 <SummaryRow
                   label="Current Value"
                   value={`₹${calculation.valueToday.toLocaleString("en-IN")}`}
@@ -299,21 +253,16 @@ export default function CalculationDetailsPage() {
 
                 <SummaryRow
                   label="Created On"
-                  value={new Date(calculation.createdAt).toLocaleDateString("en-IN")}
+                  value={new Date(calculation.createdAt).toLocaleDateString(
+                    "en-IN"
+                  )}
                 />
-
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   );
 }
 
@@ -343,25 +292,15 @@ function KpiCard({
       className={`rounded-3xl bg-gradient-to-br ${gradients[color]} p-7 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}
     >
       <div className="flex items-start justify-between">
-
         <div>
-
-          <p className="text-sm text-white/80">
-            {title}
-          </p>
+          <p className="text-sm text-white/80">{title}</p>
 
           <h2 className="mt-3 break-all text-4xl font-extrabold">
             ₹{value.toLocaleString("en-IN")}
           </h2>
-
         </div>
 
-        <div className="rounded-2xl bg-white/20 p-4 backdrop-blur">
-
-          {icon}
-
-        </div>
-
+        <div className="rounded-2xl bg-white/20 p-4 backdrop-blur">{icon}</div>
       </div>
     </div>
   );
@@ -382,27 +321,15 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 transition-all hover:border-blue-200 hover:bg-blue-50">
-
       <div className="flex items-center gap-4">
-
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white">
-
           {icon}
-
         </div>
 
-        <span className="font-medium text-slate-600">
-          {label}
-        </span>
-
+        <span className="font-medium text-slate-600">{label}</span>
       </div>
 
-      <span className="font-bold text-slate-900">
-
-        {value}
-
-      </span>
-
+      <span className="font-bold text-slate-900">{value}</span>
     </div>
   );
 }
@@ -411,24 +338,12 @@ function InfoRow({
    SUMMARY ROW
 ======================================================= */
 
-function SummaryRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-slate-100 pb-4 last:border-none last:pb-0">
+      <span className="text-slate-500">{label}</span>
 
-      <span className="text-slate-500">
-        {label}
-      </span>
-
-      <span className="font-semibold text-slate-900">
-        {value}
-      </span>
-
+      <span className="font-semibold text-slate-900">{value}</span>
     </div>
   );
 }
