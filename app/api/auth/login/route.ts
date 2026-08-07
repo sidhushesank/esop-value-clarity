@@ -78,13 +78,21 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error: any) {
+    console.error("========== LOGIN ERROR ==========");
+    console.error(error);
+    console.error("=================================");
+
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message: error?.message || "Unknown error occurred",
+        stack:
+          process.env.NODE_ENV === "development"
+            ? error?.stack
+            : undefined,
       },
       {
-        status: 400,
+        status: 500,
       }
     );
   }

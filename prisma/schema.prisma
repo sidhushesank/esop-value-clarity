@@ -7,15 +7,13 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(cuid())
+  id           String        @id @default(cuid())
   name         String
-  email        String @unique
+  email        String        @unique
   passwordHash String
-
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   calculations Calculation[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model GuestSession {
@@ -28,24 +26,17 @@ model GuestSession {
 }
 
 model Calculation {
-  id String @id @default(cuid())
-
-  // User Inputs
+  id                 String   @id @default(cuid())
   esopsGranted       Int
   vestedPercentage   Float
   currentValuation   Float
   dilutionPercentage Float
   exitValuation      Float
-
-  // Calculated Results
-  vestedShares  Float
-  valueToday    Float
-  afterDilution Float
-  exitValue     Float
-
-  // Relation
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  vestedShares       Float
+  valueToday         Float
+  afterDilution      Float
+  exitValue          Float
+  userId             String
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
