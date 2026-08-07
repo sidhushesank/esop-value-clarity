@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validators";
 import { hashPassword, generateToken } from "@/lib/auth";
@@ -24,7 +25,9 @@ export async function POST(request: Request) {
           success: false,
           message: "Email already registered",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -43,39 +46,56 @@ export async function POST(request: Request) {
     // Generate JWT
     const token = generateToken(user.id);
 
-const response = NextResponse.json(
-  {
-    success: true,
-    message: "Account created successfully",
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    },
-  },
-  { status: 201 }
-);
+    // Create response
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Account created successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+      },
+      {
+        status: 201,
+      }
+    );
 
-response.cookies.set("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  maxAge: 60 * 60 * 24 * 7, // 7 days
-  path: "/",
-});
+    // Store JWT in HttpOnly Cookie
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
 
-return response;
-  } catch (error: any) {
+    return response;
+  } catch (error: unknown) {
+    // Handle Zod validation errors
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.issues[0].message,
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    console.error(error);
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message: "Password must contain at least 8 characters.",
       },
       {
-        status: 400,
+        status: 500,
       }
     );
-
   }
 }
