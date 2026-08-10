@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/sections/Footer";
 
 import {
   ArrowRight,
@@ -368,6 +369,7 @@ export default function AboutPage() {
         </p>
 
       </section>
+      <Footer />
 
     </main>
   );
