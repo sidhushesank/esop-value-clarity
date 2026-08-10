@@ -218,6 +218,94 @@ export default function HomePage() {
         </div>
 
       </section>
+      {/* FAQ */}
+<section className="bg-white">
+
+  <div className="max-w-6xl mx-auto px-6 py-28">
+
+    <div className="max-w-3xl">
+
+      <h3 className="text-4xl font-bold">
+        Frequently Asked Questions
+      </h3>
+
+      <p className="text-slate-600 mt-5 text-lg leading-8">
+        Everything you need to know about Employee Stock Ownership Plans (ESOPs),
+        startup equity, dilution and how ESOP Value Clarity helps estimate the
+        potential value of your stock options.
+      </p>
+
+    </div>
+
+    <div className="grid md:grid-cols-2 gap-6 mt-16">
+
+      {[
+        {
+          question: "What is an ESOP?",
+          answer:
+            "An Employee Stock Ownership Plan (ESOP) gives employees the opportunity to own shares in the company. Instead of only receiving salary, employees can benefit if the company's value grows over time."
+        },
+        {
+          question: "How does the ESOP calculator work?",
+          answer:
+            "The calculator estimates your potential ESOP value using inputs like granted options, strike price, company valuation, ownership percentage, dilution and projected exit valuation."
+        },
+        {
+          question: "What is dilution?",
+          answer:
+            "Dilution occurs when a company issues additional shares during future funding rounds. Existing shareholders own a smaller percentage of the company unless they receive additional shares."
+        },
+        {
+          question: "What is a vesting schedule?",
+          answer:
+            "A vesting schedule determines when you officially earn ownership of your ESOPs. Many startups use four-year vesting with a one-year cliff before options begin vesting."
+        },
+        {
+          question: "Is ESOP Value Clarity free?",
+          answer:
+            "Yes. ESOP Value Clarity is completely free to use and helps employees, founders and startup professionals better understand startup equity without complicated spreadsheets."
+        },
+        {
+          question: "Can founders use this calculator?",
+          answer:
+            "Absolutely. Founders can use the simulator to understand ownership dilution, funding scenarios and potential exit outcomes while planning future equity allocation."
+        },
+        {
+          question: "Does the calculator store my data?",
+          answer:
+            "No. Your calculations remain private unless you choose to save them. The simulator is designed to help you understand equity while respecting your privacy."
+        },
+        {
+          question: "Are these calculations guaranteed?",
+          answer:
+            "No. The calculator provides educational estimates based on the information you enter. Actual ESOP value depends on future company performance, funding rounds and exit events."
+        }
+      ].map((faq) => (
+
+        <Card
+          key={faq.question}
+          className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300"
+        >
+          <CardContent className="p-8">
+
+            <h4 className="text-xl font-semibold">
+              {faq.question}
+            </h4>
+
+            <p className="mt-4 text-slate-600 leading-7">
+              {faq.answer}
+            </p>
+
+          </CardContent>
+        </Card>
+
+      ))}
+
+    </div>
+
+  </div>
+
+</section>
 
       {/* CTA */}
       <section className="bg-gradient-to-b from-slate-900 to-slate-950">

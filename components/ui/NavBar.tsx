@@ -75,6 +75,12 @@ export default function NavBar() {
           >
             History
           </NavLink>
+          <NavLink
+  href="/blog"
+  active={pathname.startsWith("/blog")}
+>
+  Blog
+</NavLink>
 
           <NavLink
             href="/about"
@@ -150,6 +156,13 @@ export default function NavBar() {
             >
               History
             </MobileLink>
+            <MobileLink
+  href="/blog"
+  active={pathname.startsWith("/blog")}
+  onClick={() => setOpen(false)}
+>
+  Blog
+</MobileLink>
 
             <MobileLink
               href="/about"
