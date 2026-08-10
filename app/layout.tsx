@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import NavBar from "@/components/ui/NavBar";
 
 const inter = Inter({
@@ -19,13 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} bg-slate-50 text-slate-900`}
-      >
+      <body className={`${inter.className} bg-slate-50 text-slate-900`}>
         <NavBar />
-
         {children}
       </body>
+
+      <GoogleAnalytics gaId="G-1MMW7BTNWT" />
     </html>
   );
 }
