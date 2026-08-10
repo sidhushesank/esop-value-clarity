@@ -44,6 +44,10 @@ export const metadata: Metadata = {
     follow: true,
   },
 
+  alternates: {
+    canonical: "/",
+  },
+
   openGraph: {
     title: "ESOP Value Clarity",
     description:
@@ -52,6 +56,15 @@ export const metadata: Metadata = {
     siteName: "ESOP Value Clarity",
     locale: "en_US",
     type: "website",
+
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1728,
+        height: 910,
+        alt: "ESOP Value Clarity",
+      },
+    ],
   },
 
   twitter: {
@@ -59,6 +72,7 @@ export const metadata: Metadata = {
     title: "ESOP Value Clarity",
     description:
       "Free ESOP calculator for startup employees and founders.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -71,6 +85,7 @@ const jsonLd = {
   operatingSystem: "Web",
   description:
     "A free ESOP calculator and simulator to estimate startup equity value, dilution, vesting and exit scenarios.",
+
   offers: {
     "@type": "Offer",
     price: "0",
