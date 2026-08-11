@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromToken } from "@/lib/auth";
+import { updateProfileSchema } from "@/lib/validators";
+import { ZodError } from "zod";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get("token")?.value;
 
@@ -32,60 +34,41 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
+    const body = await request.json();
+
+    const data = updateProfileSchema.parse(body);
+
+    const user = await prisma.user.update({
       where: {
         id: userId,
       },
-      include: {
-        calculations: true,
+      data: {
+        name: data.name,
       },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    const totalSimulations = user.calculations.length;
-
-    const portfolioValue = user.calculations.reduce(
-      (sum, calc) => sum + calc.exitValue,
-      0
-    );
-
-    const highestExit =
-      user.calculations.length > 0
-        ? Math.max(...user.calculations.map((c) => c.exitValue))
-        : 0;
-
     return NextResponse.json({
       success: true,
+      message: "Profile updated successfully.",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        createdAt: user.createdAt,
-
-        stats: {
-          totalSimulations,
-          portfolioValue,
-          highestExit,
-        },
-
-        account: {
-          plan: "Free",
-          verified: true,
-        },
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.issues[0].message,
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
     console.error(error);
 
     return NextResponse.json(

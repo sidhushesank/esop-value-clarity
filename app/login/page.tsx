@@ -205,7 +205,7 @@ export default function LoginPage() {
               </p>
 
               <p>Email: demo@esopclarity.com</p>
-              <p>Password: demo123</p>
+              <p>Password: demo@123</p>
             </div>
 
           </CardContent>

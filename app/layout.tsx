@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { Toaster } from "sonner";
 import NavBar from "@/components/ui/NavBar";
 
 const inter = Inter({
@@ -111,6 +112,8 @@ export default function RootLayout({
         <NavBar />
 
         {children}
+
+        <Toaster position="top-right" richColors closeButton />
 
         <GoogleAnalytics gaId="G-1MMW7BTNWT" />
       </body>
