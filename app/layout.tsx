@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
-import NavBar from "@/components/ui/NavBar";
-
+import NavigationShell from "@/components/ui/NavigationShell";
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -109,7 +108,7 @@ export default function RootLayout({
           }}
         />
 
-        <NavBar />
+        <NavigationShell />
 
         {children}
 

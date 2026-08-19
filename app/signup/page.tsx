@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 export default function SignupPage() {
-  const router = useRouter();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +20,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+ 
 
   async function handleSignup() {
     setError("");
@@ -61,11 +59,12 @@ export default function SignupPage() {
       }
 
       setSuccess(true);
-
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-
+      setError("");
+setName("");
+setEmail("");
+setPassword("");
+setConfirmPassword("");
+      
     } catch (err) {
       setError("Something went wrong.");
     } finally {
@@ -75,29 +74,21 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-gradient-to-br from-slate-50 to-slate-100">
-
       {/* LEFT */}
 
       <div className="flex items-center justify-center px-6">
-
         <Card className="w-full max-w-md border border-slate-200 shadow-xl">
-
           <CardContent className="p-8 space-y-8">
-
             <div className="text-center space-y-2">
-
               <p className="text-xs uppercase tracking-widest text-slate-500">
                 ESOP Value Clarity
               </p>
 
-              <h1 className="text-3xl font-semibold">
-                Create Account
-              </h1>
+              <h1 className="text-3xl font-semibold">Create Account</h1>
 
               <p className="text-sm text-slate-500">
                 Start calculating your ESOP value in minutes.
               </p>
-
             </div>
 
             {/* Success Message */}
@@ -105,17 +96,24 @@ export default function SignupPage() {
             {success && (
               <div className="rounded-xl border border-green-200 bg-green-50 p-4">
                 <h3 className="font-semibold text-green-700">
-                  🎉 Account created successfully!
+                  📧 Account created successfully!
                 </h3>
 
-                <p className="mt-1 text-sm text-green-600">
-                  Redirecting to login...
-                </p>
+               <p className="mt-3 text-sm leading-6 text-green-700">
+  We've sent a verification email to your inbox.
+  <br />
+  Please verify your email before logging in.
+</p>
+
+<p className="mt-3 rounded-lg bg-blue-50 p-3 text-xs text-blue-700">
+  💡 If you don't see the email, check your Spam or Promotions folder.
+</p>
+
+               
               </div>
             )}
 
             <div className="space-y-4">
-
               <Input
                 placeholder="Full Name"
                 value={name}
@@ -179,13 +177,10 @@ export default function SignupPage() {
                   )}
                 </button>
               </div>
-
             </div>
 
             {error && (
-              <p className="text-center text-sm text-red-500">
-                {error}
-              </p>
+              <p className="text-center text-sm text-red-500">{error}</p>
             )}
 
             <Button
@@ -196,14 +191,12 @@ export default function SignupPage() {
               {loading
                 ? "Creating Account..."
                 : success
-                ? "Account Created"
-                : "Create Account"}
+                  ? "Account Created"
+                  : "Create Account"}
             </Button>
 
             <p className="text-center text-sm text-slate-600">
-
               Already have an account?{" "}
-
               <Link
                 href="/login"
                 className={`font-medium hover:underline ${
@@ -214,27 +207,20 @@ export default function SignupPage() {
               >
                 Login
               </Link>
-
             </p>
-
           </CardContent>
-
         </Card>
-
       </div>
 
       {/* RIGHT */}
 
       <div className="hidden md:flex items-center justify-center bg-slate-900 text-white">
-
         <div className="max-w-sm space-y-6">
-
-          <h2 className="text-5xl font-bold">
-            Build your equity future.
-          </h2>
+          <h2 className="text-5xl font-bold">Build your equity future.</h2>
 
           <p className="text-slate-300">
-            Save calculations, compare scenarios and understand your ESOPs with confidence.
+            Save calculations, compare scenarios and understand your ESOPs with
+            confidence.
           </p>
 
           <ul className="space-y-2 text-slate-300">
@@ -242,11 +228,8 @@ export default function SignupPage() {
             <li>✓ Save history</li>
             <li>✓ Free forever</li>
           </ul>
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { randomBytes, createHash } from "crypto";
+
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validators";
-import { hashPassword, generateToken } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +15,7 @@ export async function POST(request: Request) {
     // Validate request
     const data = signupSchema.parse(body);
 
-    // Check existing user
+    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: {
         email: data.email,
@@ -20,13 +23,65 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
+      // Already verified
+      if (existingUser.emailVerified) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Email already registered.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      // User exists but is NOT verified
+      // Remove old verification tokens
+      await prisma.emailVerificationToken.deleteMany({
+        where: {
+          userId: existingUser.id,
+        },
+      });
+
+      // Generate new token
+      const rawToken = randomBytes(32).toString("hex");
+
+      const tokenHash = createHash("sha256")
+        .update(rawToken)
+        .digest("hex");
+
+      const expiresAt = new Date(
+        Date.now() + 24 * 60 * 60 * 1000
+      );
+
+      await prisma.emailVerificationToken.create({
+        data: {
+          userId: existingUser.id,
+          tokenHash,
+          expiresAt,
+        },
+      });
+
+      const baseUrl = new URL(request.url).origin;
+
+      const verificationUrl =
+        `${baseUrl}/verify-email?token=${rawToken}`;
+
+      await sendVerificationEmail(
+        existingUser.email,
+        existingUser.name,
+        verificationUrl
+      );
+
       return NextResponse.json(
         {
-          success: false,
-          message: "Email already registered",
+          success: true,
+          message:
+            "Verification email sent again. Please check your inbox.",
         },
         {
-          status: 400,
+          status: 200,
         }
       );
     }
@@ -34,46 +89,57 @@ export async function POST(request: Request) {
     // Hash password
     const passwordHash = await hashPassword(data.password);
 
-    // Create user
+    // Create new user
     const user = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         passwordHash,
+        emailVerified: false,
       },
     });
 
-    // Generate JWT
-    const token = generateToken(user.id);
+    // Generate verification token
+    const rawToken = randomBytes(32).toString("hex");
 
-    // Create response
-    const response = NextResponse.json(
+    const tokenHash = createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const expiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+
+    await prisma.emailVerificationToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = new URL(request.url).origin;
+
+    const verificationUrl =
+      `${baseUrl}/verify-email?token=${rawToken}`;
+
+    await sendVerificationEmail(
+      user.email,
+      user.name,
+      verificationUrl
+    );
+
+    return NextResponse.json(
       {
         success: true,
-        message: "Account created successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        },
+        message:
+          "Account created successfully. Please check your email to verify your account before logging in.",
       },
       {
         status: 201,
       }
     );
-
-    // Store JWT in HttpOnly Cookie
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
-
-    return response;
   } catch (error: unknown) {
-    // Handle Zod validation errors
     if (error instanceof ZodError) {
       return NextResponse.json(
         {
@@ -86,12 +152,13 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error(error);
+    console.error("Signup error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Password must contain at least 8 characters.",
+        message:
+          "Something went wrong while creating your account.",
       },
       {
         status: 500,

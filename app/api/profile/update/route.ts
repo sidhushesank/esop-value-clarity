@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromToken } from "@/lib/auth";
 import { updateProfileSchema } from "@/lib/validators";
+import { recordProfileUpdatedActivity } from "@/lib/activity";
 import { ZodError } from "zod";
 
 export async function POST(request: NextRequest) {
   try {
+    // ============================================================
+    // GET JWT FROM COOKIE
+    // ============================================================
+
     const token = request.cookies.get("token")?.value;
 
     if (!token) {
@@ -19,6 +24,10 @@ export async function POST(request: NextRequest) {
         }
       );
     }
+
+    // ============================================================
+    // GET USER ID FROM TOKEN
+    // ============================================================
 
     const userId = getUserIdFromToken(token);
 
@@ -34,9 +43,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ============================================================
+    // READ + VALIDATE REQUEST BODY
+    // ============================================================
+
     const body = await request.json();
 
     const data = updateProfileSchema.parse(body);
+
+    // ============================================================
+    // UPDATE USER PROFILE
+    // ============================================================
 
     const user = await prisma.user.update({
       where: {
@@ -46,6 +63,16 @@ export async function POST(request: NextRequest) {
         name: data.name,
       },
     });
+
+    // ============================================================
+    // RECORD PROFILE ACTIVITY
+    // ============================================================
+
+    await recordProfileUpdatedActivity(user.id);
+
+    // ============================================================
+    // RESPONSE
+    // ============================================================
 
     return NextResponse.json({
       success: true,
@@ -69,7 +96,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error(
+      "========== PROFILE UPDATE ERROR =========="
+    );
     console.error(error);
+    console.error(
+      "=========================================="
+    );
 
     return NextResponse.json(
       {

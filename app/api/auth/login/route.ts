@@ -2,16 +2,26 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validators";
 import { verifyPassword, generateToken } from "@/lib/auth";
+import { recordLoginActivity } from "@/lib/activity";
 
 export async function POST(request: Request) {
   try {
-    // Read request body
+    // ============================================================
+    // READ REQUEST BODY
+    // ============================================================
+
     const body = await request.json();
 
-    // Validate request
+    // ============================================================
+    // VALIDATE REQUEST
+    // ============================================================
+
     const data = loginSchema.parse(body);
 
-    // Find user
+    // ============================================================
+    // FIND USER
+    // ============================================================
+
     const user = await prisma.user.findUnique({
       where: {
         email: data.email,
@@ -30,7 +40,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Compare password
+    // ============================================================
+    // COMPARE PASSWORD
+    // ============================================================
+
     const isPasswordValid = await verifyPassword(
       data.password,
       user.passwordHash
@@ -48,18 +61,67 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate JWT
-    const token = generateToken(user.id);
+    // ============================================================
+    // CHECK ACCOUNT STATUS
+    // ============================================================
 
-    // Create response
+    if (user.accountStatus === "SUSPENDED") {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This account has been suspended. Please contact support.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    // ============================================================
+    // UPDATE LOGIN TIMESTAMPS
+    // ============================================================
+
+    const now = new Date();
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        lastLoginAt: now,
+        lastActiveAt: now,
+      },
+    });
+
+    // ============================================================
+    // RECORD LOGIN ACTIVITY
+    // ============================================================
+
+    await recordLoginActivity(updatedUser.id);
+
+    // ============================================================
+    // GENERATE JWT
+    // ============================================================
+
+    const token = generateToken(updatedUser.id);
+
+    // ============================================================
+    // CREATE RESPONSE
+    // ============================================================
+
     const response = NextResponse.json(
       {
         success: true,
         message: "Login successful",
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+
+          // Admin system
+          role: updatedUser.role,
+          accountStatus: updatedUser.accountStatus,
         },
       },
       {
@@ -67,7 +129,10 @@ export async function POST(request: Request) {
       }
     );
 
-    // Store JWT in HttpOnly Cookie
+    // ============================================================
+    // STORE JWT IN HTTPONLY COOKIE
+    // ============================================================
+
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

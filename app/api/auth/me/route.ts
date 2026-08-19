@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserIdFromToken } from "@/lib/auth";
+import { getUserSubscription } from "@/lib/subscription";
 
 export async function GET(request: NextRequest) {
   try {
+    // ---------------------------------------------------------
+    // 1. Get JWT from cookie
+    // ---------------------------------------------------------
+
     const token = request.cookies.get("token")?.value;
 
     if (!token) {
@@ -17,6 +22,10 @@ export async function GET(request: NextRequest) {
         }
       );
     }
+
+    // ---------------------------------------------------------
+    // 2. Get user ID from JWT
+    // ---------------------------------------------------------
 
     const userId = getUserIdFromToken(token);
 
@@ -32,12 +41,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // ---------------------------------------------------------
+    // 3. Get user + subscription
+    // ---------------------------------------------------------
+
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
       include: {
         calculations: true,
+        subscription: true,
       },
     });
 
@@ -53,6 +67,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // ---------------------------------------------------------
+    // 4. Check account status
+    // ---------------------------------------------------------
+
+    if (user.accountStatus === "SUSPENDED") {
+      const response = NextResponse.json(
+        {
+          success: false,
+          message:
+            "This account has been suspended. Please contact support.",
+        },
+        {
+          status: 403,
+        }
+      );
+
+      // Remove active login session for suspended user
+      response.cookies.set("token", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        expires: new Date(0),
+        path: "/",
+      });
+
+      return response;
+    }
+
+    // ---------------------------------------------------------
+    // 5. Calculate statistics
+    // ---------------------------------------------------------
+
     const totalSimulations = user.calculations.length;
 
     const portfolioValue = user.calculations.reduce(
@@ -62,16 +108,44 @@ export async function GET(request: NextRequest) {
 
     const highestExit =
       user.calculations.length > 0
-        ? Math.max(...user.calculations.map((c) => c.exitValue))
+        ? Math.max(
+            ...user.calculations.map(
+              (calculation) => calculation.exitValue
+            )
+          )
         : 0;
+
+    // ---------------------------------------------------------
+    // 6. Get subscription information
+    // ---------------------------------------------------------
+
+    const subscription = await getUserSubscription(user.id);
+
+    // ---------------------------------------------------------
+    // 7. Return account information
+    // ---------------------------------------------------------
 
     return NextResponse.json({
       success: true,
+
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         createdAt: user.createdAt,
+
+        // -----------------------------------------------------
+        // ADMIN / ACCOUNT INFORMATION
+        // -----------------------------------------------------
+
+        role: user.role,
+        accountStatus: user.accountStatus,
+        lastLoginAt: user.lastLoginAt,
+        lastActiveAt: user.lastActiveAt,
+
+        // -----------------------------------------------------
+        // EXISTING USER STATISTICS
+        // -----------------------------------------------------
 
         stats: {
           totalSimulations,
@@ -79,14 +153,40 @@ export async function GET(request: NextRequest) {
           highestExit,
         },
 
+        // -----------------------------------------------------
+        // EXISTING SUBSCRIPTION / ACCOUNT INFORMATION
+        // -----------------------------------------------------
+
         account: {
-          plan: "Free",
-          verified: true,
+          verified: user.emailVerified,
+
+          plan: subscription.plan,
+
+          status: subscription.status,
+
+          isPro: subscription.isPro,
+
+          isFounder: subscription.isFounder,
+
+          expiresAt:
+            subscription.subscription?.expiresAt ?? null,
+
+          billingCycle:
+            subscription.subscription?.billingCycle ?? null,
+
+          canCancel:
+            subscription.subscription?.status === "ACTIVE" &&
+            subscription.plan === "PRO",
+
+          isCancelled:
+            subscription.subscription?.status === "CANCELLED",
         },
       },
     });
   } catch (error) {
+    console.error("========== AUTH ME ERROR ==========");
     console.error(error);
+    console.error("===================================");
 
     return NextResponse.json(
       {

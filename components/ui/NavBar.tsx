@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import UserMenu from "./UserMenu";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Crown } from "lucide-react";
 
 interface User {
   name: string;
@@ -18,42 +18,106 @@ export default function NavBar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-  async function loadUser() {
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+          cache: "no-store",
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (data.success) {
-        setUser(data.user);
-      } else {
+        if (data.success) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch {
         setUser(null);
       }
-    } catch {
-      setUser(null);
     }
-  }
 
-  loadUser();
-}, [pathname]);
+    loadUser();
+  }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-5">
 
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-lg md:text-xl font-bold tracking-tight"
-        >
-          ESOP Value Clarity
-        </Link>
+        {/* ================================================== */}
+        {/* LEFT SIDE                                          */}
+        {/* ================================================== */}
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-4">
+
+          {/* Logo */}
+          <Link
+  href="/"
+  className="-ml-3 text-lg font-bold tracking-tight text-slate-950 md:text-xl"
+>
+            ESOP Value Clarity
+          </Link>
+
+          {/* ================================================== */}
+          {/* FREE / PRO WORKSPACE SWITCHER                      */}
+          {/* ================================================== */}
+
+          {user && (
+            <div className="hidden items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm md:flex">
+
+              {/* FREE - Active */}
+              <Link
+                href="/dashboard"
+                className="
+                  rounded-xl
+                  bg-slate-950
+                  px-3.5
+                  py-2
+                  text-xs
+                  font-bold
+                  text-white
+                  shadow-sm
+                  transition
+                "
+              >
+                FREE
+              </Link>
+
+              {/* PRO - Upgrade */}
+              <Link
+                href="/pricing"
+                className="
+                  group
+                  flex
+                  items-center
+                  gap-1.5
+                  rounded-xl
+                  px-3.5
+                  py-2
+                  text-xs
+                  font-bold
+                  text-slate-600
+                  transition
+                  hover:bg-slate-100
+                  hover:text-slate-950
+                "
+              >
+                <Crown
+                  size={12}
+                  className="text-amber-500 transition-transform group-hover:scale-110"
+                />
+
+                PRO
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* ================================================== */}
+        {/* DESKTOP NAVIGATION                                  */}
+        {/* ================================================== */}
+
+        <nav className="hidden items-center gap-8 md:flex">
 
           <NavLink
             href="/dashboard"
@@ -75,12 +139,13 @@ export default function NavBar() {
           >
             History
           </NavLink>
+
           <NavLink
-  href="/blog"
-  active={pathname.startsWith("/blog")}
->
-  Blog
-</NavLink>
+            href="/blog"
+            active={pathname.startsWith("/blog")}
+          >
+            Blog
+          </NavLink>
 
           <NavLink
             href="/about"
@@ -91,47 +156,156 @@ export default function NavBar() {
 
         </nav>
 
-        {/* Desktop Right */}
+        {/* ================================================== */}
+        {/* DESKTOP RIGHT                                      */}
+        {/* ================================================== */}
+
         <div className="hidden md:flex">
           {user ? (
             <UserMenu />
           ) : (
             <div className="flex gap-3">
+
               <Link
                 href="/login"
-                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-slate-100"
+                className="
+                  rounded-lg
+                  border
+                  border-slate-200
+                  px-4
+                  py-2
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  transition
+                  hover:bg-slate-100
+                "
               >
                 Login
               </Link>
 
               <Link
                 href="/signup"
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                className="
+                  rounded-lg
+                  bg-slate-950
+                  px-4
+                  py-2
+                  text-sm
+                  font-medium
+                  text-white
+                  transition
+                  hover:bg-slate-800
+                "
               >
                 Sign Up
               </Link>
+
             </div>
           )}
         </div>
 
-        {/* Mobile Hamburger */}
+        {/* ================================================== */}
+        {/* MOBILE RIGHT                                        */}
+        {/* ================================================== */}
+
         <button
-          className="md:hidden"
-          onClick={() => setOpen(!open)}
+          type="button"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            p-2
+            text-slate-700
+            shadow-sm
+            transition
+            hover:bg-slate-50
+            md:hidden
+          "
         >
           {open ? (
-            <X className="h-7 w-7" />
+            <X className="h-6 w-6" />
           ) : (
-            <Menu className="h-7 w-7" />
+            <Menu className="h-6 w-6" />
           )}
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ================================================== */}
+      {/* MOBILE MENU                                         */}
+      {/* ================================================== */}
+
       {open && (
-        <div className="md:hidden border-t bg-white shadow-lg">
+        <div className="border-t border-slate-200 bg-white shadow-lg md:hidden">
 
           <nav className="flex flex-col px-6 py-4">
+
+            {/* ---------------------------------------------- */}
+            {/* MOBILE WORKSPACE SWITCHER                      */}
+            {/* ---------------------------------------------- */}
+
+            {user && (
+              <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+
+                <div className="grid grid-cols-2 gap-1">
+
+                  {/* FREE */}
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="
+                      rounded-xl
+                      bg-slate-950
+                      px-4
+                      py-3
+                      text-center
+                      text-xs
+                      font-bold
+                      text-white
+                    "
+                  >
+                    FREE
+                  </Link>
+
+                  {/* PRO */}
+                  <Link
+                    href="/pricing"
+                    onClick={() => setOpen(false)}
+                    className="
+                      flex
+                      items-center
+                      justify-center
+                      gap-1.5
+                      rounded-xl
+                      px-4
+                      py-3
+                      text-xs
+                      font-bold
+                      text-slate-600
+                      transition
+                      hover:bg-white
+                      hover:text-slate-950
+                    "
+                  >
+                    <Crown
+                      size={12}
+                      className="text-amber-500"
+                    />
+
+                    PRO
+                  </Link>
+
+                </div>
+              </div>
+            )}
+
+            {/* ---------------------------------------------- */}
+            {/* NAVIGATION                                      */}
+            {/* ---------------------------------------------- */}
 
             <MobileLink
               href="/dashboard"
@@ -156,13 +330,14 @@ export default function NavBar() {
             >
               History
             </MobileLink>
+
             <MobileLink
-  href="/blog"
-  active={pathname.startsWith("/blog")}
-  onClick={() => setOpen(false)}
->
-  Blog
-</MobileLink>
+              href="/blog"
+              active={pathname.startsWith("/blog")}
+              onClick={() => setOpen(false)}
+            >
+              Blog
+            </MobileLink>
 
             <MobileLink
               href="/about"
@@ -172,12 +347,26 @@ export default function NavBar() {
               About
             </MobileLink>
 
+            {/* ---------------------------------------------- */}
+            {/* AUTH                                             */}
+            {/* ---------------------------------------------- */}
+
             {!user ? (
               <>
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="mt-4 rounded-lg border px-4 py-3 text-center font-medium"
+                  className="
+                    mt-4
+                    rounded-lg
+                    border
+                    border-slate-200
+                    px-4
+                    py-3
+                    text-center
+                    font-medium
+                    text-slate-700
+                  "
                 >
                   Login
                 </Link>
@@ -185,7 +374,16 @@ export default function NavBar() {
                 <Link
                   href="/signup"
                   onClick={() => setOpen(false)}
-                  className="mt-3 rounded-lg bg-slate-900 px-4 py-3 text-center font-medium text-white"
+                  className="
+                    mt-3
+                    rounded-lg
+                    bg-slate-950
+                    px-4
+                    py-3
+                    text-center
+                    font-medium
+                    text-white
+                  "
                 >
                   Sign Up
                 </Link>
@@ -203,6 +401,10 @@ export default function NavBar() {
   );
 }
 
+/* ====================================================== */
+/* DESKTOP NAV LINK                                       */
+/* ====================================================== */
+
 function NavLink({
   href,
   active,
@@ -215,16 +417,24 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`text-sm transition ${
-        active
-          ? "font-semibold text-slate-900"
-          : "text-slate-500 hover:text-slate-900"
-      }`}
+      className={`
+        text-sm
+        transition
+        ${
+          active
+            ? "font-semibold text-slate-950"
+            : "text-slate-500 hover:text-slate-950"
+        }
+      `}
     >
       {children}
     </Link>
   );
 }
+
+/* ====================================================== */
+/* MOBILE NAV LINK                                        */
+/* ====================================================== */
 
 function MobileLink({
   href,
@@ -241,11 +451,15 @@ function MobileLink({
     <Link
       href={href}
       onClick={onClick}
-      className={`py-3 text-base ${
-        active
-          ? "font-semibold text-slate-900"
-          : "text-slate-600"
-      }`}
+      className={`
+        py-3
+        text-base
+        ${
+          active
+            ? "font-semibold text-slate-950"
+            : "text-slate-600"
+        }
+      `}
     >
       {children}
     </Link>
