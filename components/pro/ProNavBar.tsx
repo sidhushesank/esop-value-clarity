@@ -127,9 +127,12 @@ export default function ProNavBar() {
               h-[64px]
               w-full
               items-center
-              gap-3
+              gap-2
               px-4
+
               md:px-5
+
+              min-[1900px]:gap-3
             "
           >
             {/* ================================================= */}
@@ -150,9 +153,15 @@ export default function ProNavBar() {
 
                 sm:text-lg
 
-                md:text-xl
-
+                xl:w-[178px]
                 xl:shrink-0
+                xl:text-[18px]
+
+                min-[1700px]:w-[190px]
+                min-[1700px]:text-[19px]
+
+                min-[1900px]:w-auto
+                min-[1900px]:text-xl
               "
             >
               ESOP Value Clarity
@@ -166,30 +175,36 @@ export default function ProNavBar() {
               <div
                 className="
                   flex
-                  h-11
+                  h-10
                   items-center
-                  gap-1
+                  gap-0.5
                   rounded-2xl
                   border
                   border-slate-200
                   bg-white
                   p-1
                   shadow-sm
+
+                  min-[1900px]:h-11
+                  min-[1900px]:gap-1
                 "
               >
                 <Link
                   href="/dashboard"
                   className="
                     rounded-xl
-                    px-3
+                    px-2.5
                     py-2
-                    text-xs
+                    text-[11px]
                     font-bold
                     text-slate-500
                     transition
 
                     hover:bg-slate-100
                     hover:text-slate-900
+
+                    min-[1700px]:px-3
+                    min-[1900px]:text-xs
                   "
                 >
                   FREE
@@ -200,12 +215,15 @@ export default function ProNavBar() {
                   className="
                     rounded-xl
                     bg-slate-950
-                    px-3
+                    px-2.5
                     py-2
-                    text-xs
+                    text-[11px]
                     font-black
                     text-white
                     shadow-sm
+
+                    min-[1700px]:px-3
+                    min-[1900px]:text-xs
                   "
                 >
                   PRO
@@ -221,7 +239,7 @@ export default function ProNavBar() {
                   className="
                     flex
                     h-8
-                    w-7
+                    w-6
                     items-center
                     justify-center
                     rounded-lg
@@ -230,6 +248,8 @@ export default function ProNavBar() {
 
                     hover:bg-slate-100
                     hover:text-slate-900
+
+                    min-[1900px]:w-7
                   "
                 >
                   <ChevronDown
@@ -326,9 +346,11 @@ export default function ProNavBar() {
                 min-w-0
                 flex-1
                 items-center
-                gap-0.5
+                gap-0
 
                 xl:flex
+
+                min-[1900px]:gap-0.5
               "
             >
               {navItems.map((item) => {
@@ -342,15 +364,25 @@ export default function ProNavBar() {
                     className={`
                       flex
                       h-10
-                      shrink-0
+                      min-w-0
+                      shrink
                       items-center
-                      gap-2
+                      gap-1
                       rounded-xl
-                      px-3
-                      text-sm
+                      px-1.5
+                      text-[12px]
                       font-medium
                       transition-all
                       duration-200
+
+                      min-[1500px]:gap-1.5
+                      min-[1500px]:px-2
+                      min-[1500px]:text-[13px]
+
+                      min-[1900px]:shrink-0
+                      min-[1900px]:gap-2
+                      min-[1900px]:px-3
+                      min-[1900px]:text-sm
 
                       ${
                         active
@@ -362,14 +394,20 @@ export default function ProNavBar() {
                     <Icon
                       size={16}
                       strokeWidth={1.9}
-                      className={
-                        active
-                          ? "text-blue-600"
-                          : "text-slate-500"
-                      }
+                      className={`
+                        shrink-0
+
+                        ${
+                          active
+                            ? "text-blue-600"
+                            : "text-slate-500"
+                        }
+                      `}
                     />
 
-                    <span>{item.label}</span>
+                    <span className="min-w-0 whitespace-nowrap">
+                      {item.label}
+                    </span>
                   </Link>
                 );
               })}
@@ -379,7 +417,15 @@ export default function ProNavBar() {
             {/* DESKTOP USER MENU                                */}
             {/* ================================================= */}
 
-            <div className="ml-auto hidden shrink-0 xl:block">
+            <div
+              className="
+                ml-auto
+                hidden
+                shrink-0
+
+                xl:block
+              "
+            >
               <ProUserMenu />
             </div>
 
