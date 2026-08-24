@@ -16,7 +16,6 @@ export default function Footer() {
         <div className="grid gap-14 lg:grid-cols-[1.5fr_0.9fr]">
 
           {/* LEFT */}
-
           <div>
 
             <div className="flex items-center gap-3">
@@ -72,7 +71,6 @@ export default function Footer() {
           </div>
 
           {/* RIGHT */}
-
           <div>
 
             <h3 className="text-xl font-semibold text-white">
@@ -191,7 +189,34 @@ export default function Footer() {
 
         </div>
 
-        <div className="mt-14 border-t border-white/10 pt-8">
+        {/* LAUNCHORY BADGE */}
+        <div className="mt-14 border-t border-white/10 pt-10">
+
+          <div className="flex flex-col items-center justify-center text-center">
+
+            <p className="mb-4 text-sm font-medium text-slate-500">
+              Featured on Launchory
+            </p>
+
+            <a
+              href="https://www.launchory.app/startups/esop-value-clarity?ref=badge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block transition-transform duration-300 hover:scale-105"
+            >
+              <img
+                src="https://www.launchory.app/api/badge/esop-value-clarity?theme=dark"
+                alt="Featured on Launchory"
+                className="h-auto max-w-full"
+              />
+            </a>
+
+          </div>
+
+        </div>
+
+        {/* COPYRIGHT */}
+        <div className="mt-10 border-t border-white/10 pt-8">
 
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
