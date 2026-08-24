@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import NavigationShell from "@/components/ui/NavigationShell";
+
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -100,6 +101,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="directree-verify"
+          content="directree-verify=dd177d69e79c2ab19b7c71f5c9dc7d8c"
+        />
+      </head>
+
       <body className={`${inter.className} bg-slate-50 text-slate-900`}>
         <script
           type="application/ld+json"
