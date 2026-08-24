@@ -189,27 +189,62 @@ export default function Footer() {
 
         </div>
 
-        {/* LAUNCHORY BADGE */}
+        {/* LAUNCHORY + MAIDENSAIL BADGES */}
         <div className="mt-14 border-t border-white/10 pt-10">
 
           <div className="flex flex-col items-center justify-center text-center">
 
-            <p className="mb-4 text-sm font-medium text-slate-500">
-              Featured on Launchory
+            <p className="mb-6 text-sm font-medium text-slate-500">
+              Featured on
             </p>
 
-            <a
-              href="https://www.launchory.app/startups/esop-value-clarity?ref=badge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block transition-transform duration-300 hover:scale-105"
-            >
-              <img
-                src="https://www.launchory.app/api/badge/esop-value-clarity?theme=dark"
-                alt="Featured on Launchory"
-                className="h-auto max-w-full"
-              />
-            </a>
+            <div className="flex w-full flex-col items-center justify-center gap-8 md:flex-row md:gap-12">
+
+              {/* LAUNCHORY */}
+              <div className="flex flex-col items-center">
+
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Launchory
+                </p>
+
+                <a
+                  href="https://www.launchory.app/startups/esop-value-clarity?ref=badge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block transition-transform duration-300 hover:scale-105"
+                >
+                  <img
+                    src="https://www.launchory.app/api/badge/esop-value-clarity?theme=dark"
+                    alt="Featured on Launchory"
+                    className="h-auto max-w-full"
+                  />
+                </a>
+
+              </div>
+
+              {/* MAIDENSAIL */}
+              <div className="flex flex-col items-center">
+
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-slate-500">
+                  MaidenSail
+                </p>
+
+                <a
+                  href="https://maidensail.com/startup/esop-value-clarity"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block transition-transform duration-300 hover:scale-105"
+                >
+                  <img
+                    src="https://maidensail.com/badge/esop-value-clarity.svg?theme=dark"
+                    alt="Featured on MaidenSail"
+                    className="h-auto max-w-full"
+                  />
+                </a>
+
+              </div>
+
+            </div>
 
           </div>
 
