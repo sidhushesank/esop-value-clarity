@@ -204,8 +204,8 @@ export default function LoginPage() {
                 Demo Credentials
               </p>
 
-              <p>Email: demo@esopclarity.com</p>
-              <p>Password: demo@123</p>
+              <p>New users: Please create your own account.</p>
+<p>Shared/demo login credentials are not available.</p>
             </div>
 
           </CardContent>
