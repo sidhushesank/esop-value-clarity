@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   ArrowLeft,
@@ -14,6 +18,7 @@ import {
   Wallet,
   AlertTriangle,
   ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 
 import {
@@ -32,6 +37,7 @@ import {
 } from "@/lib/esop/dilution";
 
 import {
+  normalizeProNumber,
   useProEquityState,
 } from "@/lib/esop/pro-state";
 
@@ -39,7 +45,7 @@ import {
    DILUTION-SPECIFIC DEFAULTS
 
    These assumptions belong specifically to the funding round.
-   Core equity values come from shared PRO state.
+   Confirmed grant facts come from the Equity Profile.
 ============================================================ */
 
 const DEFAULT_DILUTION_ASSUMPTIONS = {
@@ -49,6 +55,10 @@ const DEFAULT_DILUTION_ASSUMPTIONS = {
   targetOptionPoolPercent: 15,
 };
 
+type AnalysisBasis =
+  | "FULL_GRANT"
+  | "CURRENTLY_VESTED";
+
 /* ============================================================
    PAGE
 ============================================================ */
@@ -57,15 +67,15 @@ export default function ProDilutionPage() {
   const {
     proState,
     updateProState,
-    resetProState,
     hydrated,
   } = useProEquityState();
 
-  /*
-   * Funding-round assumptions remain local to this page.
-   *
-   * Core equity assumptions are shared through proState.
-   */
+  const [
+    analysisBasis,
+    setAnalysisBasis,
+  ] = useState<AnalysisBasis>(
+    "FULL_GRANT"
+  );
 
   const [
     fundingAssumptions,
@@ -75,83 +85,157 @@ export default function ProDilutionPage() {
   );
 
   /* ==========================================================
+     CONFIRMED GRANT / SOURCE-OF-TRUTH BASIS
+  ========================================================== */
+
+  const confirmedGrantConnected =
+    Boolean(
+      proState.sourceGrantId
+    );
+
+  const fullGrantOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.totalOptions
+      )
+    );
+
+  const currentlyVestedOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.vestedOptions
+      )
+    );
+
+  const modeledSharesOwned =
+    analysisBasis ===
+    "FULL_GRANT"
+      ? fullGrantOptions
+      : currentlyVestedOptions;
+
+  /* ==========================================================
      CONNECTED DILUTION INPUTS
   ========================================================== */
 
-  const inputs: DilutionInput = useMemo(
-    () => ({
-      /*
-       * Shared from Vesting / PRO state
-       */
-      sharesOwned:
-        proState.vestedOptions,
+  const inputs: DilutionInput =
+    useMemo(
+      () => ({
+        /*
+         * Source grant position.
+         */
+        sharesOwned:
+          modeledSharesOwned,
 
-      fullyDilutedShares:
+        /*
+         * Analysis assumption shared across PRO.
+         */
+        fullyDilutedShares:
+          Math.max(
+            0,
+            normalizeProNumber(
+              proState.totalCompanyShares
+            )
+          ),
+
+        /*
+         * Funding-round assumptions.
+         */
+        preMoneyValuation:
+          fundingAssumptions.preMoneyValuation,
+
+        newInvestment:
+          fundingAssumptions.newInvestment,
+
+        currentOptionPoolPercent:
+          fundingAssumptions.currentOptionPoolPercent,
+
+        targetOptionPoolPercent:
+          fundingAssumptions.targetOptionPoolPercent,
+      }),
+      [
+        modeledSharesOwned,
         proState.totalCompanyShares,
-
-      /*
-       * Funding-round-specific
-       */
-      preMoneyValuation:
-        fundingAssumptions.preMoneyValuation,
-
-      newInvestment:
-        fundingAssumptions.newInvestment,
-
-      currentOptionPoolPercent:
-        fundingAssumptions.currentOptionPoolPercent,
-
-      targetOptionPoolPercent:
-        fundingAssumptions.targetOptionPoolPercent,
-    }),
-    [
-      proState.vestedOptions,
-      proState.totalCompanyShares,
-      fundingAssumptions,
-    ]
-  );
+        fundingAssumptions,
+      ]
+    );
 
   /* ==========================================================
      CALCULATION
   ========================================================== */
 
   const result = useMemo(
-    () => calculateDilution(inputs),
+    () =>
+      calculateDilution(
+        inputs
+      ),
     [inputs]
   );
 
   /* ==========================================================
      SYNC RESULT BACK TO SHARED PRO STATE
+
+     Dilution owns the calculated future-dilution output.
+     Simulator / Exit / Reports can consume this percentage.
   ========================================================== */
 
-  /*
-   * We intentionally only write the calculated ownership result
-   * when the page is hydrated.
-   *
-   * This keeps the shared state aligned with the current model.
-   */
-
-  useMemo(() => {
+  useEffect(() => {
     if (!hydrated) {
       return;
     }
 
-    /*
-     * Avoid unnecessary writes if the value is already identical.
-     */
+    const nextDilutedOwnership =
+      Number.isFinite(
+        result.dilutedOwnershipPercent
+      )
+        ? result.dilutedOwnershipPercent
+        : 0;
+
+    const nextFutureDilution =
+      clamp(
+        result.relativeOwnershipReductionPercent,
+        0,
+        100
+      );
+
+    const dilutedChanged =
+      Math.abs(
+        normalizeProNumber(
+          proState.dilutedOwnershipPercentage
+        ) -
+          nextDilutedOwnership
+      ) > 0.000001;
+
+    const futureDilutionChanged =
+      Math.abs(
+        normalizeProNumber(
+          proState.futureDilutionPercentage
+        ) -
+          nextFutureDilution
+      ) > 0.000001;
+
     if (
-      proState.dilutedOwnershipPercentage !==
-      result.dilutedOwnershipPercent
+      !dilutedChanged &&
+      !futureDilutionChanged
     ) {
-      updateProState({
-        dilutedOwnershipPercentage:
-          result.dilutedOwnershipPercent,
-      });
+      return;
     }
+
+    updateProState({
+      dilutedOwnershipPercentage:
+        nextDilutedOwnership,
+
+      futureDilutionPercentage:
+        nextFutureDilution,
+    });
   }, [
     hydrated,
     result.dilutedOwnershipPercent,
+    result.ownershipReductionPercent,
+    result.relativeOwnershipReductionPercent,
     proState.dilutedOwnershipPercentage,
+    proState.futureDilutionPercentage,
     updateProState,
   ]);
 
@@ -160,8 +244,10 @@ export default function ProDilutionPage() {
   ========================================================== */
 
   function updateInput(
-    field: keyof DilutionInput,
-    value: string | number
+    field:
+      keyof DilutionInput,
+    value:
+      string | number
   ) {
     const numericValue =
       typeof value === "number"
@@ -169,20 +255,11 @@ export default function ProDilutionPage() {
         : Number(value) || 0;
 
     /*
-     * Core equity fields belong to shared PRO state.
+     * Fully diluted shares are a shared analysis assumption.
      */
     if (
-      field === "sharesOwned"
-    ) {
-      updateProState({
-        vestedOptions: numericValue,
-      });
-
-      return;
-    }
-
-    if (
-      field === "fullyDilutedShares"
+      field ===
+      "fullyDilutedShares"
     ) {
       updateProState({
         totalCompanyShares:
@@ -193,31 +270,62 @@ export default function ProDilutionPage() {
     }
 
     /*
-     * Funding assumptions stay local to Dilution.
+     * Grant-owned shares are controlled by the analysis-basis
+     * selector and are never written back to the confirmed grant.
      */
+    if (
+      field ===
+      "sharesOwned"
+    ) {
+      return;
+    }
+
     setFundingAssumptions(
       (previous) => ({
         ...previous,
-        [field]: numericValue,
+        [field]:
+          numericValue,
       })
     );
   }
 
   /* ==========================================================
      RESET
+
+     Reset funding / analysis assumptions only.
+     Never reset the confirmed grant or its source metadata.
   ========================================================== */
 
   function reset() {
-    /*
-     * Reset the shared PRO equity state.
-     */
-    resetProState();
-
-    /*
-     * Reset dilution-specific assumptions.
-     */
     setFundingAssumptions(
       DEFAULT_DILUTION_ASSUMPTIONS
+    );
+
+    setAnalysisBasis(
+      "FULL_GRANT"
+    );
+
+    updateProState({
+      totalCompanyShares:
+        1_000_000,
+
+      dilutedOwnershipPercentage:
+        0,
+
+      futureDilutionPercentage:
+        0,
+    });
+  }
+
+  if (!hydrated) {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-5">
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-sm font-semibold text-slate-500 shadow-sm">
+            Loading your PRO equity model...
+          </div>
+        </div>
+      </main>
     );
   }
 
@@ -273,15 +381,224 @@ export default function ProDilutionPage() {
         </section>
 
         {/* ======================================================
-            CONNECTED STATE INDICATOR
+            CONFIRMED GRANT CONNECTION
         ====================================================== */}
 
-        {hydrated && (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Connected to your PRO equity model
-          </div>
+        {confirmedGrantConnected ? (
+          <section className="mt-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                  <CheckCircle2 size={17} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Using confirmed grant
+                  </p>
+
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {proState.sourceCompanyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    confirmed options ·{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    vested today
+                  </p>
+                </div>
+              </div>
+
+              {proState.sourceDocumentId && (
+                <Link
+                  href={`/pro/grants/${proState.sourceDocumentId}/review`}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-black text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                >
+                  View source grant
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="mt-6">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+              <p className="text-xs font-bold text-blue-900">
+                Manual analysis mode
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-blue-900/80">
+                No confirmed grant is currently connected. You can still use
+                the dilution model with the shared PRO assumptions.
+              </p>
+            </div>
+          </section>
         )}
+
+        {/* ======================================================
+            ANALYSIS BASIS
+        ====================================================== */}
+
+        <section className="mt-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Analysis basis
+                </p>
+
+                <h2 className="mt-1 text-sm font-black text-slate-950">
+                  Choose which option position should be diluted.
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+                  Full Grant models the potential ownership impact if all
+                  confirmed options eventually vest. Currently Vested models
+                  only what you have earned today.
+                </p>
+              </div>
+
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:min-w-[430px]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "FULL_GRANT"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "FULL_GRANT"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Full grant
+                    </span>
+
+                    {analysisBasis ===
+                      "FULL_GRANT" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model all{" "}
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    options.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "CURRENTLY_VESTED"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "CURRENTLY_VESTED"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Currently vested
+                    </span>
+
+                    {analysisBasis ===
+                      "CURRENTLY_VESTED" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model only{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    options earned today.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {analysisBasis ===
+              "FULL_GRANT" &&
+              currentlyVestedOptions <
+                fullGrantOptions && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-[10px] font-bold leading-5 text-amber-900">
+                    This is a potential future-ownership scenario. Only{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    options are vested today; the model uses the full{" "}
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    confirmed options to show how a future round could affect
+                    your eventual stake.
+                  </p>
+                </div>
+              )}
+          </div>
+        </section>
+
+        {/* ======================================================
+            SHARED DILUTION OUTPUT
+        ====================================================== */}
+
+        <section className="mt-5">
+          <div className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-700">
+                Connected dilution output
+              </p>
+
+              <p className="mt-1 text-sm font-black text-blue-950">
+                {formatPercentage(
+                  result.relativeOwnershipReductionPercent
+                )}{" "}
+                relative dilution
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-blue-900/80">
+                This proportional dilution is shared with Simulator,
+                Exit and other connected PRO analysis. Ownership-point change
+                is shown separately below.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-blue-200 bg-white px-4 py-3 text-right shadow-sm">
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
+                Shared PRO dilution
+              </p>
+
+              <p className="mt-1 text-2xl font-black text-slate-950">
+                {formatPercentage(
+                  proState.futureDilutionPercentage
+                )}
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* ======================================================
             SNAPSHOT
@@ -290,11 +607,21 @@ export default function ProDilutionPage() {
         <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
           <Snapshot
-            label="Current ownership"
+            label={
+              analysisBasis ===
+              "FULL_GRANT"
+                ? "Potential ownership"
+                : "Current ownership"
+            }
             value={formatPercentage(
               result.currentOwnershipPercent
             )}
-            description="Your ownership before the round"
+            description={
+              analysisBasis ===
+              "FULL_GRANT"
+                ? "Ownership if the modeled grant fully vests"
+                : "Your ownership before the round"
+            }
             icon={<Percent size={18} />}
           />
 
@@ -309,11 +636,11 @@ export default function ProDilutionPage() {
           />
 
           <Snapshot
-            label="Ownership reduction"
+            label="Relative dilution"
             value={formatPercentage(
-              result.ownershipReductionPercent
+              result.relativeOwnershipReductionPercent
             )}
-            description="Modeled dilution impact"
+            description="Proportional reduction in your original ownership"
             icon={<TrendingDown size={18} />}
           />
 
@@ -362,35 +689,34 @@ export default function ProDilutionPage() {
             <CardContent className="space-y-5">
 
               {/* ==================================================
-                  SHARED — VESTED OPTIONS
+                  SOURCE POSITION
               ================================================== */}
 
               <div>
                 <Label className="text-sm font-semibold text-slate-900">
-                  Your shares
+                  Options modeled
                 </Label>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Currently vested options from your PRO equity model
+                  Controlled by the Full Grant / Currently Vested selector
                 </p>
 
                 <div className="relative mt-2">
                   <Input
                     type="number"
                     min={0}
-                    value={inputs.sharesOwned}
-                    onChange={(event) =>
-                      updateInput(
-                        "sharesOwned",
-                        event.target.value
-                      )
+                    value={
+                      inputs.sharesOwned
                     }
-                    className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm font-medium"
+                    readOnly
+                    className="h-11 cursor-not-allowed rounded-xl border-slate-200 bg-slate-100 text-sm font-medium text-slate-700"
                   />
                 </div>
 
-                <p className="mt-1.5 text-[10px] font-medium text-blue-600">
-                  Connected to Vesting
+                <p className="mt-1.5 text-[10px] font-medium text-emerald-700">
+                  {confirmedGrantConnected
+                    ? "Connected to confirmed Equity Profile"
+                    : "Connected to shared PRO state"}
                 </p>
               </div>
 
@@ -411,7 +737,9 @@ export default function ProDilutionPage() {
                   <Input
                     type="number"
                     min={0}
-                    value={inputs.fullyDilutedShares}
+                    value={
+                      inputs.fullyDilutedShares
+                    }
                     onChange={(event) =>
                       updateInput(
                         "fullyDilutedShares",
@@ -423,7 +751,7 @@ export default function ProDilutionPage() {
                 </div>
 
                 <p className="mt-1.5 text-[10px] font-medium text-blue-600">
-                  Connected to company assumptions
+                  Shared company assumption
                 </p>
               </div>
 
@@ -434,7 +762,9 @@ export default function ProDilutionPage() {
               <Field
                 label="Pre-money valuation"
                 description="Company valuation immediately before the round"
-                value={inputs.preMoneyValuation}
+                value={
+                  inputs.preMoneyValuation
+                }
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
@@ -447,7 +777,9 @@ export default function ProDilutionPage() {
               <Field
                 label="New investment"
                 description="Capital being raised in the funding round"
-                value={inputs.newInvestment}
+                value={
+                  inputs.newInvestment
+                }
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
@@ -460,7 +792,9 @@ export default function ProDilutionPage() {
               <Field
                 label="Current option pool"
                 description="Existing employee option pool"
-                value={inputs.currentOptionPoolPercent}
+                value={
+                  inputs.currentOptionPoolPercent
+                }
                 suffix="%"
                 onChange={(value) =>
                   updateInput(
@@ -473,7 +807,9 @@ export default function ProDilutionPage() {
               <Field
                 label="Target option pool"
                 description="Option pool after the funding round"
-                value={inputs.targetOptionPoolPercent}
+                value={
+                  inputs.targetOptionPoolPercent
+                }
                 suffix="%"
                 onChange={(value) =>
                   updateInput(
@@ -483,56 +819,16 @@ export default function ProDilutionPage() {
                 }
               />
 
-              {/* ==================================================
-                  FUTURE DILUTION — SHARED
-              ================================================== */}
-
-              <div>
-                <Label className="text-sm font-semibold text-slate-900">
-                  Expected future dilution
-                </Label>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  Dilution assumption carried across your PRO equity model
-                </p>
-
-                <div className="relative mt-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={
-                      proState.futureDilutionPercentage
-                    }
-                    onChange={(event) =>
-                      updateProState({
-                        futureDilutionPercentage:
-                          Number(
-                            event.target.value
-                          ) || 0,
-                      })
-                    }
-                    className="h-11 rounded-xl border-slate-200 bg-slate-50 pr-10 text-sm font-medium"
-                  />
-
-                  <span className="pointer-events-none absolute right-3 top-1/2 z-10 -translate-y-1/2 text-xs font-semibold text-slate-400">
-                    %
-                  </span>
-                </div>
-
-                <p className="mt-1.5 text-[10px] font-medium text-blue-600">
-                  Connected to Simulator
-                </p>
-              </div>
-
               {/* RESET */}
 
               <button
                 type="button"
-                onClick={reset}
+                onClick={
+                  reset
+                }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
               >
-                Reset PRO equity assumptions
+                Reset analysis assumptions
               </button>
 
               {/* NOTICE */}
@@ -543,10 +839,10 @@ export default function ProDilutionPage() {
                 </p>
 
                 <p className="mt-1.5 text-xs leading-5 text-blue-900/80">
-                  Your vested options, company share count and future
-                  dilution assumption are shared across the PRO equity
-                  tools. Funding-round assumptions remain specific to
-                  this dilution model.
+                  Confirmed grant facts stay protected in your Equity Profile.
+                  Company share count and funding-round assumptions are analysis
+                  inputs. The calculated ownership reduction is shared with the
+                  rest of your PRO model.
                 </p>
               </div>
 
@@ -577,12 +873,14 @@ export default function ProDilutionPage() {
                 </h2>
 
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
-                  Your modeled ownership after the new investment and
-                  option-pool adjustment.
+                  {analysisBasis ===
+                  "FULL_GRANT"
+                    ? "Potential ownership after the modeled funding round if the full confirmed grant eventually vests."
+                    : "Your modeled ownership after the new investment and option-pool adjustment using only options vested today."}
                 </p>
 
                 <div className="mt-8 border-t border-white/10 pt-6">
-                  <div className="grid gap-5 sm:grid-cols-3">
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
                     <DarkMetric
                       label="Before"
@@ -599,10 +897,17 @@ export default function ProDilutionPage() {
                     />
 
                     <DarkMetric
-                      label="Reduction"
+                      label="Ownership-point change"
                       value={`-${formatPercentage(
                         result.ownershipReductionPercent
-                      )}`}
+                      )} pts`}
+                    />
+
+                    <DarkMetric
+                      label="Relative dilution"
+                      value={formatPercentage(
+                        result.relativeOwnershipReductionPercent
+                      )}
                     />
 
                   </div>
@@ -615,7 +920,11 @@ export default function ProDilutionPage() {
                 INSIGHT
             ================================================== */}
 
-            <DilutionInsight result={result} />
+            <DilutionInsight
+              result={
+                result
+              }
+            />
 
             {/* ==================================================
                 FUNDING ROUND
@@ -692,7 +1001,7 @@ export default function ProDilutionPage() {
                         ),
                       ],
                       [
-                        "Pool increase",
+                        "Pool % increase",
                         formatPercentage(
                           result.optionPoolIncreasePercent
                         ),
@@ -724,7 +1033,12 @@ export default function ProDilutionPage() {
 
                   <Journey
                     number="01"
-                    title="Current stake"
+                    title={
+                      analysisBasis ===
+                      "FULL_GRANT"
+                        ? "Potential stake"
+                        : "Current stake"
+                    }
                     value={formatCurrency(
                       result.currentStakeValue
                     )}
@@ -742,11 +1056,13 @@ export default function ProDilutionPage() {
 
                   <Journey
                     number="03"
-                    title="Dilution"
+                    title="Relative dilution"
                     value={`-${formatPercentage(
-                      result.ownershipReductionPercent
+                      result.relativeOwnershipReductionPercent
                     )}`}
-                    description="Ownership reduction"
+                    description={`${formatPercentage(
+                      result.ownershipReductionPercent
+                    )} percentage-point ownership change`}
                   />
 
                   <Journey
@@ -825,17 +1141,26 @@ export default function ProDilutionPage() {
 
                     <p className="mt-1 text-xs leading-5 text-slate-600">
                       {formatNumber(
-                        proState.vestedOptions
+                        inputs.sharesOwned
                       )}{" "}
-                      vested options currently represent{" "}
+                      modeled options represent{" "}
                       {formatPercentage(
                         result.currentOwnershipPercent
                       )}{" "}
-                      ownership before this modeled funding round.
-                      After the round, that becomes{" "}
+                      ownership before this funding round. After the round,
+                      that becomes{" "}
                       {formatPercentage(
                         result.dilutedOwnershipPercent
-                      )}.
+                      )}. That is a{" "}
+                      {formatPercentage(
+                        result.ownershipReductionPercent
+                      )}{" "}
+                      percentage-point change, equal to{" "}
+                      {formatPercentage(
+                        result.relativeOwnershipReductionPercent
+                      )}{" "}
+                      relative dilution. The relative dilution is shared with
+                      your connected PRO analysis.
                     </p>
                   </div>
                 </div>
@@ -858,7 +1183,9 @@ export default function ProDilutionPage() {
                   {result.assumptions.map(
                     (assumption) => (
                       <li
-                        key={assumption}
+                        key={
+                          assumption
+                        }
                         className="flex gap-3"
                       >
                         <span className="mt-1 text-blue-600">
@@ -871,6 +1198,18 @@ export default function ProDilutionPage() {
                       </li>
                     )
                   )}
+
+                  <li className="flex gap-3">
+                    <span className="mt-1 text-blue-600">
+                      •
+                    </span>
+
+                    <span>
+                      Full-grant mode is a potential future-ownership scenario.
+                      It does not mean unvested options are currently owned,
+                      exercisable or guaranteed to vest.
+                    </span>
+                  </li>
                 </ul>
               </CardContent>
             </Card>
@@ -1003,7 +1342,9 @@ function Field({
   value: number;
   prefix?: string;
   suffix?: string;
-  onChange: (value: string) => void;
+  onChange: (
+    value: string
+  ) => void;
 }) {
   return (
     <div>
@@ -1025,13 +1366,23 @@ function Field({
         <Input
           type="number"
           min={0}
-          value={value}
+          value={
+            value
+          }
           onChange={(event) =>
-            onChange(event.target.value)
+            onChange(
+              event.target.value
+            )
           }
           className={`h-11 rounded-xl border-slate-200 bg-slate-50 text-sm font-medium ${
-            prefix ? "pl-8" : ""
-          } ${suffix ? "pr-16" : ""}`}
+            prefix
+              ? "pl-8"
+              : ""
+          } ${
+            suffix
+              ? "pr-16"
+              : ""
+          }`}
         />
 
         {suffix && (
@@ -1077,7 +1428,8 @@ function Breakdown({
   items,
 }: {
   title: string;
-  items: [string, string][];
+  items:
+    [string, string][];
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -1087,9 +1439,14 @@ function Breakdown({
 
       <div className="mt-4 space-y-3">
         {items.map(
-          ([label, value]) => (
+          ([
+            label,
+            value,
+          ]) => (
             <div
-              key={label}
+              key={
+                label
+              }
               className="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 last:border-0 last:pb-0"
             >
               <span className="text-xs text-slate-500">
@@ -1204,7 +1561,10 @@ function DilutionInsight({
     typeof calculateDilution
   >;
 }) {
-  if (result.status === "minimal") {
+  if (
+    result.status ===
+    "minimal"
+  ) {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
         <div className="flex items-start gap-3">
@@ -1221,7 +1581,8 @@ function DilutionInsight({
             <p
               className="mt-1 text-sm leading-6"
               style={{
-                color: "#166534",
+                color:
+                  "#166534",
               }}
             >
               Your modeled ownership reduction is relatively small
@@ -1233,7 +1594,10 @@ function DilutionInsight({
     );
   }
 
-  if (result.status === "moderate") {
+  if (
+    result.status ===
+    "moderate"
+  ) {
     return (
       <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
         <div className="flex items-start gap-3">
@@ -1258,7 +1622,10 @@ function DilutionInsight({
     );
   }
 
-  if (result.status === "significant") {
+  if (
+    result.status ===
+    "significant"
+  ) {
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
         <div className="flex items-start gap-3">
@@ -1271,7 +1638,8 @@ function DilutionInsight({
             <p
               className="font-bold"
               style={{
-                color: "#451a03",
+                color:
+                  "#451a03",
               }}
             >
               Significant modeled dilution
@@ -1280,7 +1648,8 @@ function DilutionInsight({
             <p
               className="mt-1 text-sm leading-6"
               style={{
-                color: "#451a03",
+                color:
+                  "#451a03",
               }}
             >
               A meaningful portion of your ownership could be diluted
@@ -1309,11 +1678,33 @@ function DilutionInsight({
           <p className="mt-1 text-sm leading-6 text-red-900/80">
             Your modeled ownership reduction is substantial. This does
             not automatically mean your equity becomes less valuable,
-            because the company's valuation also changes.
+            because the company&apos;s valuation also changes.
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function clamp(
+  value: number,
+  min: number,
+  max: number
+) {
+  return Math.min(
+    Math.max(
+      Number.isFinite(
+        value
+      )
+        ? value
+        : min,
+      min
+    ),
+    max
   );
 }
 
@@ -1324,26 +1715,37 @@ function DilutionInsight({
 function formatCurrency(
   value: number
 ) {
-  if (!Number.isFinite(value)) {
+  if (
+    !Number.isFinite(
+      value
+    )
+  ) {
     return "₹0";
   }
 
   return `₹${Math.round(
     value
-  ).toLocaleString("en-IN")}`;
+  ).toLocaleString(
+    "en-IN"
+  )}`;
 }
 
 function formatPercentage(
   value: number
 ) {
-  if (!Number.isFinite(value)) {
+  if (
+    !Number.isFinite(
+      value
+    )
+  ) {
     return "0%";
   }
 
   return `${value.toLocaleString(
     "en-IN",
     {
-      maximumFractionDigits: 2,
+      maximumFractionDigits:
+        2,
     }
   )}%`;
 }
@@ -1351,11 +1753,17 @@ function formatPercentage(
 function formatNumber(
   value: number
 ) {
-  if (!Number.isFinite(value)) {
+  if (
+    !Number.isFinite(
+      value
+    )
+  ) {
     return "0";
   }
 
   return Math.round(
     value
-  ).toLocaleString("en-IN");
+  ).toLocaleString(
+    "en-IN"
+  );
 }

@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   ArrowLeft,
@@ -39,6 +43,39 @@ import {
   normalizeProNumber,
 } from "@/lib/esop/pro-state";
 
+type ActiveConfirmedGrant = {
+  id: string;
+  companyName: string | null;
+  grantName: string | null;
+  optionCount: number | null;
+  strikePrice: number | null;
+  currency: string | null;
+  vestingStartDate: string | null;
+  vestingDurationMonths: number | null;
+  cliffMonths: number | null;
+  vestingFrequency: string | null;
+  expiryDate: string | null;
+  postTerminationExerciseDays: number | null;
+  confirmedAt: string | null;
+  document: {
+    id: string;
+  } | null;
+};
+
+type ActiveGrantResponse = {
+  success: boolean;
+  grant?: ActiveConfirmedGrant | null;
+  message?: string;
+};
+
+type AnalysisBasis =
+  | "FULL_GRANT"
+  | "CURRENTLY_VESTED";
+
+type SalePriceMode =
+  | "CONNECTED_EXIT"
+  | "MANUAL";
+
 /* ============================================================
    PRO TAX PAGE
 ============================================================ */
@@ -47,7 +84,209 @@ export default function ProTaxPage() {
   const {
     proState,
     updateProState,
+    hydrated,
   } = useProEquityState();
+
+  const [
+    analysisBasis,
+    setAnalysisBasis,
+  ] = useState<AnalysisBasis>(
+    "FULL_GRANT"
+  );
+
+  const [
+    salePriceMode,
+    setSalePriceMode,
+  ] = useState<SalePriceMode>(
+    "CONNECTED_EXIT"
+  );
+
+  const [
+    connectedGrant,
+    setConnectedGrant,
+  ] = useState<ActiveConfirmedGrant | null>(
+    null
+  );
+
+  /* ==========================================================
+     CONFIRMED GRANT -> SHARED PRO MODEL
+  ========================================================== */
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function connectConfirmedGrant() {
+      try {
+        const response = await fetch(
+          "/api/pro/equity/active",
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const data =
+          (await response.json()) as ActiveGrantResponse;
+
+        if (
+          cancelled ||
+          !response.ok ||
+          !data.success ||
+          !data.grant
+        ) {
+          return;
+        }
+
+        const grant = data.grant;
+        setConnectedGrant(grant);
+
+        const totalOptions =
+          grant.optionCount ??
+          normalizeProNumber(
+            proState.totalOptions
+          );
+
+        const exercisePrice =
+          grant.strikePrice ??
+          normalizeProNumber(
+            proState.exercisePrice
+          );
+
+        /*
+         * IMPORTANT SOURCE-OF-TRUTH RULE
+         *
+         * The confirmed grant owns grant facts such as option count,
+         * exercise price and source vesting terms.
+         *
+         * Phase 2 Vesting owns the active/current vesting position:
+         * - vestedOptions
+         * - vestedPercentage
+         * - vestingPeriodMonths
+         * - cliffMonths
+         * - monthsCompleted
+         *
+         * Tax consumes that connected Vesting state below. It must
+         * never recalculate today's vesting from the source start date
+         * and overwrite the user's active vesting model.
+         */
+        updateProState({
+          totalOptions,
+          exercisePrice,
+
+          sourceGrantId:
+            grant.id,
+
+          sourceDocumentId:
+            grant.document?.id ?? null,
+
+          sourceCompanyName:
+            grant.companyName,
+
+          sourceGrantName:
+            grant.grantName,
+
+          sourceCurrency:
+            grant.currency ?? "INR",
+
+          sourceConfirmedAt:
+            grant.confirmedAt,
+
+          sourceVestingStartDate:
+            grant.vestingStartDate,
+
+          sourceVestingDurationMonths:
+            grant.vestingDurationMonths,
+
+          sourceCliffMonths:
+            grant.cliffMonths,
+
+          sourceVestingFrequency:
+            grant.vestingFrequency,
+
+          sourceExpiryDate:
+            grant.expiryDate,
+
+          sourcePostTerminationExerciseDays:
+            grant.postTerminationExerciseDays,
+        });
+      } catch {
+        /* Tax remains usable in shared/manual mode. */
+      }
+    }
+
+    void connectConfirmedGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hydrated,
+    updateProState,
+  ]);
+
+  const confirmedGrantConnected =
+    Boolean(
+      connectedGrant ||
+        proState.sourceGrantId
+    );
+
+  const fullGrantOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.totalOptions
+      )
+    );
+
+  const currentlyVestedOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.vestedOptions
+      )
+    );
+
+  const modeledShares =
+    analysisBasis === "FULL_GRANT"
+      ? fullGrantOptions
+      : currentlyVestedOptions;
+
+  const connectedDilutionPercentage =
+    Math.min(
+      Math.max(
+        normalizeProNumber(
+          proState.futureDilutionPercentage
+        ),
+        0
+      ),
+      100
+    );
+
+  const connectedBaseSalePrice =
+    normalizeProNumber(
+      proState.totalCompanyShares
+    ) > 0
+      ? (normalizeProNumber(
+          proState.exitValuation
+        ) /
+          normalizeProNumber(
+            proState.totalCompanyShares
+          )) *
+        (1 -
+          connectedDilutionPercentage /
+            100)
+      : 0;
+
+  const effectiveSalePrice =
+    salePriceMode === "CONNECTED_EXIT"
+      ? connectedBaseSalePrice
+      : normalizeProNumber(
+          proState.salePrice
+        );
 
   /* ==========================================================
      TAX INPUTS
@@ -67,13 +306,13 @@ export default function ProTaxPage() {
 
   const taxInputs: AdvancedTaxInput = useMemo(
     () => ({
-      vestedShares: proState.vestedOptions,
+      vestedShares: modeledShares,
 
       strikePrice: proState.exercisePrice,
 
       exerciseFMV: proState.exerciseFMV,
 
-      salePrice: proState.salePrice,
+      salePrice: effectiveSalePrice,
 
       otherAnnualIncome:
         proState.otherAnnualIncome,
@@ -87,7 +326,11 @@ export default function ProTaxPage() {
       taxRegime:
         proState.taxRegime,
     }),
-    [proState]
+    [
+      proState,
+      modeledShares,
+      effectiveSalePrice,
+    ]
   );
 
   /* ==========================================================
@@ -127,6 +370,10 @@ export default function ProTaxPage() {
   ========================================================== */
 
   function resetTaxAssumptions() {
+    setSalePriceMode(
+      "CONNECTED_EXIT"
+    );
+
     updateProState({
       exerciseFMV:
         DEFAULT_PRO_STATE.exerciseFMV,
@@ -146,6 +393,18 @@ export default function ProTaxPage() {
       taxRegime:
         DEFAULT_PRO_STATE.taxRegime,
     });
+  }
+
+  if (!hydrated) {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-5">
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-sm font-semibold text-slate-500 shadow-sm">
+            Loading your PRO tax model...
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -200,13 +459,223 @@ export default function ProTaxPage() {
         </section>
 
         {/* ======================================================
-            CONNECTION STATUS
+            CONFIRMED GRANT CONNECTION
         ====================================================== */}
 
-        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700">
-          <Link2 size={14} />
-          Connected to your PRO equity model
-        </div>
+        {confirmedGrantConnected ? (
+          <section className="mt-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                  <CheckCircle2 size={17} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Using confirmed grant
+                  </p>
+
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {proState.sourceCompanyName ||
+                      connectedGrant?.companyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    options ·{" "}
+                    {formatUnitCurrency(
+                      normalizeProNumber(
+                        proState.exercisePrice
+                      )
+                    )}{" "}
+                    exercise price ·{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    vested today
+                  </p>
+                </div>
+              </div>
+
+              {proState.sourceDocumentId && (
+                <Link
+                  href={`/pro/grants/${proState.sourceDocumentId}/review`}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-black text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                >
+                  View source grant
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="mt-6">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+              <p className="text-xs font-bold text-blue-900">
+                Manual tax analysis mode
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-blue-900/80">
+                No confirmed grant is currently connected. Tax remains
+                available using your shared PRO assumptions.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* ======================================================
+            CONNECTED EXIT / DILUTION
+        ====================================================== */}
+
+        <section className="mt-4">
+          <div className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm">
+                <Link2 size={16} />
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-700">
+                  Exit & dilution connected
+                </p>
+
+                <p className="mt-1 text-sm font-black text-blue-950">
+                  Base sale price {formatUnitCurrency(
+                    connectedBaseSalePrice
+                  )}
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-blue-900/80">
+                  Built from your shared exit valuation and{" "}
+                  {formatPercentage(
+                    connectedDilutionPercentage
+                  )}{" "}
+                  relative dilution.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/pro/exit"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-xs font-black text-blue-700 shadow-sm transition hover:bg-blue-100"
+            >
+              Open Exit
+              <ArrowUpRight size={14} />
+            </Link>
+          </div>
+        </section>
+
+        {/* ======================================================
+            ANALYSIS BASIS
+        ====================================================== */}
+
+        <section className="mt-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Analysis basis
+                </p>
+
+                <h2 className="mt-1 text-sm font-black text-slate-950">
+                  Choose which option position Tax should model.
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+                  Full Grant estimates a future tax scenario for all confirmed
+                  options. Currently Vested models only options earned today.
+                </p>
+              </div>
+
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:min-w-[430px]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "FULL_GRANT"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis === "FULL_GRANT"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Full grant
+                    </span>
+
+                    {analysisBasis === "FULL_GRANT" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model all {formatNumber(
+                      fullGrantOptions
+                    )} options.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "CURRENTLY_VESTED"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis === "CURRENTLY_VESTED"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Currently vested
+                    </span>
+
+                    {analysisBasis === "CURRENTLY_VESTED" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model only {formatNumber(
+                      currentlyVestedOptions
+                    )} options earned today.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {analysisBasis === "FULL_GRANT" &&
+              currentlyVestedOptions < fullGrantOptions && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-[10px] font-bold leading-5 text-amber-900">
+                    This is a potential future-tax scenario. Only{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    options are vested today; the estimator models all{" "}
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    confirmed options as though they eventually vest and are
+                    exercised/sold under the assumptions below.
+                  </p>
+                </div>
+              )}
+          </div>
+        </section>
 
         {/* ======================================================
             SNAPSHOT
@@ -295,9 +764,13 @@ export default function ProTaxPage() {
               ================================================== */}
 
               <ConnectedField
-                label="Vested shares"
-                description="Currently vested options from your PRO vesting model"
-                value={proState.vestedOptions}
+                label="Options modeled"
+                description={
+                  analysisBasis === "FULL_GRANT"
+                    ? "Full confirmed grant used for this future tax scenario"
+                    : "Currently vested options from your PRO vesting model"
+                }
+                value={modeledShares}
                 onNavigate="/pro/vesting"
               />
 
@@ -334,18 +807,70 @@ export default function ProTaxPage() {
                   SALE PRICE
               ================================================== */}
 
-              <Field
-                label="Expected sale price"
-                description="Estimated price per share at sale"
-                value={proState.salePrice}
-                prefix="₹"
-                onChange={(value) =>
-                  updateTaxInput(
-                    "salePrice",
-                    value
-                  )
-                }
-              />
+              <div>
+                <Label className="text-sm font-semibold text-slate-900">
+                  Sale price basis
+                </Label>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Use the connected base Exit price or enter a manual tax scenario.
+                </p>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <Toggle
+                    active={
+                      salePriceMode ===
+                      "CONNECTED_EXIT"
+                    }
+                    onClick={() =>
+                      setSalePriceMode(
+                        "CONNECTED_EXIT"
+                      )
+                    }
+                  >
+                    Connected Exit
+                  </Toggle>
+
+                  <Toggle
+                    active={
+                      salePriceMode ===
+                      "MANUAL"
+                    }
+                    onClick={() =>
+                      setSalePriceMode(
+                        "MANUAL"
+                      )
+                    }
+                  >
+                    Manual
+                  </Toggle>
+                </div>
+              </div>
+
+              {salePriceMode === "CONNECTED_EXIT" ? (
+                <ConnectedField
+                  label="Expected sale price"
+                  description={`Base Exit price after ${formatPercentage(
+                    connectedDilutionPercentage
+                  )} relative dilution`}
+                  value={connectedBaseSalePrice}
+                  prefix="₹"
+                  onNavigate="/pro/exit"
+                />
+              ) : (
+                <Field
+                  label="Expected sale price"
+                  description="Manual estimated price per share at sale"
+                  value={proState.salePrice}
+                  prefix="₹"
+                  onChange={(value) =>
+                    updateTaxInput(
+                      "salePrice",
+                      value
+                    )
+                  }
+                />
+              )}
 
               {/* ==================================================
                   OTHER INCOME
@@ -765,21 +1290,20 @@ export default function ProTaxPage() {
               </p>
 
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
-                Tax is only one part of your equity outcome.
+                Bring your tax estimate into the final Exit outcome.
               </h2>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Model future funding rounds and option-pool dilution
-                to understand how your ownership could change before
-                exit.
+                Combine the confirmed grant, vesting, dilution, exit valuation
+                and tax assumptions to see an estimated take-home amount.
               </p>
             </div>
 
             <Link
-              href="/pro/dilution"
+              href="/pro/exit"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
             >
-              Explore Dilution
+              Explore Exit
               <ArrowUpRight size={16} />
             </Link>
 
@@ -847,7 +1371,7 @@ function ConnectedField({
 
       <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-blue-600">
         <Link2 size={11} />
-        Connected to Vesting
+        Connected source
       </p>
     </div>
   );
@@ -1271,6 +1795,38 @@ function formatCurrency(value: number) {
   return `₹${Math.round(value).toLocaleString(
     "en-IN"
   )}`;
+}
+
+function formatNumber(
+  value: number
+) {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  return Math.round(
+    value
+  ).toLocaleString(
+    "en-IN"
+  );
+}
+
+function formatUnitCurrency(
+  value: number
+) {
+  if (!Number.isFinite(value)) {
+    return "₹0.00";
+  }
+
+  return new Intl.NumberFormat(
+    "en-IN",
+    {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  ).format(value);
 }
 
 function formatPercentage(value: number) {

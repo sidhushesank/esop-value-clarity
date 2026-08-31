@@ -1,7 +1,7 @@
 "use client";
-
 import Link from "next/link";
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -51,6 +51,41 @@ import {
   normalizeProNumber,
 } from "@/lib/esop/pro-state";
 
+type ActiveConfirmedGrant = {
+  id: string;
+  companyName: string | null;
+  grantName: string | null;
+  optionCount: number | null;
+  strikePrice: number | null;
+  currency: string | null;
+  vestingStartDate: string | null;
+  vestingDurationMonths: number | null;
+  cliffMonths: number | null;
+  vestingFrequency: string | null;
+  expiryDate: string | null;
+  postTerminationExerciseDays: number | null;
+  confirmedAt: string | null;
+  document: {
+    id: string;
+  } | null;
+};
+
+type ActiveGrantResponse = {
+  success: boolean;
+  grant?: ActiveConfirmedGrant | null;
+  message?: string;
+};
+
+type AnalysisBasis =
+  | "FULL_GRANT"
+  | "CURRENTLY_VESTED"
+  | "EXERCISE_PLAN";
+
+const LOG = "[EVC:EXIT:UI]";
+function devLog(event: string, payload?: Record<string, unknown>) {
+  if (process.env.NODE_ENV !== "production") console.info(LOG, event, payload ?? {});
+}
+
 /* ============================================================
    EXIT PAGE
 ============================================================ */
@@ -61,6 +96,155 @@ export default function ProExitPage() {
     updateProState,
     hydrated,
   } = useProEquityState();
+
+  const [
+    analysisBasis,
+    setAnalysisBasis,
+  ] = useState<AnalysisBasis>(
+    "FULL_GRANT"
+  );
+
+  const [
+    connectedGrant,
+    setConnectedGrant,
+  ] = useState<ActiveConfirmedGrant | null>(
+    null
+  );
+
+  const [
+    grantConnectionLoading,
+    setGrantConnectionLoading,
+  ] = useState(false);
+
+  /* ==========================================================
+     CONFIRMED GRANT -> SHARED PRO MODEL
+
+     Grant facts are source-of-truth facts. Exit assumptions are
+     analysis inputs only and never write back to the Grant Vault.
+  ========================================================== */
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function connectConfirmedGrant() {
+      setGrantConnectionLoading(true);
+
+      try {
+        const response = await fetch(
+          "/api/pro/equity/active",
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const data =
+          (await response.json()) as ActiveGrantResponse;
+
+        if (
+          cancelled ||
+          !response.ok ||
+          !data.success ||
+          !data.grant
+        ) {
+          return;
+        }
+
+        const grant = data.grant;
+
+        setConnectedGrant(grant);
+
+        const totalOptions =
+          grant.optionCount ??
+          normalizeProNumber(
+            proState.totalOptions
+          );
+
+        const exercisePrice =
+          grant.strikePrice ??
+          normalizeProNumber(
+            proState.exercisePrice
+          );
+
+        /*
+         * IMPORTANT SOURCE-OF-TRUTH RULE
+         *
+         * The confirmed grant owns grant facts such as option count,
+         * exercise price and source vesting terms.
+         *
+         * Phase 2 Vesting owns the active/current vesting position:
+         * - vestedOptions
+         * - vestedPercentage
+         * - vestingPeriodMonths
+         * - cliffMonths
+         * - monthsCompleted
+         *
+         * Exit consumes that connected Vesting state below. It must
+         * never recalculate today's vesting from the source start date
+         * and overwrite the user's active vesting model.
+         */
+        updateProState({
+          totalOptions,
+          exercisePrice,
+
+          sourceGrantId:
+            grant.id,
+
+          sourceDocumentId:
+            grant.document?.id ?? null,
+
+          sourceCompanyName:
+            grant.companyName,
+
+          sourceGrantName:
+            grant.grantName,
+
+          sourceCurrency:
+            grant.currency ?? "INR",
+
+          sourceConfirmedAt:
+            grant.confirmedAt,
+
+          sourceVestingStartDate:
+            grant.vestingStartDate,
+
+          sourceVestingDurationMonths:
+            grant.vestingDurationMonths,
+
+          sourceCliffMonths:
+            grant.cliffMonths,
+
+          sourceVestingFrequency:
+            grant.vestingFrequency,
+
+          sourceExpiryDate:
+            grant.expiryDate,
+
+          sourcePostTerminationExerciseDays:
+            grant.postTerminationExerciseDays,
+        });
+      } catch {
+        /* Exit remains usable in manual/shared-state mode. */
+      } finally {
+        if (!cancelled) {
+          setGrantConnectionLoading(false);
+        }
+      }
+    }
+
+    void connectConfirmedGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hydrated,
+    updateProState,
+  ]);
 
   /* ==========================================================
      SCENARIO
@@ -96,6 +280,27 @@ export default function ProExitPage() {
       proState.futureDilutionPercentage
     );
 
+  const hasExercisePlan =
+    normalizeProNumber(proState.exercisePlanOptions) > 0;
+
+  const modeledVestedPercentage =
+    analysisBasis === "FULL_GRANT"
+      ? 100
+      : analysisBasis === "CURRENTLY_VESTED"
+        ? normalizeProNumber(proState.vestedPercentage)
+        : 0;
+
+  const modeledOptions =
+    analysisBasis === "EXERCISE_PLAN" && hasExercisePlan
+      ? normalizeProNumber(proState.exercisePlanOptions)
+      : undefined;
+
+  const modeledExerciseFMV =
+    analysisBasis === "EXERCISE_PLAN" && hasExercisePlan
+      ? normalizeProNumber(proState.exercisePlanFMV)
+      : normalizeProNumber(proState.exerciseFMV);
+
+
   /* ==========================================================
      EXIT INPUT
   ========================================================== */
@@ -114,9 +319,9 @@ export default function ProExitPage() {
           ),
 
         vestedPercentage:
-          normalizeProNumber(
-            proState.vestedPercentage
-          ),
+          modeledVestedPercentage,
+
+        modeledOptions,
 
         strikePrice:
           normalizeProNumber(
@@ -139,9 +344,7 @@ export default function ProExitPage() {
         selectedScenario,
 
         exerciseFMV:
-          normalizeProNumber(
-            proState.exerciseFMV
-          ),
+          modeledExerciseFMV,
 
         otherAnnualIncome:
           normalizeProNumber(
@@ -162,6 +365,9 @@ export default function ProExitPage() {
       [
         proState,
         connectedDilutionPercentage,
+        modeledVestedPercentage,
+        modeledOptions,
+        modeledExerciseFMV,
         selectedScenario,
       ]
     );
@@ -288,6 +494,275 @@ export default function ProExitPage() {
 
           </div>
 
+        </section>
+
+        {/* ======================================================
+            CONFIRMED GRANT CONNECTION
+        ====================================================== */}
+
+        {(connectedGrant || proState.sourceGrantId) ? (
+          <section className="mt-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                  <CheckCircle2 size={17} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Using confirmed grant
+                  </p>
+
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {connectedGrant?.companyName ||
+                      proState.sourceCompanyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {formatNumber(
+                      normalizeProNumber(
+                        proState.totalOptions
+                      )
+                    )}{" "}
+                    options · {formatUnitCurrency(
+                      normalizeProNumber(
+                        proState.exercisePrice
+                      )
+                    )}{" "}
+                    exercise price · {formatPercentage(
+                      normalizeProNumber(
+                        proState.vestedPercentage
+                      ),
+                      1
+                    )}{" "}
+                    currently vested
+                  </p>
+                </div>
+              </div>
+
+              {(connectedGrant?.document?.id ||
+                proState.sourceDocumentId) && (
+                <Link
+                  href={`/pro/grants/${
+                    connectedGrant?.document?.id ||
+                    proState.sourceDocumentId
+                  }/review`}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-black text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                >
+                  View source grant
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        ) : grantConnectionLoading ? (
+          <section className="mt-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-xs font-semibold text-slate-500 shadow-sm">
+              Connecting your confirmed grant...
+            </div>
+          </section>
+        ) : null}
+
+        {/* ======================================================
+            DILUTION CONNECTION
+        ====================================================== */}
+
+        <section className="mt-4">
+          <div className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm">
+                <Link2 size={16} />
+              </div>
+
+              <div>
+                <p className="text-sm font-black text-blue-950">
+                  Dilution connected
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-blue-900/75">
+                  Exit is using the shared relative dilution directly: {formatPercentage(
+                    connectedDilutionPercentage,
+                    2
+                  )}.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/pro/dilution"
+              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-black text-blue-700 hover:text-blue-900"
+            >
+              Open Dilution
+              <ArrowUpRight size={13} />
+            </Link>
+          </div>
+        </section>
+
+        {/* ======================================================
+            ANALYSIS BASIS
+        ====================================================== */}
+
+        <section className="mt-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Analysis basis
+                </p>
+
+                <h2 className="mt-1 text-sm font-black text-slate-950">
+                  Choose which option position Exit should model.
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+                  Full Grant models all confirmed options. Currently Vested models only what you have earned today. Exercise Plan models the exact option quantity selected in Exercise Intelligence.
+                </p>
+              </div>
+
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-3 lg:min-w-[650px]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "FULL_GRANT"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "FULL_GRANT"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Full grant
+                    </span>
+
+                    {analysisBasis ===
+                      "FULL_GRANT" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model all {formatNumber(
+                      normalizeProNumber(
+                        proState.totalOptions
+                      )
+                    )} options.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "CURRENTLY_VESTED"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "CURRENTLY_VESTED"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Currently vested
+                    </span>
+
+                    {analysisBasis ===
+                      "CURRENTLY_VESTED" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model only {formatNumber(
+                      normalizeProNumber(
+                        proState.vestedOptions
+                      )
+                    )} options earned today.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!hasExercisePlan}
+                  onClick={() => {
+                    if (!hasExercisePlan) return;
+                    setAnalysisBasis("EXERCISE_PLAN");
+                    setSelectedScenario("Base");
+                    devLog("exercise_plan_basis_selected", {
+                      options: proState.exercisePlanOptions,
+                      waitMonths: proState.exercisePlanWaitMonths,
+                      fmv: proState.exercisePlanFMV,
+                      updatedAt: proState.exercisePlanUpdatedAt,
+                    });
+                  }}
+                  className={`rounded-xl border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    analysisBasis === "EXERCISE_PLAN"
+                      ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-violet-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">Exercise plan</span>
+                    {analysisBasis === "EXERCISE_PLAN" && (
+                      <span className="rounded-full bg-violet-600 px-2 py-1 text-[9px] font-black text-white">ACTIVE</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    {hasExercisePlan
+                      ? `${formatNumber(normalizeProNumber(proState.exercisePlanOptions))} options · Future +${formatNumber(normalizeProNumber(proState.exercisePlanWaitMonths))}m · FMV ${formatUnitCurrency(normalizeProNumber(proState.exercisePlanFMV))}`
+                      : "Create an Exercise Intelligence plan first."}
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {analysisBasis ===
+              "FULL_GRANT" &&
+              normalizeProNumber(
+                proState.vestedOptions
+              ) <
+                normalizeProNumber(
+                  proState.totalOptions
+                ) && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-[10px] font-bold leading-5 text-amber-900">
+                    This is a potential future-exit scenario. Only {formatNumber(
+                      normalizeProNumber(
+                        proState.vestedOptions
+                      )
+                    )} options are vested today; this model uses the full confirmed grant to show a possible future outcome if the remaining options eventually vest.
+                  </p>
+                </div>
+              )}
+
+            {analysisBasis === "EXERCISE_PLAN" && hasExercisePlan && (
+              <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-violet-700">Exercise Intelligence plan connected</p>
+                    <p className="mt-1 text-xs leading-5 text-violet-950/80">
+                      Exit is modeling exactly <strong>{formatNumber(normalizeProNumber(proState.exercisePlanOptions))} options</strong> from your Future +{formatNumber(normalizeProNumber(proState.exercisePlanWaitMonths))}m exercise plan using an exercise FMV of <strong>{formatUnitCurrency(normalizeProNumber(proState.exercisePlanFMV))}</strong>.
+                    </p>
+                  </div>
+                  <Link href="/pro/exercise" className="inline-flex shrink-0 items-center gap-1.5 text-xs font-black text-violet-700 hover:text-violet-900">
+                    Open Exercise <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ======================================================
@@ -607,12 +1082,18 @@ export default function ProExitPage() {
                 <div className="space-y-5 border-t border-slate-100 pt-6">
 
                   <ConnectedField
-                    label="Vested options"
+                    label="Options modeled"
                     value={
                       result.vestedShares
                     }
-                    description="From your PRO vesting model"
-                    href="/pro/vesting"
+                    description={
+                      analysisBasis === "FULL_GRANT"
+                        ? "Full confirmed grant used for this exit scenario"
+                        : analysisBasis === "CURRENTLY_VESTED"
+                          ? "Currently vested options from your PRO vesting model"
+                          : `Exact Exercise Intelligence selection · Future +${formatNumber(normalizeProNumber(proState.exercisePlanWaitMonths))}m`
+                    }
+                    href={analysisBasis === "EXERCISE_PLAN" ? "/pro/exercise" : "/pro/vesting"}
                   />
 
                   <ConnectedField
@@ -673,22 +1154,23 @@ export default function ProExitPage() {
 
                     {/* FMV */}
 
-                    <EditableField
-                      label="FMV at exercise"
-                      description="Fair market value per share"
-                      value={
-                        proState.exerciseFMV
-                      }
-                      prefix="₹"
-                      onChange={(value) =>
-                        updateProState({
-                          exerciseFMV:
-                            normalizeProNumber(
-                              value
-                            ),
-                        })
-                      }
-                    />
+                    {analysisBasis === "EXERCISE_PLAN" ? (
+                      <ConnectedField
+                        label="FMV at exercise"
+                        description={`From Exercise Intelligence · Future +${formatNumber(normalizeProNumber(proState.exercisePlanWaitMonths))}m`}
+                        value={modeledExerciseFMV}
+                        prefix="₹"
+                        href="/pro/exercise"
+                      />
+                    ) : (
+                      <EditableField
+                        label="FMV at exercise"
+                        description="Fair market value per share"
+                        value={proState.exerciseFMV}
+                        prefix="₹"
+                        onChange={(value) => updateProState({ exerciseFMV: normalizeProNumber(value) })}
+                      />
+                    )}
 
                     {/* HOLDING */}
 
@@ -1199,11 +1681,23 @@ export default function ProExitPage() {
                   />
 
                   <Breakdown
-                    label="Vested shares"
+                    label={
+                      analysisBasis === "FULL_GRANT"
+                        ? "Modeled options"
+                        : analysisBasis === "CURRENTLY_VESTED"
+                          ? "Vested options"
+                          : "Exercise-plan options"
+                    }
                     value={formatNumber(
                       result.vestedShares
                     )}
-                    helper="Included in exit"
+                    helper={
+                      analysisBasis === "FULL_GRANT"
+                        ? "Potential full-grant scenario"
+                        : analysisBasis === "CURRENTLY_VESTED"
+                          ? "Currently included in exit"
+                          : `Exact selection from Future +${formatNumber(normalizeProNumber(proState.exercisePlanWaitMonths))}m plan`
+                    }
                     icon={
                       <Target size={16} />
                     }
@@ -1215,7 +1709,13 @@ export default function ProExitPage() {
                       result.ownershipPercentage,
                       3
                     )}
-                    helper="Current vested ownership"
+                    helper={
+                      analysisBasis === "FULL_GRANT"
+                        ? "Potential modeled ownership"
+                        : analysisBasis === "CURRENTLY_VESTED"
+                          ? "Current vested ownership"
+                          : "Ownership represented by the selected exercise plan"
+                    }
                     icon={
                       <Percent size={16} />
                     }
@@ -1364,8 +1864,8 @@ export default function ProExitPage() {
                     />
 
                     <p className="text-xs leading-5 text-amber-900/80">
-                      Dilution does not remove your vested options.
-                      It changes the modeled share value available to
+                      Dilution does not remove your modeled options.
+                      It reduces the modeled ownership value available to
                       those options at exit.
                     </p>
 
@@ -2217,6 +2717,28 @@ function formatCurrency(
   ).toLocaleString(
     "en-IN"
   )}`;
+}
+
+function formatUnitCurrency(
+  value: number
+) {
+  if (
+    !Number.isFinite(
+      value
+    )
+  ) {
+    return "₹0.00";
+  }
+
+  return new Intl.NumberFormat(
+    "en-IN",
+    {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  ).format(value);
 }
 
 function formatNumber(

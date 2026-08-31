@@ -1,10 +1,8 @@
 export type DilutionInput = {
   sharesOwned: number;
   fullyDilutedShares: number;
-
   preMoneyValuation: number;
   newInvestment: number;
-
   currentOptionPoolPercent: number;
   targetOptionPoolPercent: number;
 };
@@ -23,14 +21,33 @@ export type DilutionResult = {
   postMoneyShares: number;
 
   dilutedOwnershipPercent: number;
+
+  /**
+   * Absolute ownership percentage-point change.
+   *
+   * Example:
+   * 1.25% -> 0.75%
+   * ownershipReductionPercent = 0.50
+   */
   ownershipReductionPercent: number;
+
+  /**
+   * Relative reduction in the holder's original ownership.
+   *
+   * Example:
+   * 1.25% -> 0.75%
+   * relativeOwnershipReductionPercent = 40%
+   *
+   * This is the value that downstream scenario tools should use
+   * when they need a proportional dilution percentage.
+   */
+  relativeOwnershipReductionPercent: number;
 
   currentStakeValue: number;
   postRoundStakeValue: number;
 
   currentOptionPoolPercent: number;
   targetOptionPoolPercent: number;
-
   optionPoolIncreasePercent: number;
 
   status:
@@ -47,16 +64,24 @@ export type DilutionResult = {
 ============================================================ */
 
 function safeNumber(value: number) {
-  return Number.isFinite(value) ? value : 0;
+  return Number.isFinite(value)
+    ? value
+    : 0;
 }
 
 function positiveNumber(value: number) {
-  return Math.max(safeNumber(value), 0);
+  return Math.max(
+    safeNumber(value),
+    0
+  );
 }
 
 function clampPercent(value: number) {
   return Math.min(
-    Math.max(positiveNumber(value), 0),
+    Math.max(
+      positiveNumber(value),
+      0
+    ),
     100
   );
 }
@@ -69,19 +94,27 @@ export function calculateDilution(
   input: DilutionInput
 ): DilutionResult {
   const sharesOwned =
-    positiveNumber(input.sharesOwned);
+    positiveNumber(
+      input.sharesOwned
+    );
 
   const fullyDilutedShares =
     Math.max(
-      positiveNumber(input.fullyDilutedShares),
+      positiveNumber(
+        input.fullyDilutedShares
+      ),
       sharesOwned
     );
 
   const preMoneyValuation =
-    positiveNumber(input.preMoneyValuation);
+    positiveNumber(
+      input.preMoneyValuation
+    );
 
   const newInvestment =
-    positiveNumber(input.newInvestment);
+    positiveNumber(
+      input.newInvestment
+    );
 
   const currentOptionPoolPercent =
     clampPercent(
@@ -104,11 +137,6 @@ export function calculateDilution(
         100
       : 0;
 
-  /*
-   * Current stake value based on the
-   * pre-money valuation.
-   */
-
   const currentStakeValue =
     preMoneyValuation *
     (currentOwnershipPercent / 100);
@@ -121,21 +149,10 @@ export function calculateDilution(
     preMoneyValuation +
     newInvestment;
 
-  /*
-   * New investor receives shares based on
-   * the pre-money share price.
-   *
-   * Example:
-   *
-   * Pre-money = ₹10 Cr
-   * Existing shares = 1,000,000
-   * Investment = ₹2 Cr
-   *
-   * New shares =
-   * 2 / 10 × 1,000,000
-   * = 200,000
+  /**
+   * The new investor receives shares at the implied
+   * pre-money price per fully diluted share.
    */
-
   const newSharesIssued =
     preMoneyValuation > 0
       ? (newInvestment /
@@ -154,13 +171,30 @@ export function calculateDilution(
      OPTION POOL TOP-UP
   ========================================================== */
 
-  /*
-   * If the target pool is larger than the
-   * existing pool, new option-pool shares
-   * are created.
+  /**
+   * fullyDilutedShares is assumed to ALREADY include the
+   * existing option pool.
    *
-   * These shares dilute existing holders.
+   * Existing pool shares:
+   *   E = fullyDilutedShares * currentPool%
+   *
+   * Let:
+   *   B = fullyDilutedShares + newSharesIssued
+   *   X = new option-pool shares to create
+   *   T = target pool %
+   *
+   * We want:
+   *   (E + X) / (B + X) = T
+   *
+   * Therefore:
+   *   X = (T * B - E) / (1 - T)
+   *
+   * We create only the positive top-up required.
    */
+  const existingOptionPoolShares =
+    fullyDilutedShares *
+    (currentOptionPoolPercent /
+      100);
 
   let newOptionPoolShares = 0;
 
@@ -169,17 +203,28 @@ export function calculateDilution(
     currentOptionPoolPercent
   ) {
     const target =
-      targetOptionPoolPercent / 100;
+      targetOptionPoolPercent /
+      100;
+
+    const baseSharesBeforeTopUp =
+      fullyDilutedShares +
+      newSharesIssued;
 
     const denominator =
       1 - target;
 
     if (denominator > 0) {
-      newOptionPoolShares =
+      const requiredTopUp =
         (target *
-          (fullyDilutedShares +
-            newSharesIssued)) /
+          baseSharesBeforeTopUp -
+          existingOptionPoolShares) /
         denominator;
+
+      newOptionPoolShares =
+        Math.max(
+          requiredTopUp,
+          0
+        );
     }
   }
 
@@ -199,37 +244,42 @@ export function calculateDilution(
         100
       : 0;
 
+  /**
+   * Percentage-point ownership change.
+   *
+   * Example:
+   * 1.25% -> 0.75%
+   * point change = 0.50 percentage points
+   */
   const ownershipReductionPercent =
     Math.max(
       currentOwnershipPercent -
         dilutedOwnershipPercent,
       0
     );
-    const relativeOwnershipReductionPercent =
-  currentOwnershipPercent > 0
-    ? (ownershipReductionPercent /
-        currentOwnershipPercent) *
-      100
-    : 0;
+
+  /**
+   * Relative reduction in the original stake.
+   *
+   * Example:
+   * 1.25% -> 0.75%
+   * relative dilution = 40%
+   */
+  const relativeOwnershipReductionPercent =
+    currentOwnershipPercent > 0
+      ? (ownershipReductionPercent /
+          currentOwnershipPercent) *
+        100
+      : 0;
 
   /* ==========================================================
      POST-ROUND STAKE VALUE
   ========================================================== */
 
-  /*
-   * Important:
-   *
-   * Dilution reduces ownership percentage,
-   * but the company valuation also increases
-   * because of the funding round.
-   *
-   * Therefore we show both ownership dilution
-   * and modeled stake value.
-   */
-
   const postRoundStakeValue =
     postMoneyValuation *
-    (dilutedOwnershipPercent / 100);
+    (dilutedOwnershipPercent /
+      100);
 
   /* ==========================================================
      OPTION POOL
@@ -237,11 +287,8 @@ export function calculateDilution(
 
   const actualTargetOptionPoolPercent =
     postMoneyShares > 0
-      ? ((
-          fullyDilutedShares *
-            (currentOptionPoolPercent / 100) +
-          newOptionPoolShares
-        ) /
+      ? ((existingOptionPoolShares +
+            newOptionPoolShares) /
           postMoneyShares) *
         100
       : 0;
@@ -263,15 +310,24 @@ export function calculateDilution(
     | "significant"
     | "high";
 
-  if (relativeOwnershipReductionPercent < 10) {
-  status = "minimal";
-} else if (relativeOwnershipReductionPercent < 25) {
-  status = "moderate";
-} else if (relativeOwnershipReductionPercent < 50) {
-  status = "significant";
-} else {
-  status = "high";
-}
+  if (
+    relativeOwnershipReductionPercent <
+    10
+  ) {
+    status = "minimal";
+  } else if (
+    relativeOwnershipReductionPercent <
+    25
+  ) {
+    status = "moderate";
+  } else if (
+    relativeOwnershipReductionPercent <
+    50
+  ) {
+    status = "significant";
+  } else {
+    status = "high";
+  }
 
   /* ==========================================================
      ASSUMPTIONS
@@ -279,12 +335,13 @@ export function calculateDilution(
 
   const assumptions = [
     "The funding round is modeled using the supplied pre-money valuation and new investment.",
-    "New investor shares are calculated using the implied pre-money share price.",
+    "New investor shares are calculated using the implied pre-money price per fully diluted share.",
     "Your existing shares are assumed to remain unchanged.",
-    "Option-pool top-up is modeled as new shares created for the employee option pool.",
-    "Ownership dilution is calculated on a post-round fully diluted basis.",
-    "Post-round stake value is an illustrative value based on the modeled post-money valuation.",
-    "This estimator does not model liquidation preferences, multiple share classes, SAFEs, convertible notes, or secondary transactions.",
+    "The existing option pool is assumed to already be included in fully diluted shares.",
+    "Option-pool top-up creates only the additional shares required to reach the target pool percentage after the modeled round.",
+    "Ownership-point change and relative dilution are shown separately because they measure different things.",
+    "Post-round stake value is illustrative and based on the modeled post-money valuation.",
+    "This estimator does not model liquidation preferences, multiple share classes, SAFEs, convertible notes, secondary transactions, or transaction-specific rights.",
   ];
 
   return {
@@ -301,18 +358,18 @@ export function calculateDilution(
     postMoneyShares,
 
     dilutedOwnershipPercent,
+
     ownershipReductionPercent,
+    relativeOwnershipReductionPercent,
 
     currentStakeValue,
     postRoundStakeValue,
 
     currentOptionPoolPercent,
     targetOptionPoolPercent,
-
     optionPoolIncreasePercent,
 
     status,
-
     assumptions,
   };
 }

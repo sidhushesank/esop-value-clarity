@@ -16,6 +16,152 @@ enum AccountStatus {
   SUSPENDED
 }
 
+enum PlanType {
+  FREE
+  PRO
+}
+
+enum BillingCycle {
+  MONTHLY
+  SIX_MONTHS
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionSource {
+  PAYMENT
+  ADMIN_GRANT
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum EsopDocumentStatus {
+  UPLOADED
+  PROCESSING
+  REVIEW_REQUIRED
+  CONFIRMED
+  FAILED
+  DELETED
+}
+
+enum EsopDocumentSource {
+  UPLOAD
+  MANUAL
+}
+
+enum EsopGrantStatus {
+  DRAFT
+  REVIEW_REQUIRED
+  CONFIRMED
+  ARCHIVED
+}
+
+enum EsopFieldStatus {
+  VERIFIED
+  REVIEW
+  NOT_FOUND
+  USER_CONFIRMED
+}
+
+enum EsopVestingFrequency {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  CUSTOM
+  UNKNOWN
+}
+
+enum EsopClauseType {
+  TERMINATION
+  EXERCISE_WINDOW
+  FORFEITURE
+  CHANGE_OF_CONTROL
+  ACCELERATION
+  EXPIRY
+  VESTING
+  TRANSFER_RESTRICTION
+  REPURCHASE
+  LIQUIDITY
+  TAX
+  OTHER
+}
+
+enum EsopClauseImportance {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum UserActivityType {
+  LOGIN
+  LOGOUT
+  SIGNUP
+  PROFILE_UPDATED
+  SIMULATOR_USED
+  TAX_CALCULATED
+  DILUTION_CALCULATED
+  VESTING_CALCULATED
+  EXIT_CALCULATED
+  COMPARE_USED
+  REPORT_CREATED
+  CALCULATION_CREATED
+  CALCULATION_UPDATED
+  CALCULATION_DELETED
+  PRO_UPGRADED
+  PRO_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+
+  ESOP_DOCUMENT_UPLOADED
+  ESOP_DOCUMENT_PROCESSING_STARTED
+  ESOP_DOCUMENT_PROCESSED
+  ESOP_DOCUMENT_REVIEWED
+  ESOP_DOCUMENT_CONFIRMED
+  ESOP_DOCUMENT_FAILED
+  ESOP_DOCUMENT_DELETED
+  ESOP_GRANT_CREATED
+  ESOP_GRANT_UPDATED
+  ESOP_GRANT_CONFIRMED
+  ESOP_GRANT_ARCHIVED
+}
+
+enum AdminActionType {
+  USER_VIEWED
+  PRO_GRANTED
+  PRO_REVOKED
+  USER_SUSPENDED
+  USER_REACTIVATED
+  USER_DELETED
+  ROLE_CHANGED
+}
+
+// ============================================================
+// PHASE 4 — OFFER INTELLIGENCE
+// ============================================================
+
+enum OfferIntelligenceStatus {
+  DRAFT
+  REVIEW_REQUIRED
+  CONFIRMED
+  ARCHIVED
+}
+
+enum OfferIntelligenceSource {
+  PDF_UPLOAD
+  MANUAL
+}
+
 model User {
   id            String  @id @default(cuid())
   name          String
@@ -43,6 +189,15 @@ model User {
 
   adminActions    AdminAuditLog[] @relation("AdminActor")
   adminTargetLogs AdminAuditLog[] @relation("AdminTarget")
+
+  esopDocuments EsopDocument[]
+  esopGrants    EsopGrant[]
+
+  // ============================================================
+  // PHASE 4 — OFFER INTELLIGENCE
+  // ============================================================
+
+  offerIntelligenceRecords OfferIntelligence[]
 }
 
 model GuestSession {
@@ -138,34 +293,6 @@ model EmailVerificationToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum PlanType {
-  FREE
-  PRO
-}
-
-enum BillingCycle {
-  MONTHLY
-  SIX_MONTHS
-  YEARLY
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
-}
-
-enum SubscriptionSource {
-  PAYMENT
-  ADMIN_GRANT
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
 model Subscription {
   id     String @id @default(cuid())
   userId String @unique
@@ -211,27 +338,6 @@ model Payment {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum UserActivityType {
-  LOGIN
-  LOGOUT
-  SIGNUP
-  PROFILE_UPDATED
-  SIMULATOR_USED
-  TAX_CALCULATED
-  DILUTION_CALCULATED
-  VESTING_CALCULATED
-  EXIT_CALCULATED
-  COMPARE_USED
-  REPORT_CREATED
-  CALCULATION_CREATED
-  CALCULATION_UPDATED
-  CALCULATION_DELETED
-  PRO_UPGRADED
-  PRO_CANCELLED
-  PAYMENT_SUCCESS
-  PAYMENT_FAILED
-}
-
 model UserActivity {
   id String @id @default(cuid())
 
@@ -249,16 +355,6 @@ model UserActivity {
   @@index([createdAt])
 }
 
-enum AdminActionType {
-  USER_VIEWED
-  PRO_GRANTED
-  PRO_REVOKED
-  USER_SUSPENDED
-  USER_REACTIVATED
-  USER_DELETED
-  ROLE_CHANGED
-}
-
 model AdminAuditLog {
   id           String          @id @default(cuid())
   adminId      String
@@ -273,5 +369,308 @@ model AdminAuditLog {
   @@index([adminId])
   @@index([targetUserId])
   @@index([action])
+  @@index([createdAt])
+}
+
+model EsopDocument {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  source EsopDocumentSource @default(UPLOAD)
+  status EsopDocumentStatus @default(UPLOADED)
+
+  originalFileName String?
+  storageKey       String?
+  mimeType         String?
+  fileSizeBytes    Int?
+
+  extractedText   Json?
+  extractionData  Json?
+  extractionError String?
+
+  processingStartedAt DateTime?
+  processedAt         DateTime?
+  confirmedAt         DateTime?
+  deletedAt           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grants  EsopGrant[]
+  clauses EsopDocumentClause[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EsopGrant {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  documentId String?
+  document   EsopDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  status EsopGrantStatus @default(DRAFT)
+
+  companyName String?
+  grantName   String?
+
+  grantDate DateTime?
+
+  optionCount Int?
+
+  strikePrice Float?
+  currency    String @default("INR")
+
+  vestingStartDate      DateTime?
+  vestingDurationMonths Int?
+  cliffMonths           Int?
+
+  vestingFrequency EsopVestingFrequency @default(UNKNOWN)
+
+  expiryDate DateTime?
+
+  postTerminationExerciseDays Int?
+
+  notes String?
+
+  confirmedAt DateTime?
+  archivedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fields EsopGrantField[]
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([status])
+  @@index([companyName])
+  @@index([createdAt])
+}
+
+model EsopGrantField {
+  id String @id @default(cuid())
+
+  grantId String
+  grant   EsopGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  fieldKey String
+  label    String
+
+  extractedValue Json?
+  confirmedValue Json?
+
+  status EsopFieldStatus @default(REVIEW)
+
+  sourceText String?
+  sourcePage Int?
+
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([grantId, fieldKey])
+  @@index([grantId])
+  @@index([status])
+}
+
+model EsopDocumentClause {
+  id String @id @default(cuid())
+
+  documentId String
+  document   EsopDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  type       EsopClauseType
+  importance EsopClauseImportance @default(MEDIUM)
+
+  title   String
+  summary String?
+
+  extractedText String?
+
+  fieldStatus EsopFieldStatus @default(REVIEW)
+
+  sourcePage Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([type])
+  @@index([importance])
+}
+
+// ============================================================
+// PHASE 4 — OFFER INTELLIGENCE
+//
+// Separate from EsopGrant because an employment offer can be:
+//
+// - Cash only
+// - Cash + ESOP
+// - Cash + RSU
+// - Cash + other equity
+//
+// This model stores the employee-confirmed offer used by the
+// Phase 4 comparison / negotiation engines.
+// ============================================================
+
+model OfferIntelligence {
+  id String @id @default(cuid())
+
+  // ============================================================
+  // OWNERSHIP
+  // ============================================================
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ============================================================
+  // LIFECYCLE
+  // ============================================================
+
+  status OfferIntelligenceStatus @default(DRAFT)
+  source OfferIntelligenceSource @default(PDF_UPLOAD)
+
+  // ============================================================
+  // OFFER / EMPLOYER IDENTITY
+  // ============================================================
+
+  companyName String?
+  roleTitle   String?
+  location    String?
+
+  employmentType String?
+  workMode       String?
+
+  joiningDate DateTime?
+
+  currency String @default("INR")
+
+  // ============================================================
+  // CASH COMPENSATION
+  // ============================================================
+
+  headlineCTC Float?
+  fixedSalary Float?
+
+  basicSalary      Float?
+  hra              Float?
+  specialAllowance Float?
+
+  otherFixedAllowance Float?
+
+  targetVariablePay  Float?
+  maximumVariablePay Float?
+
+  joiningBonus     Float?
+  retentionBonus   Float?
+  relocationBonus  Float?
+  performanceBonus Float?
+
+  employerPF Float?
+  gratuity   Float?
+
+  insuranceValue        Float?
+  otherEmployerBenefits Float?
+
+  // ============================================================
+  // EQUITY
+  // ============================================================
+
+  equityType String?
+
+  companyEquityStatus String?
+
+  employerHeadlineEquityValue Float?
+
+  totalOptionsOrShares Int?
+
+  exercisePrice Float?
+  currentFMV    Float?
+
+  listedSharePrice Float?
+
+  companyValuation    Float?
+  totalCompanyShares  Float?
+  ownershipPercentage Float?
+
+  vestingDurationMonths Int?
+  cliffMonths           Int?
+  vestingFrequency      String?
+
+  vestingStartDate DateTime?
+  grantDate        DateTime?
+  expiryDate       DateTime?
+
+  postTerminationExerciseDays Int?
+
+  expectedDilutionPercentage Float?
+
+  // ============================================================
+  // SOURCE DOCUMENT METADATA
+  //
+  // We intentionally do NOT persist the uploaded PDF itself
+  // in Offer Intelligence V1.
+  //
+  // The PDF is used for local extraction and discarded after
+  // the scan request. Only metadata and reviewed structured
+  // information are persisted.
+  // ============================================================
+
+  originalFileName String?
+  mimeType         String?
+  fileSizeBytes    Int?
+  pageCount        Int?
+
+  // ============================================================
+  // REVIEW / AUDIT SNAPSHOTS
+  //
+  // rawScanSnapshot
+  //   What the deterministic scanner originally extracted.
+  //
+  // confirmedScanSnapshot
+  //   What the employee confirmed / corrected.
+  //
+  // normalizedSnapshot
+  //   Clean Offer Intelligence engine input.
+  //
+  // validationSnapshot
+  //   Remaining warnings / informational limitations after
+  //   server-side revalidation.
+  // ============================================================
+
+  rawScanSnapshot       Json?
+  confirmedScanSnapshot Json?
+  normalizedSnapshot    Json?
+  validationSnapshot    Json?
+
+  // ============================================================
+  // CONFIRMATION
+  // ============================================================
+
+  confirmedAt DateTime?
+  archivedAt  DateTime?
+
+  // ============================================================
+  // TIMESTAMPS
+  // ============================================================
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ============================================================
+  // INDEXES
+  // ============================================================
+
+  @@index([userId])
+  @@index([status])
+  @@index([companyName])
   @@index([createdAt])
 }

@@ -1,283 +1,548 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
-  Mail,
-  Github,
-  Globe,
-  MessageCircle,
+  ArrowRight,
   ArrowUpRight,
+  CheckCircle2,
+  CircleAlert,
+  FileText,
+  Github,
+  Globe2,
+  LockKeyhole,
+  Mail,
+  MessageSquareText,
+  Send,
   ShieldCheck,
+  TriangleAlert,
 } from "lucide-react";
 
+const companyLinks = [
+  { label: "Home", href: "/" },
+  { label: "Simulator", href: "/simulator" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Blog", href: "/blog" },
+];
+
+const productLinks = [
+  { label: "PRO Workspace", href: "/pro" },
+  { label: "Offer Intelligence", href: "/pro/offers" },
+  { label: "Reports", href: "/pro/reports" },
+];
+
 export default function Footer() {
+  const [status, setStatus] =
+    useState<
+      "idle" | "sending" | "sent" | "error"
+    >("idle");
+
+  const [
+    feedback,
+    setFeedback,
+  ] =
+    useState<string>("");
+
+  async function handleContact(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (status === "sending") {
+      return;
+    }
+
+    const formElement =
+      event.currentTarget;
+
+    const form =
+      new FormData(formElement);
+
+    const name =
+      String(
+        form.get("name") || ""
+      ).trim();
+
+    const email =
+      String(
+        form.get("email") || ""
+      ).trim();
+
+    const message =
+      String(
+        form.get("message") || ""
+      ).trim();
+
+    const website =
+      String(
+        form.get("website") || ""
+      ).trim();
+
+    setStatus("sending");
+    setFeedback("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/contact",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              message,
+              website,
+            }),
+          }
+        );
+
+      const result =
+        (await response.json()) as {
+          success?: boolean;
+          message?: string;
+        };
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.message ||
+            "Unable to send your message right now."
+        );
+      }
+
+      formElement.reset();
+
+      setStatus("sent");
+
+      setFeedback(
+        result.message ||
+          "Thanks for contacting ESOP Value Clarity. Your message has been received."
+      );
+    } catch (error: unknown) {
+      console.error(
+        "[FOOTER_CONTACT]",
+        error
+      );
+
+      setStatus("error");
+
+      setFeedback(
+        error instanceof Error
+          ? error.message
+          : "We couldn't send your message. Please try again."
+      );
+    }
+  }
+
   return (
-    <footer className="border-t border-white/10 bg-slate-900">
-      <div className="mx-auto max-w-7xl px-6 py-16">
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#050b16] text-white">
+      <div className="footer-grid pointer-events-none absolute inset-0 opacity-40" />
+      <div className="pointer-events-none absolute -left-40 top-10 h-[28rem] w-[28rem] rounded-full bg-blue-600/10 blur-[130px]" />
+      <div className="pointer-events-none absolute -right-40 bottom-0 h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.07] blur-[140px]" />
 
-        <div className="grid gap-14 lg:grid-cols-[1.5fr_0.9fr]">
-
-          {/* LEFT */}
+      <div className="relative mx-auto max-w-[1480px] px-6 pb-8 pt-16 md:pt-20">
+        {/* =====================================================
+            COMPANY HEADER
+        ====================================================== */}
+        <div className="grid gap-10 border-b border-white/10 pb-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
-
-            <div className="flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-cyan-500 to-violet-500 text-white font-bold shadow-lg">
-                EV
+            <div className="flex items-center gap-4">
+              <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-2xl border border-blue-400/20 bg-blue-500/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-400/5" />
+                <span className="relative text-sm font-black tracking-[-0.04em] text-blue-200">
+                  EV
+                </span>
               </div>
 
               <div>
-
-                <h2 className="text-2xl font-bold tracking-tight text-white">
+                <p className="text-xl font-black tracking-[-0.035em]">
                   ESOP Value Clarity
-                </h2>
-
-                <p className="text-sm text-emerald-400">
-                  Understand Equity. Build Wealth.
                 </p>
-
+                <div className="mt-1 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Equity decision intelligence
+                </div>
               </div>
-
             </div>
 
-            <p className="mt-8 max-w-2xl text-[15px] leading-8 text-slate-400">
-              ESOP Value Clarity is a modern equity intelligence platform
-              designed to help startup employees, founders and aspiring
-              investors better understand the real-world value of equity.
-              Through transparent calculations, dilution simulations,
-              vesting projections and exit modelling, the platform turns
-              complex ownership data into clear financial insights.
+            <h2 className="mt-8 max-w-3xl text-3xl font-black tracking-[-0.045em] text-white md:text-4xl">
+              Understand the economics behind your equity.
+              <span className="block text-slate-500">
+                Then make the decision yourself.
+              </span>
+            </h2>
+
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400">
+              ESOP Value Clarity is an employee-focused decision-support
+              platform for understanding grants, vesting, ownership, dilution,
+              exercise economics, exit scenarios and complete compensation
+              offers without presenting uncertain equity as guaranteed value.
             </p>
-
-            <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6 backdrop-blur">
-
-              <div className="flex items-center gap-3">
-
-                <ShieldCheck className="h-6 w-6 text-emerald-400" />
-
-                <h3 className="font-semibold text-white">
-                  Transparency First
-                </h3>
-
-              </div>
-
-              <p className="mt-3 text-sm leading-7 text-slate-400">
-                Every estimate is generated using transparent assumptions
-                instead of hidden algorithms. The platform is intended for
-                educational and informational purposes only and should not
-                be considered financial, legal, investment or tax advice.
-              </p>
-
-            </div>
-
           </div>
 
-          {/* RIGHT */}
+          <div className="rounded-[22px] border border-blue-400/15 bg-blue-400/[0.05] p-5">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
+                  PRODUCT PRINCIPLE
+                </p>
+                <p className="mt-2 text-sm font-black text-white">
+                  Scenarios over false certainty.
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  Assumptions remain visible. Missing information remains
+                  unknown. Modeled outcomes are not presented as guaranteed
+                  future proceeds.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            MAIN FOOTER GRID
+        ====================================================== */}
+        <div className="grid gap-10 py-12 lg:grid-cols-[0.72fr_0.72fr_1.56fr]">
+          {/* Navigation */}
           <div>
-
-            <h3 className="text-xl font-semibold text-white">
-              Connect
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Questions, feedback or collaboration?
-              Feel free to reach out.
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+              COMPANY
             </p>
 
-            <div className="mt-8 space-y-4">
+            <div className="mt-5 space-y-3">
+              {companyLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="group flex w-fit items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white"
+                >
+                  {item.label}
+                  <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                </Link>
+              ))}
+            </div>
 
-              <Link
-                href="mailto:sidhusheshank@gmail.com"
-                className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-4 transition-all duration-300 hover:border-emerald-500/30 hover:bg-white/[0.06]"
-              >
-                <Mail className="h-5 w-5 text-emerald-400" />
+            <p className="mt-9 text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+              PRODUCT
+            </p>
 
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500">
-                    Email
-                  </p>
-                  <p className="text-white">
-                    sidhusheshank@gmail.com
-                  </p>
-                </div>
+            <div className="mt-5 space-y-3">
+              {productLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="group flex w-fit items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white"
+                >
+                  {item.label}
+                  <ArrowRight className="h-3.5 w-3.5 opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100" />
+                </Link>
+              ))}
+            </div>
+          </div>
 
-                <ArrowUpRight className="h-4 w-4 text-slate-500 transition group-hover:text-white" />
-              </Link>
+          {/* Company / founder contact */}
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">
+              CONTACT
+            </p>
 
-              <Link
-                href="https://wa.me/917842638157"
-                target="_blank"
-                className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-4 transition-all duration-300 hover:border-green-500/30 hover:bg-white/[0.06]"
-              >
-                <MessageCircle className="h-5 w-5 text-green-400" />
+            <a
+              href="mailto:esopvalueclarity@gmail.com"
+              className="group mt-5 flex items-start gap-3"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-blue-300 transition group-hover:border-blue-400/20 group-hover:bg-blue-400/10">
+                <Mail className="h-4 w-4" />
+              </span>
+              <span>
+                <span className="block text-xs text-slate-500">
+                  Product enquiries
+                </span>
+                <span className="mt-1 block break-all text-sm font-bold text-slate-200 transition group-hover:text-white">
+                  esopvalueclarity@gmail.com
+                </span>
+              </span>
+            </a>
 
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500">
-                    WhatsApp
-                  </p>
-                  <p className="text-white">
-                    +91 7842638157
-                  </p>
-                </div>
+            <div className="mt-6 border-t border-white/10 pt-6">
+              <p className="text-xs text-slate-500">Founded & built by</p>
+              <p className="mt-1 text-sm font-black text-white">
+                Sheshank Sidheshwar
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Independent product founder
+              </p>
+            </div>
 
-                <ArrowUpRight className="h-4 w-4 text-slate-500 transition group-hover:text-white" />
-              </Link>
-
-              <Link
+            <div className="mt-6 flex gap-2">
+              <a
                 href="https://github.com/sidhushesank"
                 target="_blank"
-                className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06]"
+                rel="noreferrer"
+                aria-label="Sheshank Sidheshwar on GitHub"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:-translate-y-1 hover:border-white/20 hover:text-white"
               >
-                <Github className="h-5 w-5 text-white" />
+                <Github className="h-4 w-4" />
+              </a>
 
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500">
-                    GitHub
-                  </p>
-                  <p className="text-white">
-                    github.com/sidhushesank
-                  </p>
-                </div>
+              <a
+                href="https://sheshank-portfolio.netlify.app/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Sheshank Sidheshwar portfolio"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:-translate-y-1 hover:border-blue-400/20 hover:text-blue-300"
+              >
+                <Globe2 className="h-4 w-4" />
+              </a>
 
-                <ArrowUpRight className="h-4 w-4 text-slate-500 transition group-hover:text-white" />
-              </Link>
-
-              <Link
+              <a
                 href="https://x.com/SheshankSi60747"
                 target="_blank"
-                className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-4 transition-all duration-300 hover:border-sky-500/30 hover:bg-white/[0.06]"
+                rel="noreferrer"
+                aria-label="Sheshank Sidheshwar on X"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:-translate-y-1 hover:border-white/20 hover:text-white"
               >
                 <svg
-                  className="h-5 w-5 fill-white"
+                  className="h-3.5 w-3.5 fill-current"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path d="M18.244 2H21.5l-7.12 8.138L22.75 22h-6.554l-5.13-6.708L5.2 22H1.94l7.614-8.702L1.5 2h6.72l4.64 6.116L18.244 2z" />
                 </svg>
+              </a>
+            </div>
+          </div>
 
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500">
-                    X
-                  </p>
-                  <p className="text-white">
-                    @SheshankSi60747
-                  </p>
+          {/* Contact form */}
+          <div className="relative overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.035] p-5 sm:p-6">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/10 blur-[60px]" />
+
+            <div className="relative flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
+                  <MessageSquareText className="h-3.5 w-3.5" />
+                  CONTACT THE PRODUCT
                 </div>
+                <h3 className="mt-2 text-xl font-black text-white">
+                  Have a question or product idea?
+                </h3>
+                <p className="mt-2 max-w-xl text-xs leading-6 text-slate-500">
+                  Send feedback, partnership enquiries or questions about ESOP
+                  Value Clarity.
+                </p>
+              </div>
 
-                <ArrowUpRight className="h-4 w-4 text-slate-500 transition group-hover:text-white" />
-              </Link>
+              <span className="hidden rounded-full border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300 sm:inline-flex sm:items-center sm:gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Founder inbox
+              </span>
+            </div>
 
-              <Link
-                href="https://sheshank-portfolio.netlify.app/"
-                target="_blank"
-                className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-4 transition-all duration-300 hover:border-violet-500/30 hover:bg-white/[0.06]"
+            <form onSubmit={handleContact} className="relative mt-6">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
+                    NAME
+                  </span>
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    maxLength={100}
+                    autoComplete="name"
+                    placeholder="Your name"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#07111f]/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
+                    EMAIL
+                  </span>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    maxLength={254}
+                    autoComplete="email"
+                    placeholder="you@company.com"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#07111f]/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-3 block">
+                <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
+                  MESSAGE
+                </span>
+                <textarea
+                  name="message"
+                  required
+                  minLength={10}
+                  maxLength={5000}
+                  rows={4}
+                  placeholder="Tell us what you would like to discuss..."
+                  className="w-full resize-none rounded-xl border border-white/10 bg-[#07111f]/80 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-400/40 focus:ring-2 focus:ring-blue-500/10"
+                />
+              </label>
+
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-[9999px] top-auto h-px w-px overflow-hidden opacity-0"
               >
-                <Globe className="h-5 w-5 text-violet-400" />
+                <label>
+                  Website
+                  <input
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </label>
+              </div>
 
-                <div className="flex-1">
-                  <p className="text-sm text-slate-500">
-                    Portfolio
-                  </p>
-                  <p className="text-white">
-                    sheshank-portfolio.netlify.app
-                  </p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 text-[10px] leading-5 text-slate-500">
+                  <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-slate-600" />
+                  Sent securely through the site to the ESOP Value Clarity inbox.
                 </div>
 
-                <ArrowUpRight className="h-4 w-4 text-slate-500 transition group-hover:text-white" />
-              </Link>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* LAUNCHORY + MAIDENSAIL BADGES */}
-        <div className="mt-14 border-t border-white/10 pt-10">
-
-          <div className="flex flex-col items-center justify-center text-center">
-
-            <p className="mb-6 text-sm font-medium text-slate-500">
-              Featured on
-            </p>
-
-            <div className="flex w-full flex-col items-center justify-center gap-8 md:flex-row md:gap-12">
-
-              {/* LAUNCHORY */}
-              <div className="flex flex-col items-center">
-
-                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-slate-500">
-                  Launchory
-                </p>
-
-                <a
-                  href="https://www.launchory.app/startups/esop-value-clarity?ref=badge"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block transition-transform duration-300 hover:scale-105"
+                <button
+                  type="submit"
+                  disabled={status === "sending"}
+                  className="group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black text-white shadow-[0_12px_30px_rgba(37,99,235,0.18)] transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60"
                 >
-                  <img
-                    src="https://www.launchory.app/api/badge/esop-value-clarity?theme=dark"
-                    alt="Featured on Launchory"
-                    className="h-auto max-w-full"
-                  />
-                </a>
-
+                  {status === "sent" ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Message sent
+                    </>
+                  ) : status === "sending" ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Sending...
+                    </>
+                  ) : status === "error" ? (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Try again
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Contact us
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </button>
               </div>
 
-              {/* MAIDENSAIL */}
-              <div className="flex flex-col items-center">
-
-                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-slate-500">
-                  MaidenSail
-                </p>
-
-                <a
-                  href="https://maidensail.com/startup/esop-value-clarity"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block transition-transform duration-300 hover:scale-105"
+              {feedback ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className={`mt-4 flex items-start gap-3 rounded-xl border px-4 py-3 text-xs leading-5 ${
+                    status === "sent"
+                      ? "border-emerald-400/15 bg-emerald-400/[0.07] text-emerald-200"
+                      : "border-red-400/15 bg-red-400/[0.07] text-red-200"
+                  }`}
                 >
-                  <img
-                    src="https://maidensail.com/badge/esop-value-clarity.svg?theme=dark"
-                    alt="Featured on MaidenSail"
-                    className="h-auto max-w-full"
-                  />
-                </a>
+                  {status === "sent" ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                  )}
 
-              </div>
-
-            </div>
-
+                  <span>{feedback}</span>
+                </div>
+              ) : null}
+            </form>
           </div>
-
         </div>
 
-        {/* COPYRIGHT */}
-        <div className="mt-10 border-t border-white/10 pt-8">
-
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        {/* =====================================================
+            IMPORTANT NOTICE
+        ====================================================== */}
+        <div className="rounded-[22px] border border-amber-400/15 bg-amber-400/[0.045] p-5">
+          <div className="grid gap-5 md:grid-cols-[auto_1fr] md:items-start">
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-amber-400/15 bg-amber-400/[0.08] text-amber-300">
+              <TriangleAlert className="h-4.5 w-4.5" />
+            </span>
 
             <div>
-
-              <p className="font-medium text-white">
-                © {new Date().getFullYear()} ESOP Value Clarity
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-amber-300">
+                IMPORTANT INFORMATION
               </p>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Empowering founders and startup professionals with transparent equity insights.
+              <p className="mt-2 text-sm font-black text-white">
+                ESOP outcomes are uncertain by nature.
               </p>
-
+              <p className="mt-2 max-w-5xl text-xs leading-6 text-slate-400">
+                ESOP Value Clarity provides educational calculations, scenario
+                modelling and decision-support tools. Modeled equity values,
+                tax estimates, dilution assumptions, company valuations and
+                exit outcomes are not guarantees. The platform does not provide
+                financial, investment, legal or tax advice. Consider your
+                company&apos;s official documents and qualified professional
+                advice before making material financial decisions.
+              </p>
             </div>
-
-            <p className="max-w-lg text-right text-sm leading-6 text-slate-500">
-              Built with a focus on clarity, transparency and financial education.
-              Every calculation is explainable, every assumption is visible,
-              because understanding your equity should never feel like a black box.
-            </p>
-
           </div>
-
         </div>
 
+        {/* =====================================================
+            LEGAL / BOTTOM BAR
+        ====================================================== */}
+        <div className="mt-8 flex flex-col gap-6 border-t border-white/10 pt-7 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-black text-slate-300">
+              © {new Date().getFullYear()} ESOP Value Clarity
+            </p>
+            <p className="mt-1 text-[10px] text-slate-600">
+              Built for clearer employee equity decisions.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-xs font-semibold text-slate-500">
+            <Link href="/privacy" className="transition hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition hover:text-white">
+              Terms
+            </Link>
+            <Link href="/disclaimer" className="transition hover:text-white">
+              Disclaimer
+            </Link>
+
+            <span className="hidden h-3 w-px bg-white/10 sm:block" />
+
+            <span className="flex items-center gap-1.5 text-slate-600">
+              <FileText className="h-3.5 w-3.5" />
+              Decision support, not financial advice
+            </span>
+          </div>
+        </div>
       </div>
+
+      <style jsx global>{`
+        .footer-grid {
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.022) 1px,
+              transparent 1px
+            );
+          background-size: 34px 34px;
+          mask-image: linear-gradient(to bottom, black, transparent 92%);
+        }
+      `}</style>
     </footer>
   );
 }

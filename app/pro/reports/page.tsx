@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowLeft,
   ArrowUpRight,
   BarChart3,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   CircleDollarSign,
@@ -25,13 +26,17 @@ import {
   TrendingDown,
   TrendingUp,
   Wallet,
+  Link2,
+  ReceiptIndianRupee,
   WandSparkles,
   Zap,
 } from "lucide-react";
 
-import { useProEquityState } from "@/lib/esop/pro-state";
+import { normalizeProNumber, useProEquityState } from "@/lib/esop/pro-state";
+import { calculateAdvancedTax } from "@/lib/esop/tax";
 
 type ScenarioKey = "bear" | "base" | "bull";
+type AnalysisBasis = "FULL_GRANT" | "CURRENTLY_VESTED";
 type OwnershipStage = "vested" | "current" | "diluted";
 type HeroMetricKey = "stake" | "exercise" | "currentValue" | "range";
 type KpiKey = "vested" | "ownership" | "cost" | "proceeds";
@@ -46,6 +51,16 @@ type AssumptionKey =
   | "exitValuation"
   | "dilution"
   | "equityType";
+
+
+type ReportExportRow = {
+  section: string;
+  metric: string;
+  rawValue: string | number;
+  displayValue: string;
+  unit?: string;
+  notes?: string;
+};
 
 export default function ProReportsPage() {
   const { proState, hydrated } = useProEquityState();
@@ -65,28 +80,147 @@ export default function ProReportsPage() {
     useState<AssumptionKey>("exitValuation");
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
 
+  const [analysisBasis, setAnalysisBasis] =
+    useState<AnalysisBasis>("FULL_GRANT");
+
+  const [connectedGrant, setConnectedGrant] = useState<{
+    id?: string;
+    documentId?: string;
+    companyName?: string | null;
+    grantName?: string | null;
+    optionCount?: number | null;
+    strikePrice?: number | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadActiveGrant() {
+      try {
+        const response = await fetch("/api/pro/equity/active", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = await response.json();
+
+        if (!cancelled && payload?.grant) {
+          setConnectedGrant(payload.grant);
+        }
+      } catch {
+        // Shared PRO state remains the fallback.
+      }
+    }
+
+    loadActiveGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const confirmedGrantConnected = Boolean(
+    proState.sourceGrantId || connectedGrant?.id
+  );
+
+  const fullGrantOptions = Math.max(
+    0,
+    normalizeProNumber(
+      proState.totalOptions ||
+        connectedGrant?.optionCount ||
+        0
+    )
+  );
+
+  const currentlyVestedOptions = Math.max(
+    0,
+    normalizeProNumber(proState.vestedOptions)
+  );
+
+  const modeledOptions =
+    analysisBasis === "FULL_GRANT"
+      ? fullGrantOptions
+      : currentlyVestedOptions;
+
+  const effectiveVestedPercentage =
+    fullGrantOptions > 0
+      ? (modeledOptions / fullGrantOptions) * 100
+      : 0;
+
   const report = useMemo(() => {
-    const vestedOptions = Math.max(0, proState.vestedOptions);
-    const companyShares = Math.max(0, proState.totalCompanyShares);
-    const exercisePrice = Math.max(0, proState.exercisePrice);
+    const companyShares = Math.max(
+      0,
+      normalizeProNumber(proState.totalCompanyShares)
+    );
+
+    const exercisePrice = Math.max(
+      0,
+      normalizeProNumber(
+        proState.exercisePrice ||
+          connectedGrant?.strikePrice ||
+          0
+      )
+    );
+
     const dilution = Math.min(
       100,
-      Math.max(0, proState.futureDilutionPercentage)
+      Math.max(
+        0,
+        normalizeProNumber(proState.futureDilutionPercentage)
+      )
     );
-    const exitValuation = Math.max(0, proState.exitValuation);
+
+    const exitValuation = Math.max(
+      0,
+      normalizeProNumber(proState.exitValuation)
+    );
+
     const currentCompanyValuation = Math.max(
       0,
-      proState.currentCompanyValuation
+      normalizeProNumber(proState.currentCompanyValuation)
+    );
+
+    const exerciseFMV = Math.max(
+      0,
+      normalizeProNumber(proState.exerciseFMV)
+    );
+
+    const otherAnnualIncome = Math.max(
+      0,
+      normalizeProNumber(proState.otherAnnualIncome)
+    );
+
+    const holdingPeriodMonths = Math.max(
+      0,
+      normalizeProNumber(proState.holdingPeriodMonths)
     );
 
     const currentOwnership =
-      companyShares > 0 ? (vestedOptions / companyShares) * 100 : 0;
-    const dilutedOwnership = currentOwnership * (1 - dilution / 100);
-    const exerciseCost = vestedOptions * exercisePrice;
+      companyShares > 0
+        ? (modeledOptions / companyShares) * 100
+        : 0;
+
+    const dilutedOwnership =
+      currentOwnership * (1 - dilution / 100);
+
+    const exerciseCost =
+      modeledOptions * exercisePrice;
+
     const currentEquityValue =
-      (currentOwnership / 100) * currentCompanyValuation;
-    const grossExitValue = (dilutedOwnership / 100) * exitValuation;
-    const projectedProceeds = Math.max(0, grossExitValue - exerciseCost);
+      (currentOwnership / 100) *
+      currentCompanyValuation;
+
+    const grossExitValue =
+      (dilutedOwnership / 100) *
+      exitValuation;
+
+    const projectedPreTaxProceeds =
+      Math.max(
+        0,
+        grossExitValue - exerciseCost
+      );
 
     const scenarios = [
       {
@@ -109,10 +243,49 @@ export default function ProReportsPage() {
       },
     ].map(({ key, label, title, factor }) => {
       const valuation = exitValuation * factor;
-      const gross = (dilutedOwnership / 100) * valuation;
-      const proceeds = Math.max(0, gross - exerciseCost);
-      const multiple = exerciseCost > 0 ? proceeds / exerciseCost : 0;
-      const retained = gross > 0 ? (proceeds / gross) * 100 : 0;
+
+      const gross =
+        (dilutedOwnership / 100) *
+        valuation;
+
+      const preTaxProceeds =
+        Math.max(
+          0,
+          gross - exerciseCost
+        );
+
+      const salePrice =
+        companyShares > 0
+          ? (valuation / companyShares) *
+            (1 - dilution / 100)
+          : 0;
+
+      const tax = calculateAdvancedTax({
+        vestedShares: modeledOptions,
+        strikePrice: exercisePrice,
+        exerciseFMV,
+        salePrice,
+        otherAnnualIncome,
+        holdingPeriodMonths,
+        equityType: proState.equityType,
+        taxRegime: proState.taxRegime,
+      });
+
+      const afterTaxProceeds =
+        Math.max(
+          0,
+          tax.netTakeHome
+        );
+
+      const multiple =
+        exerciseCost > 0
+          ? afterTaxProceeds / exerciseCost
+          : 0;
+
+      const retained =
+        gross > 0
+          ? (afterTaxProceeds / gross) * 100
+          : 0;
 
       return {
         key,
@@ -121,7 +294,10 @@ export default function ProReportsPage() {
         factor,
         valuation,
         gross,
-        proceeds,
+        preTaxProceeds,
+        proceeds: afterTaxProceeds,
+        estimatedTax: tax.totalEstimatedTax,
+        salePrice,
         multiple,
         retained,
       };
@@ -130,31 +306,53 @@ export default function ProReportsPage() {
     const bear = scenarios[0];
     const base = scenarios[1];
     const bull = scenarios[2];
-    const outcomeRange = Math.max(0, bull.proceeds - bear.proceeds);
-    const baseVsBear = Math.max(0, base.proceeds - bear.proceeds);
-    const bullVsBase = Math.max(0, bull.proceeds - base.proceeds);
+
+    const outcomeRange =
+      Math.max(
+        0,
+        bull.proceeds - bear.proceeds
+      );
+
+    const baseVsBear =
+      Math.max(
+        0,
+        base.proceeds - bear.proceeds
+      );
+
+    const bullVsBase =
+      Math.max(
+        0,
+        bull.proceeds - base.proceeds
+      );
+
     const bullUpsidePercentage =
       base.proceeds > 0
-        ? ((bull.proceeds - base.proceeds) / base.proceeds) * 100
+        ? ((bull.proceeds - base.proceeds) /
+            base.proceeds) *
+          100
         : 0;
+
     const bearDownsidePercentage =
       base.proceeds > 0
-        ? ((base.proceeds - bear.proceeds) / base.proceeds) * 100
+        ? ((base.proceeds - bear.proceeds) /
+            base.proceeds) *
+          100
         : 0;
 
     return {
-      vestedOptions,
+      modeledOptions,
       companyShares,
       exercisePrice,
       dilution,
       exitValuation,
       currentCompanyValuation,
+      exerciseFMV,
       currentOwnership,
       dilutedOwnership,
       exerciseCost,
       currentEquityValue,
       grossExitValue,
-      projectedProceeds,
+      projectedPreTaxProceeds,
       scenarios,
       bear,
       base,
@@ -165,7 +363,11 @@ export default function ProReportsPage() {
       bullUpsidePercentage,
       bearDownsidePercentage,
     };
-  }, [proState]);
+  }, [
+    proState,
+    modeledOptions,
+    connectedGrant?.strikePrice,
+  ]);
 
   const selectedScenario =
     report.scenarios.find((scenario) => scenario.key === selectedScenarioKey) ??
@@ -189,117 +391,412 @@ export default function ProReportsPage() {
     );
   }
 
-  const exportRows: Array<[string, string | number]> = [
-    ["ESOP VALUE CLARITY - PRO EQUITY REPORT", ""],
-    ["Report generated", new Date().toLocaleString("en-IN")],
-    ["Equity type", proState.equityType === "UNLISTED" ? "Unlisted" : "Listed"],
-    ["", ""],
+  const exportRows: ReportExportRow[] = [
+    {
+      section: "REPORT METADATA",
+      metric: "Report title",
+      rawValue: "ESOP Value Clarity - PRO Equity Report",
+      displayValue: "ESOP Value Clarity - PRO Equity Report",
+      notes: "Connected decision report generated from the current PRO equity model.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Generated at",
+      rawValue: new Date().toISOString(),
+      displayValue: new Date().toLocaleString("en-IN"),
+      notes: "Local display time shown in the app export.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Company",
+      rawValue:
+        proState.sourceCompanyName ||
+        connectedGrant?.companyName ||
+        "Confirmed ESOP grant",
+      displayValue:
+        proState.sourceCompanyName ||
+        connectedGrant?.companyName ||
+        "Confirmed ESOP grant",
+      notes: "Confirmed grant source.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Grant name",
+      rawValue:
+        proState.sourceGrantName ||
+        connectedGrant?.grantName ||
+        "",
+      displayValue:
+        proState.sourceGrantName ||
+        connectedGrant?.grantName ||
+        "Not available",
+      notes: "From the confirmed grant when available.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Analysis basis",
+      rawValue: analysisBasis,
+      displayValue:
+        analysisBasis === "FULL_GRANT"
+          ? "Full grant"
+          : "Currently vested",
+      notes:
+        analysisBasis === "FULL_GRANT"
+          ? "Models all confirmed options as a potential future outcome."
+          : "Models only options vested today.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Equity type",
+      rawValue: proState.equityType,
+      displayValue:
+        proState.equityType === "UNLISTED"
+          ? "Unlisted"
+          : "Listed",
+      notes: "Shared PRO tax assumption.",
+    },
+    {
+      section: "REPORT METADATA",
+      metric: "Tax regime",
+      rawValue: proState.taxRegime,
+      displayValue:
+        proState.taxRegime === "NEW"
+          ? "New"
+          : "Old",
+      notes: "Shared PRO tax assumption.",
+    },
 
-    ["EXECUTIVE SUMMARY", ""],
-    ["Current equity value", formatCurrency(report.currentEquityValue)],
-    ["Base modeled proceeds", formatCurrency(report.base.proceeds)],
-    ["Selected scenario", selectedScenario.label],
-    ["Selected scenario proceeds", formatCurrency(selectedScenario.proceeds)],
-    ["Outcome range (Bear to Bull)", formatCurrency(report.outcomeRange)],
-    ["Base return multiple", formatMultiple(report.base.multiple)],
-    ["Bull upside vs Base", formatPercentage(report.bullUpsidePercentage)],
-    ["Bear downside vs Base", formatPercentage(report.bearDownsidePercentage)],
-    ["", ""],
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario",
+      rawValue: selectedScenario.label,
+      displayValue: selectedScenario.label,
+      notes: selectedScenario.title,
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario exit valuation",
+      rawValue: selectedScenario.valuation,
+      displayValue: formatCurrency(selectedScenario.valuation),
+      unit: "INR",
+      notes: "Company valuation assumed at liquidity event.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario gross equity value",
+      rawValue: selectedScenario.gross,
+      displayValue: formatCurrency(selectedScenario.gross),
+      unit: "INR",
+      notes: "Value of modeled ownership before exercise cost and tax.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario exercise cost",
+      rawValue: report.exerciseCost,
+      displayValue: formatCurrency(report.exerciseCost),
+      unit: "INR",
+      notes: "Modeled options multiplied by exercise price.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario estimated tax",
+      rawValue: selectedScenario.estimatedTax,
+      displayValue: formatCurrency(selectedScenario.estimatedTax),
+      unit: "INR",
+      notes: "Illustrative exercise-stage and capital-gains tax from the shared Tax model.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario estimated take-home",
+      rawValue: selectedScenario.proceeds,
+      displayValue: formatCurrency(selectedScenario.proceeds),
+      unit: "INR",
+      notes: "Modeled amount after exercise cost and estimated tax.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Selected scenario return multiple",
+      rawValue: selectedScenario.multiple,
+      displayValue: formatMultiple(selectedScenario.multiple),
+      unit: "x",
+      notes: "Estimated take-home divided by exercise cost.",
+    },
+    {
+      section: "EXECUTIVE SUMMARY",
+      metric: "Bear to Bull take-home range",
+      rawValue: report.outcomeRange,
+      displayValue: formatCurrency(report.outcomeRange),
+      unit: "INR",
+      notes: "Difference between Bull and Bear estimated take-home.",
+    },
 
-    ["EQUITY POSITION", ""],
-    ["Total options granted", proState.totalOptions],
-    ["Vested options", report.vestedOptions],
-    ["Unvested options", Math.max(0, proState.totalOptions - report.vestedOptions)],
-    ["Vesting percentage", formatPercentage(proState.vestedPercentage)],
-    ["Total company shares used", report.companyShares],
-    ["Current ownership before dilution", formatPercentage(report.currentOwnership)],
-    ["Post-dilution ownership", formatPercentage(report.dilutedOwnership)],
-    ["Modeled future dilution", formatPercentage(report.dilution)],
-    ["", ""],
+    {
+      section: "GRANT POSITION",
+      metric: "Confirmed options",
+      rawValue: fullGrantOptions,
+      displayValue: formatNumber(fullGrantOptions),
+      unit: "options",
+      notes: "Total options in the confirmed grant.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Options vested today",
+      rawValue: currentlyVestedOptions,
+      displayValue: formatNumber(currentlyVestedOptions),
+      unit: "options",
+      notes: "Current vested position from the shared vesting model.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Options modeled in this report",
+      rawValue: report.modeledOptions,
+      displayValue: formatNumber(report.modeledOptions),
+      unit: "options",
+      notes:
+        analysisBasis === "FULL_GRANT"
+          ? "Full confirmed grant used."
+          : "Currently vested options used.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Vested percentage today",
+      rawValue: proState.vestedPercentage,
+      displayValue: formatPercentage(proState.vestedPercentage),
+      unit: "%",
+      notes: "Actual current vesting position; independent of report analysis basis.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Exercise price per option",
+      rawValue: report.exercisePrice,
+      displayValue: formatCurrency(report.exercisePrice),
+      unit: "INR/share",
+      notes: "Confirmed strike price when available.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Exercise capital required",
+      rawValue: report.exerciseCost,
+      displayValue: formatCurrency(report.exerciseCost),
+      unit: "INR",
+      notes: "Cash required to exercise the modeled option quantity.",
+    },
 
-    ["EXERCISE & VALUE", ""],
-    ["Exercise price per option", formatCurrency(report.exercisePrice)],
-    ["Total exercise cost", formatCurrency(report.exerciseCost)],
-    ["Current company valuation", formatCurrency(report.currentCompanyValuation)],
-    ["Current equity value before exit", formatCurrency(report.currentEquityValue)],
-    ["Base exit valuation assumption", formatCurrency(report.exitValuation)],
-    ["Base gross equity value at exit", formatCurrency(report.base.gross)],
-    ["Base net modeled proceeds", formatCurrency(report.base.proceeds)],
-    ["Base proceeds / exercise cost", formatMultiple(report.base.multiple)],
-    ["", ""],
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Total company shares",
+      rawValue: report.companyShares,
+      displayValue: formatNumber(report.companyShares),
+      unit: "shares",
+      notes: "Shared company capitalization assumption.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Ownership before dilution",
+      rawValue: report.currentOwnership,
+      displayValue: formatPercentage(report.currentOwnership),
+      unit: "%",
+      notes: "Modeled options divided by total company shares.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Relative dilution",
+      rawValue: report.dilution,
+      displayValue: formatPercentage(report.dilution),
+      unit: "%",
+      notes: "Shared relative dilution from the Dilution model.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Ownership after dilution",
+      rawValue: report.dilutedOwnership,
+      displayValue: formatPercentage(report.dilutedOwnership),
+      unit: "%",
+      notes: "Ownership after applying shared relative dilution.",
+    },
 
-    ["BEAR / BASE / BULL SCENARIOS", ""],
-    ["Bear scenario", ""],
-    ["Bear valuation factor", "0.50x"],
-    ["Bear exit valuation", formatCurrency(report.bear.valuation)],
-    ["Bear gross equity value", formatCurrency(report.bear.gross)],
-    ["Bear exercise cost", formatCurrency(report.exerciseCost)],
-    ["Bear net modeled proceeds", formatCurrency(report.bear.proceeds)],
-    ["Bear return multiple", formatMultiple(report.bear.multiple)],
-    ["Bear proceeds retained after exercise", formatPercentage(report.bear.retained)],
-    ["", ""],
-    ["Base scenario", ""],
-    ["Base valuation factor", "1.00x"],
-    ["Base exit valuation", formatCurrency(report.base.valuation)],
-    ["Base gross equity value", formatCurrency(report.base.gross)],
-    ["Base exercise cost", formatCurrency(report.exerciseCost)],
-    ["Base net modeled proceeds", formatCurrency(report.base.proceeds)],
-    ["Base return multiple", formatMultiple(report.base.multiple)],
-    ["Base proceeds retained after exercise", formatPercentage(report.base.retained)],
-    ["", ""],
-    ["Bull scenario", ""],
-    ["Bull valuation factor", "2.00x"],
-    ["Bull exit valuation", formatCurrency(report.bull.valuation)],
-    ["Bull gross equity value", formatCurrency(report.bull.gross)],
-    ["Bull exercise cost", formatCurrency(report.exerciseCost)],
-    ["Bull net modeled proceeds", formatCurrency(report.bull.proceeds)],
-    ["Bull return multiple", formatMultiple(report.bull.multiple)],
-    ["Bull proceeds retained after exercise", formatPercentage(report.bull.retained)],
-    ["", ""],
+    {
+      section: "VALUATION ASSUMPTIONS",
+      metric: "Current company valuation",
+      rawValue: report.currentCompanyValuation,
+      displayValue: formatCurrency(report.currentCompanyValuation),
+      unit: "INR",
+      notes: "Shared Simulator assumption.",
+    },
+    {
+      section: "VALUATION ASSUMPTIONS",
+      metric: "Base exit valuation",
+      rawValue: report.exitValuation,
+      displayValue: formatCurrency(report.exitValuation),
+      unit: "INR",
+      notes: "Bear = 0.5x Base; Bull = 2.0x Base.",
+    },
+    {
+      section: "VALUATION ASSUMPTIONS",
+      metric: "Current modeled equity value",
+      rawValue: report.currentEquityValue,
+      displayValue: formatCurrency(report.currentEquityValue),
+      unit: "INR",
+      notes: "Modeled ownership multiplied by current company valuation.",
+    },
 
-    ["DECISION ANALYSIS", ""],
-    ["Bear to Base additional proceeds", formatCurrency(report.baseVsBear)],
-    ["Base to Bull additional proceeds", formatCurrency(report.bullVsBase)],
-    ["Total Bear to Bull outcome spread", formatCurrency(report.outcomeRange)],
-    ["Bull upside vs Base", formatPercentage(report.bullUpsidePercentage)],
-    ["Bear downside vs Base", formatPercentage(report.bearDownsidePercentage)],
-    ["Selected scenario gross equity value", formatCurrency(selectedScenario.gross)],
-    ["Selected scenario exercise cost", formatCurrency(report.exerciseCost)],
-    ["Selected scenario net proceeds", formatCurrency(selectedScenario.proceeds)],
-    ["Selected scenario return multiple", formatMultiple(selectedScenario.multiple)],
-    ["Selected scenario proceeds retained", formatPercentage(selectedScenario.retained)],
-    ["", ""],
+    {
+      section: "TAX ASSUMPTIONS",
+      metric: "FMV at exercise",
+      rawValue: proState.exerciseFMV,
+      displayValue: formatCurrency(proState.exerciseFMV),
+      unit: "INR/share",
+      notes: "Shared Tax assumption.",
+    },
+    {
+      section: "TAX ASSUMPTIONS",
+      metric: "Other annual income",
+      rawValue: proState.otherAnnualIncome,
+      displayValue: formatCurrency(proState.otherAnnualIncome),
+      unit: "INR",
+      notes: "Approximate taxable income before ESOP perquisite.",
+    },
+    {
+      section: "TAX ASSUMPTIONS",
+      metric: "Holding period",
+      rawValue: proState.holdingPeriodMonths,
+      displayValue: `${formatNumber(proState.holdingPeriodMonths)} months`,
+      unit: "months",
+      notes: "Months between exercise and sale in the tax model.",
+    },
 
-    ["MODEL ASSUMPTIONS", ""],
-    ["Options granted", proState.totalOptions],
-    ["Vested options used in model", report.vestedOptions],
-    ["Vesting percentage", formatPercentage(proState.vestedPercentage)],
-    ["Exercise price", formatCurrency(report.exercisePrice)],
-    ["Company shares", report.companyShares],
-    ["Current company valuation", formatCurrency(report.currentCompanyValuation)],
-    ["Base exit valuation", formatCurrency(report.exitValuation)],
-    ["Future dilution", formatPercentage(report.dilution)],
-    ["Equity type", proState.equityType === "UNLISTED" ? "Unlisted" : "Listed"],
-    ["Scenario model", "Bear = 0.50x Base exit valuation; Base = 1.00x; Bull = 2.00x"],
-    ["Calculation basis", "Net modeled proceeds = diluted equity value at exit - exercise cost"],
-    ["Ownership basis", "Vested options divided by total company shares, then reduced by modeled dilution"],
-    ["", ""],
+    ...report.scenarios.flatMap((scenario) => [
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Exit valuation",
+        rawValue: scenario.valuation,
+        displayValue: formatCurrency(scenario.valuation),
+        unit: "INR",
+        notes: scenario.title,
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Post-dilution sale price per share",
+        rawValue: scenario.salePrice,
+        displayValue: formatCurrencyWithDecimals(scenario.salePrice),
+        unit: "INR/share",
+        notes: "Exit valuation per share after applying shared relative dilution.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Gross equity value",
+        rawValue: scenario.gross,
+        displayValue: formatCurrency(scenario.gross),
+        unit: "INR",
+        notes: "Before exercise cost and tax.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Exercise cost",
+        rawValue: report.exerciseCost,
+        displayValue: formatCurrency(report.exerciseCost),
+        unit: "INR",
+        notes: "Same modeled exercise outlay across scenarios.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Pre-tax proceeds",
+        rawValue: scenario.preTaxProceeds,
+        displayValue: formatCurrency(scenario.preTaxProceeds),
+        unit: "INR",
+        notes: "Gross equity value less exercise cost.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Estimated tax",
+        rawValue: scenario.estimatedTax,
+        displayValue: formatCurrency(scenario.estimatedTax),
+        unit: "INR",
+        notes: "Illustrative tax from the shared Tax model.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Estimated take-home",
+        rawValue: scenario.proceeds,
+        displayValue: formatCurrency(scenario.proceeds),
+        unit: "INR",
+        notes: "After exercise cost and estimated tax.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Return multiple",
+        rawValue: scenario.multiple,
+        displayValue: formatMultiple(scenario.multiple),
+        unit: "x",
+        notes: "Estimated take-home divided by exercise cost.",
+      },
+      {
+        section: `${scenario.label} SCENARIO`,
+        metric: "Value retained",
+        rawValue: scenario.retained,
+        displayValue: formatPercentage(scenario.retained),
+        unit: "%",
+        notes: "Estimated take-home as a percentage of gross equity value.",
+      },
+    ]),
 
-    ["IMPORTANT CONTEXT", ""],
-    ["Model purpose", "Scenario analysis for understanding potential ESOP value, exercise cost and dilution impact."],
-    ["Interpretation", "Modeled proceeds are scenario estimates, not guaranteed cash proceeds or investment returns."],
-    ["Dilution treatment", "Future dilution is applied to current modeled ownership before exit proceeds are calculated."],
-    ["Exercise treatment", "Exercise cost is deducted from gross equity value to produce modeled net proceeds."],
+    {
+      section: "IMPORTANT CONTEXT",
+      metric: "Model purpose",
+      rawValue: "Decision support",
+      displayValue: "Decision support",
+      notes: "Scenario analysis for understanding potential ESOP value, dilution, exercise cost, tax and exit outcomes.",
+    },
+    {
+      section: "IMPORTANT CONTEXT",
+      metric: "Not tax or investment advice",
+      rawValue: "Yes",
+      displayValue: "Yes",
+      notes: "Actual tax liability and payout can differ based on grant terms, FMV methodology, liquidity terms, preference structures, transaction costs and personal circumstances.",
+    },
   ];
 
   const handleCSVExport = () => {
-    const csv = exportRows
-      .map((row) => row.map((value) => csvEscape(String(value))).join(","))
+    const headers = [
+      "Section",
+      "Metric",
+      "Raw Value",
+      "Display Value",
+      "Unit",
+      "Notes",
+    ];
+
+    const csvRows = [
+      headers,
+      ...exportRows.map((row) => [
+        row.section,
+        row.metric,
+        row.rawValue,
+        row.displayValue,
+        row.unit ?? "",
+        row.notes ?? "",
+      ]),
+    ];
+
+    const csv = csvRows
+      .map((row) =>
+        row
+          .map((value) =>
+            csvEscape(String(value))
+          )
+          .join(",")
+      )
       .join("\r\n");
 
     downloadFile(
       "\uFEFF" + csv,
-      "esop-value-clarity-report.csv",
+      `esop-value-clarity-${safeFilename(
+        proState.sourceCompanyName ||
+          connectedGrant?.companyName ||
+          "report"
+      )}-${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv`,
       "text/csv;charset=utf-8;"
     );
 
@@ -307,12 +804,40 @@ export default function ProReportsPage() {
   };
 
   const handleExcelExport = () => {
-    const html = createExcelHtml(exportRows);
+    const html = createExcelHtml(
+      exportRows,
+      {
+        companyName:
+          proState.sourceCompanyName ||
+          connectedGrant?.companyName ||
+          "Confirmed ESOP grant",
+        analysisBasis:
+          analysisBasis === "FULL_GRANT"
+            ? "Full grant"
+            : "Currently vested",
+        generatedAt:
+          new Date().toLocaleString("en-IN"),
+        selectedScenario:
+          selectedScenario.label,
+        selectedTakeHome:
+          formatCurrency(
+            selectedScenario.proceeds
+          ),
+      }
+    );
+
     downloadFile(
       html,
-      "esop-value-clarity-report.xls",
+      `esop-value-clarity-${safeFilename(
+        proState.sourceCompanyName ||
+          connectedGrant?.companyName ||
+          "report"
+      )}-${new Date()
+        .toISOString()
+        .slice(0, 10)}.xls`,
       "application/vnd.ms-excel"
     );
+
     setExportOpen(false);
   };
 
@@ -325,7 +850,7 @@ export default function ProReportsPage() {
     },
     exercise: {
       title: "Exercise capital",
-      text: `${formatNumber(report.vestedOptions)} vested options at ${formatCurrency(report.exercisePrice)} each require ${formatCurrency(report.exerciseCost)} to exercise.`,
+      text: `${formatNumber(report.modeledOptions)} vested options at ${formatCurrency(report.exercisePrice)} each require ${formatCurrency(report.exerciseCost)} to exercise.`,
     },
     currentValue: {
       title: "Current equity value",
@@ -340,12 +865,12 @@ export default function ProReportsPage() {
   const kpiDetail = {
     vested: {
       eyebrow: "GRANT EXPOSURE",
-      title: `${formatNumber(report.vestedOptions)} vested options are active in the model.`,
+      title: `${formatNumber(report.modeledOptions)} vested options are active in the model.`,
       text: `${formatPercentage(proState.vestedPercentage)} of your grant is currently vested and included in ownership calculations.`,
       leftLabel: "Total grant",
       leftValue: formatNumber(proState.totalOptions),
       rightLabel: "Vested",
-      rightValue: formatNumber(report.vestedOptions),
+      rightValue: formatNumber(report.modeledOptions),
     },
     ownership: {
       eyebrow: "OWNERSHIP STACK",
@@ -363,15 +888,15 @@ export default function ProReportsPage() {
       leftLabel: "Strike price",
       leftValue: formatCurrency(report.exercisePrice),
       rightLabel: "Vested options",
-      rightValue: formatNumber(report.vestedOptions),
+      rightValue: formatNumber(report.modeledOptions),
     },
     proceeds: {
       eyebrow: `${selectedScenario.label} OUTCOME`,
-      title: `${formatCurrency(selectedScenario.proceeds)} of modeled net proceeds.`,
+      title: `${formatCurrency(selectedScenario.proceeds)} of modeled estimated take-home.`,
       text: `At a ${formatCurrency(selectedScenario.valuation)} exit valuation, the model produces ${formatMultiple(selectedScenario.multiple)} return after exercise cost.`,
       leftLabel: "Gross equity",
       leftValue: formatCurrency(selectedScenario.gross),
-      rightLabel: "Net proceeds",
+      rightLabel: "Estimated take-home",
       rightValue: formatCurrency(selectedScenario.proceeds),
     },
   }[kpiFocus];
@@ -385,7 +910,7 @@ export default function ProReportsPage() {
     vested: {
       label: "Vesting progress",
       value: formatPercentage(proState.vestedPercentage),
-      text: `${formatNumber(report.vestedOptions)} options are vested and currently participate in the ownership model.`,
+      text: `${formatNumber(report.modeledOptions)} options are vested and currently participate in the ownership model.`,
     },
     ownership: {
       label: "Ownership conversion",
@@ -401,12 +926,12 @@ export default function ProReportsPage() {
 
   const assumptionDetail = {
     totalOptions: "The total options in the grant. This is read from the shared PRO model.",
-    vestedOptions: "Only vested options are used in the current ownership and exercise calculations on this report.",
-    exercisePrice: "The strike price multiplied by vested options determines the modeled exercise capital required.",
-    companyShares: "Total company shares are used to translate vested options into modeled ownership percentage.",
+    vestedOptions: "The report uses the selected analysis basis: either the full confirmed grant or only options vested today.",
+    exercisePrice: "The strike price multiplied by the selected option basis determines the modeled exercise capital required.",
+    companyShares: "Total company shares are used to translate the selected option basis into modeled ownership percentage.",
     currentValuation: "The current company valuation is used for the current equity value snapshot.",
     exitValuation: "This is the Base exit valuation. Bear uses 0.5x and Bull uses 2x without changing backend inputs.",
-    dilution: "Future dilution reduces the modeled ownership stake before scenario proceeds are calculated.",
+    dilution: "Future dilution reduces the modeled ownership stake before scenario sale value and tax are calculated.",
     equityType: "The report preserves the equity type already stored in your PRO model.",
   }[activeAssumption];
 
@@ -472,6 +997,126 @@ export default function ProReportsPage() {
             )}
           </div>
         </header>
+
+        {confirmedGrantConnected && (
+          <section className="mt-6">
+            <div className="flex flex-col gap-4 rounded-[26px] border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Confirmed source of truth
+                  </p>
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {proState.sourceCompanyName ||
+                      connectedGrant?.companyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    {formatNumber(fullGrantOptions)} confirmed options ·{" "}
+                    {formatCurrency(
+                      normalizeProNumber(
+                        proState.exercisePrice ||
+                          connectedGrant?.strikePrice ||
+                          0
+                      )
+                    )}{" "}
+                    exercise price · {formatNumber(currentlyVestedOptions)} vested today
+                  </p>
+                </div>
+              </div>
+
+              {(proState.sourceDocumentId || connectedGrant?.documentId) && (
+                <Link
+                  href={`/pro/grants/${
+                    proState.sourceDocumentId ||
+                    connectedGrant?.documentId
+                  }/review`}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-black text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                >
+                  View source grant
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
+
+        <section className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="rounded-[26px] border border-blue-100 bg-blue-50 p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm">
+                <Link2 size={17} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-700">
+                  Connected decision model
+                </p>
+                <p className="mt-1 text-sm font-black text-blue-950">
+                  {formatPercentage(report.dilution)} relative dilution ·{" "}
+                  {formatCurrency(report.exitValuation)} base exit valuation
+                </p>
+                <p className="mt-1 text-xs leading-5 text-blue-900/75">
+                  Reports consolidates the same grant, dilution, exit and tax assumptions used across the PRO workspace.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+              Analysis basis
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAnalysisBasis("FULL_GRANT")}
+                className={`rounded-xl border px-3 py-3 text-left transition ${
+                  analysisBasis === "FULL_GRANT"
+                    ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                    : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black text-slate-950">Full grant</span>
+                  {analysisBasis === "FULL_GRANT" && (
+                    <span className="rounded-full bg-blue-600 px-2 py-1 text-[8px] font-black text-white">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-[10px] text-slate-500">
+                  {formatNumber(fullGrantOptions)} options
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAnalysisBasis("CURRENTLY_VESTED")}
+                className={`rounded-xl border px-3 py-3 text-left transition ${
+                  analysisBasis === "CURRENTLY_VESTED"
+                    ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                    : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black text-slate-950">Currently vested</span>
+                  {analysisBasis === "CURRENTLY_VESTED" && (
+                    <span className="rounded-full bg-blue-600 px-2 py-1 text-[8px] font-black text-white">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-[10px] text-slate-500">
+                  {formatNumber(currentlyVestedOptions)} options
+                </p>
+              </button>
+            </div>
+          </div>
+        </section>
 
         <section className="evc-saas-reports-hero relative mt-6 overflow-hidden rounded-[36px] border border-slate-800 bg-[#050816] text-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
           <div
@@ -582,7 +1227,7 @@ export default function ProReportsPage() {
                   <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold text-slate-500">
                     <span className="inline-flex items-center gap-2">
                       <LockKeyhole size={13} className="text-blue-300" />
-                      Decision model
+                      Decision-grade model
                     </span>
                     <span>Bear / Base / Bull</span>
                     <span>Live recalculation</span>
@@ -603,7 +1248,7 @@ export default function ProReportsPage() {
                       </p>
                     </div>
                     <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
-                      Scenario payoff engine
+                      Scenario payoff intelligence
                     </h2>
                     <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-400 sm:text-sm">
                       Switch scenarios to see how company value flows through dilution,
@@ -696,7 +1341,7 @@ export default function ProReportsPage() {
                     multiple={selectedScenario.multiple}
                   />
 
-                  <div className="relative mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="relative mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <MiniDarkStat
                       label="Gross equity"
                       value={formatCurrency(selectedScenario.gross)}
@@ -704,6 +1349,10 @@ export default function ProReportsPage() {
                     <MiniDarkStat
                       label="Exercise drag"
                       value={formatCurrency(report.exerciseCost)}
+                    />
+                    <MiniDarkStat
+                      label="Estimated tax"
+                      value={formatCurrency(selectedScenario.estimatedTax)}
                     />
                     <MiniDarkStat
                       label="Value retained"
@@ -756,9 +1405,9 @@ export default function ProReportsPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <SaasMetric
               icon={<Layers3 size={18} />}
-              label="Vested options"
-              value={formatNumber(report.vestedOptions)}
-              change="Active grant"
+              label="Options modeled"
+              value={formatNumber(report.modeledOptions)}
+              change={analysisBasis === "FULL_GRANT" ? "Full confirmed grant" : "Currently vested"}
               active={kpiFocus === "vested"}
               onClick={() => setKpiFocus("vested")}
             />
@@ -890,7 +1539,7 @@ export default function ProReportsPage() {
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <OwnershipSwitch
                   label="Vested"
-                  value={formatNumber(report.vestedOptions)}
+                  value={formatNumber(report.modeledOptions)}
                   active={ownershipStage === "vested"}
                   onClick={() => setOwnershipStage("vested")}
                 />
@@ -910,7 +1559,7 @@ export default function ProReportsPage() {
 
               <OwnershipDetail
                 stage={ownershipStage}
-                vestedOptions={report.vestedOptions}
+                vestedOptions={report.modeledOptions}
                 companyShares={report.companyShares}
                 currentOwnership={report.currentOwnership}
                 dilutedOwnership={report.dilutedOwnership}
@@ -1096,7 +1745,12 @@ export default function ProReportsPage() {
                   selectedIndex={scenarioIndex(selectedScenarioKey)}
                 />
                 <MatrixRow
-                  label="Net proceeds"
+                  label="Estimated tax"
+                  values={report.scenarios.map((s) => formatCurrency(s.estimatedTax))}
+                  selectedIndex={scenarioIndex(selectedScenarioKey)}
+                />
+                <MatrixRow
+                  label="Estimated take-home"
                   values={report.scenarios.map((s) => formatCurrency(s.proceeds))}
                   selectedIndex={scenarioIndex(selectedScenarioKey)}
                   emphasized
@@ -1128,7 +1782,7 @@ export default function ProReportsPage() {
               />
               <AssumptionRow
                 label="Vested options"
-                value={formatNumber(report.vestedOptions)}
+                value={formatNumber(report.modeledOptions)}
                 active={activeAssumption === "vestedOptions"}
                 onClick={() => setActiveAssumption("vestedOptions")}
               />
@@ -1305,7 +1959,7 @@ export default function ProReportsPage() {
 
         <footer className="mt-8 flex flex-col justify-between gap-3 border-t border-slate-200 pt-6 text-xs text-slate-400 md:flex-row">
           <span>ESOP Value Clarity · PRO Equity Report</span>
-          <span>Interactive decision-ready equity modeling</span>
+          <span>Connected grant-to-take-home decision intelligence</span>
         </footer>
       </div>
 
@@ -1598,7 +2252,7 @@ function ScenarioPanel({
         </div>
 
         <p className={`mt-7 text-xs ${selected ? "text-slate-500" : "text-slate-400"}`}>
-          Modeled proceeds
+          Estimated take-home
         </p>
         <p className="mt-1 text-3xl font-black tracking-tight">
           {formatCurrency(scenario.proceeds)}
@@ -2134,6 +2788,18 @@ function formatCurrency(value: number) {
   return `₹${Math.round(value).toLocaleString("en-IN")}`;
 }
 
+
+function formatCurrencyWithDecimals(value: number) {
+  if (!Number.isFinite(value)) return "₹0.00";
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 function compactCurrency(value: number) {
   if (!Number.isFinite(value) || value <= 0) return "₹0";
   const crore = value / 10_000_000;
@@ -2165,23 +2831,63 @@ function csvEscape(value: string) {
   return value;
 }
 
-function createExcelHtml(rows: Array<[string, string | number]>) {
+function createExcelHtml(
+  rows: ReportExportRow[],
+  meta: {
+    companyName: string;
+    analysisBasis: string;
+    generatedAt: string;
+    selectedScenario: string;
+    selectedTakeHome: string;
+  }
+) {
+  let currentSection = "";
+
   const tableRows = rows
-    .map(([label, value]) => {
-      const isSection = value === "" && label !== "";
+    .map((row) => {
+      const sectionChanged =
+        row.section !== currentSection;
+
+      const sectionRow = sectionChanged
+        ? `
+          <tr>
+            <td colspan="5" style="
+              padding:12px 14px;
+              background:#0f172a;
+              color:#ffffff;
+              font-size:12px;
+              font-weight:700;
+              letter-spacing:0.04em;
+              border:1px solid #cbd5e1;
+            ">
+              ${escapeHtml(row.section)}
+            </td>
+          </tr>
+        `
+        : "";
+
+      currentSection = row.section;
+
       return `
+        ${sectionRow}
         <tr>
-          <td style="padding:10px;border:1px solid #e2e8f0;font-weight:${
-            isSection ? "700" : "500"
-          };background:${isSection ? "#eff6ff" : "#ffffff"};color:${
-        isSection ? "#1d4ed8" : "#0f172a"
-      };">${escapeHtml(String(label))}</td>
-          <td style="padding:10px;border:1px solid #e2e8f0;font-weight:${
-            isSection ? "700" : "600"
-          };background:${isSection ? "#eff6ff" : "#ffffff"};color:#0f172a;">${escapeHtml(
-        String(value)
-      )}</td>
-        </tr>`;
+          <td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:600;color:#334155;">
+            ${escapeHtml(row.metric)}
+          </td>
+          <td style="padding:10px 12px;border:1px solid #e2e8f0;color:#0f172a;">
+            ${escapeHtml(String(row.rawValue))}
+          </td>
+          <td style="padding:10px 12px;border:1px solid #e2e8f0;font-weight:700;color:#0f172a;">
+            ${escapeHtml(row.displayValue)}
+          </td>
+          <td style="padding:10px 12px;border:1px solid #e2e8f0;color:#64748b;">
+            ${escapeHtml(row.unit ?? "")}
+          </td>
+          <td style="padding:10px 12px;border:1px solid #e2e8f0;color:#64748b;">
+            ${escapeHtml(row.notes ?? "")}
+          </td>
+        </tr>
+      `;
     })
     .join("");
 
@@ -2190,21 +2896,85 @@ function createExcelHtml(rows: Array<[string, string | number]>) {
       <head>
         <meta charset="UTF-8" />
         <style>
-          body { font-family: Arial, sans-serif; }
-          table { border-collapse: collapse; width: 100%; }
+          body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+          }
+
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+
+          th {
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            background: #eff6ff;
+            color: #1d4ed8;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+          }
         </style>
       </head>
+
       <body>
         <table>
           <tr>
-            <th colspan="2" style="padding:16px;background:#020617;color:white;text-align:left;font-size:18px;">
+            <td colspan="5" style="
+              padding:20px;
+              background:#020617;
+              color:white;
+              font-size:20px;
+              font-weight:800;
+            ">
               ESOP Value Clarity — PRO Equity Report
-            </th>
+            </td>
           </tr>
+
+          <tr>
+            <td colspan="5" style="
+              padding:12px 20px;
+              background:#f8fafc;
+              color:#475569;
+              font-size:11px;
+              border:1px solid #e2e8f0;
+            ">
+              Company: <strong>${escapeHtml(meta.companyName)}</strong>
+              &nbsp;&nbsp;|&nbsp;&nbsp;
+              Analysis basis: <strong>${escapeHtml(meta.analysisBasis)}</strong>
+              &nbsp;&nbsp;|&nbsp;&nbsp;
+              Selected scenario: <strong>${escapeHtml(meta.selectedScenario)}</strong>
+              &nbsp;&nbsp;|&nbsp;&nbsp;
+              Estimated take-home: <strong>${escapeHtml(meta.selectedTakeHome)}</strong>
+              &nbsp;&nbsp;|&nbsp;&nbsp;
+              Generated: ${escapeHtml(meta.generatedAt)}
+            </td>
+          </tr>
+
+          <tr>
+            <th>Metric</th>
+            <th>Raw Value</th>
+            <th>Display Value</th>
+            <th>Unit</th>
+            <th>Notes / Basis</th>
+          </tr>
+
           ${tableRows}
         </table>
       </body>
-    </html>`;
+    </html>
+  `;
+}
+
+function safeFilename(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "report";
 }
 
 function downloadFile(content: string, filename: string, type: string) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -46,6 +47,36 @@ import {
   normalizeProNumber,
 } from "@/lib/esop/pro-state";
 
+
+type ActiveConfirmedGrant = {
+  id: string;
+  companyName: string | null;
+  grantName: string | null;
+  optionCount: number | null;
+  strikePrice: number | null;
+  currency: string | null;
+  vestingStartDate: string | null;
+  vestingDurationMonths: number | null;
+  cliffMonths: number | null;
+  vestingFrequency: string | null;
+  expiryDate: string | null;
+  postTerminationExerciseDays: number | null;
+  confirmedAt: string | null;
+  document: {
+    id: string;
+  } | null;
+};
+
+type ActiveGrantResponse = {
+  success: boolean;
+  grant?: ActiveConfirmedGrant | null;
+  message?: string;
+};
+
+type AnalysisBasis =
+  | "FULL_GRANT"
+  | "CURRENTLY_VESTED";
+
 /* =============================================================
    DEFAULT INPUTS
 ============================================================= */
@@ -87,12 +118,161 @@ export default function ProSimulatorPage() {
     "Bear" | "Base" | "Bull"
   >("Base");
 
+  const [
+    analysisBasis,
+    setAnalysisBasis,
+  ] = useState<AnalysisBasis>(
+    "FULL_GRANT"
+  );
+
   const {
     proState,
     updateProState,
-    resetProState,
     hydrated,
   } = useProEquityState();
+
+  const [
+    connectedGrant,
+    setConnectedGrant,
+  ] = useState<ActiveConfirmedGrant | null>(null);
+
+  const [
+    grantConnectionLoading,
+    setGrantConnectionLoading,
+  ] = useState(false);
+
+  /*
+   * CONFIRMED GRANT -> SHARED PRO MODEL
+   *
+   * Confirmed grant facts are seeded into the shared analysis model.
+   * Analysis assumptions remain editable and NEVER write back to the
+   * confirmed grant stored in the Grant Vault.
+   */
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function connectConfirmedGrant() {
+      setGrantConnectionLoading(true);
+
+      try {
+        const response = await fetch(
+          "/api/pro/equity/active",
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const data =
+          (await response.json()) as ActiveGrantResponse;
+
+        if (
+          cancelled ||
+          !response.ok ||
+          !data.success ||
+          !data.grant
+        ) {
+          return;
+        }
+
+        const grant = data.grant;
+
+        setConnectedGrant(grant);
+
+        const totalOptions =
+          grant.optionCount ??
+          normalizeProNumber(
+            proState.totalOptions
+          );
+
+        const exercisePrice =
+          grant.strikePrice ??
+          normalizeProNumber(
+            proState.exercisePrice
+          );
+
+        /*
+         * IMPORTANT SOURCE-OF-TRUTH RULE
+         *
+         * The confirmed grant owns grant facts such as option count,
+         * exercise price and source vesting terms.
+         *
+         * Phase 2 Vesting owns the active/current vesting position:
+         * - vestedOptions
+         * - vestedPercentage
+         * - vestingPeriodMonths
+         * - cliffMonths
+         * - monthsCompleted
+         *
+         * Simulator consumes that connected Vesting state later in
+         * this page. It must never recalculate today's vesting from
+         * the source start date and overwrite the user's active model.
+         */
+        updateProState({
+          totalOptions,
+          exercisePrice,
+
+          sourceGrantId:
+            grant.id,
+
+          sourceDocumentId:
+            grant.document?.id ?? null,
+
+          sourceCompanyName:
+            grant.companyName,
+
+          sourceGrantName:
+            grant.grantName,
+
+          sourceCurrency:
+            grant.currency ?? "INR",
+
+          sourceConfirmedAt:
+            grant.confirmedAt,
+
+          sourceVestingStartDate:
+            grant.vestingStartDate,
+
+          sourceVestingDurationMonths:
+            grant.vestingDurationMonths,
+
+          sourceCliffMonths:
+            grant.cliffMonths,
+
+          sourceVestingFrequency:
+            grant.vestingFrequency,
+
+          sourceExpiryDate:
+            grant.expiryDate,
+
+          sourcePostTerminationExerciseDays:
+            grant.postTerminationExerciseDays,
+        });
+      } catch {
+        /*
+         * The simulator continues in manual mode if the
+         * confirmed-grant connection cannot be loaded.
+         */
+      } finally {
+        if (!cancelled) {
+          setGrantConnectionLoading(false);
+        }
+      }
+    }
+
+    void connectConfirmedGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hydrated,
+    updateProState,
+  ]);
 
   /* ===========================================================
      SHARED PRO STATE → SIMULATOR INPUTS
@@ -202,6 +382,70 @@ export default function ProSimulatorPage() {
     connectedDilutionPercentage > 0;
 
   /* ===========================================================
+     CONFIRMED VESTING JOURNEY
+  =========================================================== */
+
+  const confirmedVestingDurationMonths =
+    Math.max(
+      1,
+      proState.sourceVestingDurationMonths ??
+        connectedGrant?.vestingDurationMonths ??
+        48
+    );
+
+  const confirmedCliffMonths =
+    Math.max(
+      0,
+      proState.sourceCliffMonths ??
+        connectedGrant?.cliffMonths ??
+        0
+    );
+
+  /*
+   * Phase 2 Vesting owns the active schedule position.
+   * Simulator displays that connected position and never derives
+   * a competing "today" value from the confirmed grant start date.
+   */
+  const confirmedMonthsCompleted =
+    Math.min(
+      confirmedVestingDurationMonths,
+      Math.max(
+        0,
+        Math.round(
+          normalizeProNumber(
+            proState.monthsCompleted
+          )
+        )
+      )
+    );
+
+  const scheduleProgressPercentage =
+    clamp(
+      (confirmedMonthsCompleted /
+        confirmedVestingDurationMonths) *
+        100,
+      0,
+      100
+    );
+
+  const vestedTodayPercentage =
+    clamp(
+      normalizeProNumber(
+        proState.vestedPercentage
+      ),
+      0,
+      100
+    );
+
+  const journeySegments = 24;
+
+  const completedJourneySegments =
+    Math.round(
+      (scheduleProgressPercentage / 100) *
+        journeySegments
+    );
+
+  /* ===========================================================
      CALCULATION INPUTS
   =========================================================== */
 
@@ -210,6 +454,20 @@ export default function ProSimulatorPage() {
     useMemo(
       () => ({
         ...inputs,
+
+        /*
+         * Analysis basis:
+         *
+         * FULL_GRANT models the potential outcome if the
+         * confirmed grant eventually vests.
+         *
+         * CURRENTLY_VESTED models only the portion earned today.
+         */
+        vestedPercentage:
+          analysisBasis ===
+          "FULL_GRANT"
+            ? 100
+            : inputs.vestedPercentage,
 
         /*
          * IMPORTANT:
@@ -222,6 +480,7 @@ export default function ProSimulatorPage() {
       [
         inputs,
         connectedDilutionPercentage,
+        analysisBasis,
       ]
     );
 
@@ -272,17 +531,6 @@ export default function ProSimulatorPage() {
         });
         break;
 
-      case "vestedPercentage":
-        updateProState({
-          vestedPercentage:
-            clamp(
-              safeValue,
-              0,
-              100
-            ),
-        });
-        break;
-
       case "strikePrice":
         updateProState({
           exercisePrice:
@@ -322,10 +570,28 @@ export default function ProSimulatorPage() {
   =========================================================== */
 
   function resetSimulator() {
-    resetProState();
+    updateProState({
+      totalCompanyShares:
+        DEFAULT_INPUTS.totalShares,
+
+      currentCompanyValuation:
+        DEFAULT_INPUTS.currentValuation,
+
+      futureDilutionPercentage:
+        DEFAULT_INPUTS.futureDilutionPercentage,
+
+      exitValuation:
+        DEFAULT_INPUTS.exitValuation,
+
+      projectedExitValue: 0,
+    });
 
     setSelectedScenario(
       "Base"
+    );
+
+    setAnalysisBasis(
+      "FULL_GRANT"
     );
   }
 
@@ -439,10 +705,107 @@ export default function ProSimulatorPage() {
         </section>
 
         {/* =====================================================
+            CONFIRMED GRANT CONNECTION
+        ===================================================== */}
+
+        {(connectedGrant ||
+          proState.sourceGrantId ||
+          grantConnectionLoading) && (
+          <section className="mt-6">
+            <div
+              className="
+                flex flex-col gap-4
+                rounded-2xl
+                border border-emerald-200
+                bg-emerald-50
+                p-4
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
+              "
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className="
+                    mt-0.5
+                    flex h-9 w-9 shrink-0
+                    items-center justify-center
+                    rounded-xl
+                    border border-emerald-200
+                    bg-white
+                    text-emerald-600
+                    shadow-sm
+                  "
+                >
+                  <CheckCircle2 size={17} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    {grantConnectionLoading
+                      ? "Connecting confirmed grant"
+                      : "Using confirmed grant"}
+                  </p>
+
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {connectedGrant?.companyName ||
+                      proState.sourceCompanyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {formatNumber(
+                      inputs.esopsGranted
+                    )}{" "}
+                    options ·{" "}
+                    {formatCurrency(
+                      inputs.strikePrice
+                    )}{" "}
+                    exercise price ·{" "}
+                    {formatPercentage(
+                      inputs.vestedPercentage
+                    )}{" "}
+                    currently vested
+                  </p>
+                </div>
+              </div>
+
+              {(connectedGrant?.document?.id ||
+                proState.sourceDocumentId) && (
+                <Link
+                  href={`/pro/grants/${
+                    connectedGrant?.document?.id ||
+                    proState.sourceDocumentId
+                  }/review`}
+                  className="
+                    inline-flex shrink-0
+                    items-center justify-center
+                    gap-2
+                    rounded-xl
+                    border border-emerald-200
+                    bg-white
+                    px-4 py-2.5
+                    text-xs font-black
+                    text-emerald-800
+                    shadow-sm
+                    transition
+                    hover:-translate-y-0.5
+                    hover:bg-emerald-100
+                  "
+                >
+                  View source grant
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* =====================================================
             CONNECTION STATUS
         ===================================================== */}
 
-        <section className="mt-6">
+        <section className="mt-4">
 
           <div
             className="
@@ -496,23 +859,347 @@ export default function ProSimulatorPage() {
         </section>
 
         {/* =====================================================
+            ANALYSIS BASIS
+        ===================================================== */}
+
+        <section className="mt-5">
+          <div
+            className="
+              rounded-2xl
+              border border-slate-200
+              bg-white
+              p-4
+              shadow-sm
+            "
+          >
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Analysis basis
+                </p>
+
+                <h2 className="mt-1 text-sm font-black text-slate-950">
+                  Choose what this scenario should model.
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+                  Your current vesting position remains unchanged. This setting
+                  only controls whether scenario values use the full confirmed
+                  grant or only the options vested today.
+                </p>
+              </div>
+
+              <div
+                className="
+                  grid min-w-0
+                  grid-cols-1
+                  gap-2
+                  sm:grid-cols-2
+                  lg:min-w-[430px]
+                "
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "FULL_GRANT"
+                    )
+                  }
+                  className={`
+                    rounded-xl
+                    border
+                    px-4
+                    py-3
+                    text-left
+                    transition
+                    ${
+                      analysisBasis ===
+                      "FULL_GRANT"
+                        ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                        : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Full grant
+                    </span>
+
+                    {analysisBasis ===
+                      "FULL_GRANT" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model all{" "}
+                    {formatNumber(
+                      inputs.esopsGranted
+                    )}{" "}
+                    confirmed options assuming they eventually vest.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "CURRENTLY_VESTED"
+                    )
+                  }
+                  className={`
+                    rounded-xl
+                    border
+                    px-4
+                    py-3
+                    text-left
+                    transition
+                    ${
+                      analysisBasis ===
+                      "CURRENTLY_VESTED"
+                        ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                        : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Currently vested
+                    </span>
+
+                    {analysisBasis ===
+                      "CURRENTLY_VESTED" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model only{" "}
+                    {formatNumber(
+                      proState.vestedOptions
+                    )}{" "}
+                    options earned today.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {analysisBasis ===
+              "FULL_GRANT" &&
+              inputs.vestedPercentage <
+                100 && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-[10px] font-bold leading-5 text-amber-900">
+                    You currently have{" "}
+                    {formatNumber(
+                      proState.vestedOptions
+                    )}{" "}
+                    vested options (
+                    {formatPercentage(
+                      inputs.vestedPercentage
+                    )}
+                    ). This scenario models the potential value of the full grant
+                    if the remaining options eventually vest.
+                  </p>
+                </div>
+              )}
+          </div>
+        </section>
+
+        {/* =====================================================
+            VESTING JOURNEY PROGRESS
+        ===================================================== */}
+
+        {(connectedGrant ||
+          proState.sourceGrantId) && (
+          <section className="mt-5">
+            <div
+              className="
+                overflow-hidden
+                rounded-2xl
+                border border-slate-200
+                bg-white
+                p-4
+                shadow-sm
+                sm:p-5
+              "
+            >
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                    Vesting journey
+                  </p>
+
+                  <h2 className="mt-1 text-sm font-black text-slate-950">
+                    {confirmedMonthsCompleted} of{" "}
+                    {confirmedVestingDurationMonths} months completed
+                  </h2>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Schedule progress and vested percentage are shown separately
+                    so the cliff does not make your timeline look inactive.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-black text-blue-700">
+                    {formatPercentage(
+                      scheduleProgressPercentage,
+                      1
+                    )}{" "}
+                    through schedule
+                  </span>
+
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-black text-emerald-700">
+                    {formatPercentage(
+                      vestedTodayPercentage,
+                      1
+                    )}{" "}
+                    vested today
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <div
+                  className="
+                    grid
+                    grid-cols-[repeat(24,minmax(0,1fr))]
+                    gap-1
+                  "
+                  aria-label={`${formatPercentage(
+                    scheduleProgressPercentage,
+                    1
+                  )} of the vesting schedule completed`}
+                >
+                  {Array.from({
+                    length:
+                      journeySegments,
+                  }).map((_, index) => {
+                    const completed =
+                      index <
+                      completedJourneySegments;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`
+                          h-4
+                          rounded-[4px]
+                          border
+                          transition-all
+                          duration-300
+                          ${
+                            completed
+                              ? "border-blue-500 bg-blue-600 shadow-[0_2px_8px_rgba(37,99,235,0.20)]"
+                              : "border-slate-200 bg-slate-100"
+                          }
+                        `}
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="mt-3 flex flex-col justify-between gap-2 text-[10px] font-bold text-slate-400 sm:flex-row">
+                  <span>
+                    Grant start
+                  </span>
+
+                  <span className="text-blue-600">
+                    Today · month{" "}
+                    {confirmedMonthsCompleted}
+                  </span>
+
+                  <span>
+                    Fully vested · month{" "}
+                    {confirmedVestingDurationMonths}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
+                    Schedule progress
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-slate-950">
+                    {formatPercentage(
+                      scheduleProgressPercentage,
+                      1
+                    )}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
+                    Vested today
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-slate-950">
+                    {formatPercentage(
+                      vestedTodayPercentage,
+                      1
+                    )}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
+                    Cliff milestone
+                  </p>
+
+                  <p className="mt-1 text-lg font-black text-slate-950">
+                    {confirmedCliffMonths > 0
+                      ? `Month ${confirmedCliffMonths}`
+                      : "No cliff"}
+                  </p>
+                </div>
+              </div>
+
+              {confirmedCliffMonths > 0 &&
+                confirmedMonthsCompleted <
+                  confirmedCliffMonths && (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                    <p className="text-[10px] font-bold leading-5 text-amber-900">
+                      You are{" "}
+                      {Math.max(
+                        confirmedCliffMonths -
+                          confirmedMonthsCompleted,
+                        0
+                      )}{" "}
+                      months away from the modeled cliff. Time is progressing,
+                      but this standard cliff model shows no vested options until
+                      that milestone is reached.
+                    </p>
+                  </div>
+                )}
+            </div>
+          </section>
+        )}
+
+        {/* =====================================================
             SNAPSHOT
         ===================================================== */}
 
         <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
           <SnapshotCard
-            label="Ownership"
+            label={analysisBasis === "FULL_GRANT" ? "Potential ownership" : "Ownership"}
             value={formatPercentage(
               result.ownershipPercentage,
               3
             )}
-            description="Current vested ownership"
+            description={analysisBasis === "FULL_GRANT" ? "If the modeled grant fully vests" : "Current vested ownership"}
             icon={<Percent size={18} />}
           />
 
           <SnapshotCard
-            label="Base-case value"
+            label={analysisBasis === "FULL_GRANT" ? "Potential base-case value" : "Base-case value"}
             value={formatCurrency(
               result.netExitProceeds
             )}
@@ -631,21 +1318,16 @@ export default function ProSimulatorPage() {
                 }
               />
 
-              {/* VESTED PERCENTAGE */}
+              {/* VESTED PERCENTAGE — CONNECTED FROM PHASE 2 */}
 
-              <InputField
+              <ConnectedVestingField
                 label="Vested percentage"
-                description="Percentage of your grant currently vested"
+                description="Connected from your Phase 2 Vesting model"
                 value={
                   inputs.vestedPercentage
                 }
                 suffix="%"
-                onChange={(value) =>
-                  updateInput(
-                    "vestedPercentage",
-                    value
-                  )
-                }
+                href="/pro/vesting"
               />
 
               {/* STRIKE */}
@@ -892,7 +1574,7 @@ export default function ProSimulatorPage() {
                   size={15}
                   className="mr-2"
                 />
-                Reset assumptions
+                Reset analysis assumptions
               </Button>
 
               {/* =================================================
@@ -916,9 +1598,9 @@ export default function ProSimulatorPage() {
                 </p>
 
                 <p className="mt-1.5 text-xs leading-5 text-blue-900/80">
-                  Your grant, vested position, exercise price, company
-                  valuation, future dilution and exit valuation are
-                  shared across the PRO equity tools.
+                  Confirmed grant facts are connected from your Equity
+                  Profile. Company valuation, dilution and exit valuation remain
+                  editable analysis assumptions shared across the PRO tools.
                 </p>
 
               </div>
@@ -974,7 +1656,9 @@ export default function ProSimulatorPage() {
                     </div>
 
                     <p className="mt-3 text-xs font-semibold text-slate-500">
-                      Current vested ownership
+                      {analysisBasis === "FULL_GRANT"
+                        ? "Potential ownership"
+                        : "Current vested ownership"}
                     </p>
 
                     <p className="mt-1 text-5xl font-black tracking-tight md:text-6xl">
@@ -985,8 +1669,9 @@ export default function ProSimulatorPage() {
                     </p>
 
                     <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
-                      Your current vested position represents this
-                      percentage of the modeled fully diluted company.
+                      {analysisBasis === "FULL_GRANT"
+                        ? "This shows the modeled ownership if the full confirmed grant eventually vests."
+                        : "Your current vested position represents this percentage of the modeled fully diluted company."}
                     </p>
 
                   </div>
@@ -1194,7 +1879,7 @@ export default function ProSimulatorPage() {
 
                   <JourneyStep
                     number="02"
-                    title="Vested"
+                    title={analysisBasis === "FULL_GRANT" ? "Modeled grant" : "Vested"}
                     value={formatNumber(
                       result.vestedShares
                     )}
@@ -1425,9 +2110,14 @@ export default function ProSimulatorPage() {
                     value={formatNumber(
                       result.vestedShares
                     )}
-                    helper={`${formatPercentage(
-                      inputs.vestedPercentage
-                    )} of your grant`}
+                    helper={
+                      analysisBasis ===
+                      "FULL_GRANT"
+                        ? "Full confirmed grant used for this scenario"
+                        : `${formatPercentage(
+                            inputs.vestedPercentage
+                          )} of your grant currently vested`
+                    }
                   />
 
                   <Breakdown
@@ -1530,6 +2220,11 @@ export default function ProSimulatorPage() {
 
                 <li>
                   • Taxes are not included in this simulator.
+                </li>
+
+                <li>
+                  • Full-grant mode assumes the selected options eventually vest;
+                  it does not mean they are vested or exercisable today.
                 </li>
 
                 <li>
@@ -1715,6 +2410,94 @@ function SnapshotCard({
     </div>
   );
 }
+
+/* =============================================================
+   CONNECTED VESTING FIELD
+
+   Read-only by design. Phase 2 Vesting is the source of truth for
+   the employee's active/current vesting position.
+============================================================= */
+
+function ConnectedVestingField({
+  label,
+  description,
+  value,
+  suffix,
+  href,
+}: {
+  label: string;
+  description: string;
+  value: number;
+  suffix?: string;
+  href: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <Label className="text-sm font-semibold text-slate-900">
+          {label}
+        </Label>
+
+        <Link
+          href={href}
+          className="
+            inline-flex items-center gap-1
+            text-[10px] font-bold uppercase
+            tracking-[0.08em] text-blue-600
+            transition hover:text-blue-800
+          "
+        >
+          <Link2 size={11} />
+          Connected
+        </Link>
+      </div>
+
+      <p className="mt-1 text-xs text-slate-500">
+        {description}
+      </p>
+
+      <div className="relative mt-2">
+        <Input
+          type="number"
+          value={value}
+          readOnly
+          className={`
+            h-11
+            rounded-xl
+            border-blue-100
+            bg-blue-50/50
+            text-sm
+            font-semibold
+            text-slate-900
+            ${suffix ? "pr-10" : ""}
+          `}
+        />
+
+        {suffix && (
+          <span
+            className="
+              pointer-events-none
+              absolute right-3 top-1/2
+              z-10 -translate-y-1/2
+              text-sm font-semibold
+              text-slate-400
+            "
+          >
+            {suffix}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-2 flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <p className="text-[10px] font-medium text-blue-600">
+          Controlled by Vesting · edit it in Phase 2
+        </p>
+      </div>
+    </div>
+  );
+}
+
 
 /* =============================================================
    INPUT FIELD
@@ -2596,6 +3379,7 @@ function ComparisonRow({
     </div>
   );
 }
+
 
 /* =============================================================
    FORMATTERS

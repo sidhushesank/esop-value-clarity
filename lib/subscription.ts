@@ -54,14 +54,14 @@ export async function getUserSubscription(userId: string) {
   const now = new Date();
 
   // Subscription expired
- if (
-  subscription.expiresAt &&
-  subscription.expiresAt < now &&
-  (
-    subscription.status === SubscriptionStatus.ACTIVE ||
-    subscription.status === SubscriptionStatus.CANCELLED
-  )
-) {
+  if (
+    subscription.expiresAt !== null &&
+    subscription.expiresAt < now &&
+    (
+      subscription.status === SubscriptionStatus.ACTIVE ||
+      subscription.status === SubscriptionStatus.CANCELLED
+    )
+  ) {
     const updatedSubscription =
       await prisma.subscription.update({
         where: {
@@ -83,21 +83,26 @@ export async function getUserSubscription(userId: string) {
     };
   }
 
-  const hasProAccess =
-  subscription.plan === PlanType.PRO &&
-  subscription.expiresAt &&
-  subscription.expiresAt > now &&
-  (
-    subscription.status === SubscriptionStatus.ACTIVE ||
-    subscription.status === SubscriptionStatus.CANCELLED
-  );
+  /**
+   * Keep this expression explicitly boolean.
+   *
+   * A cancelled subscription remains usable until expiresAt.
+   */
+  const hasProAccess: boolean =
+    subscription.plan === PlanType.PRO &&
+    subscription.expiresAt !== null &&
+    subscription.expiresAt > now &&
+    (
+      subscription.status === SubscriptionStatus.ACTIVE ||
+      subscription.status === SubscriptionStatus.CANCELLED
+    );
 
-return {
-  exists: true,
-  isFounder: false,
-  isPro: hasProAccess,
-  plan: subscription.plan,
-  status: subscription.status,
-  subscription,
-};
+  return {
+    exists: true,
+    isFounder: false,
+    isPro: hasProAccess,
+    plan: subscription.plan,
+    status: subscription.status,
+    subscription,
+  };
 }
