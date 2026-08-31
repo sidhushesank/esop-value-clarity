@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 import {
@@ -17,6 +17,8 @@ import {
   TrendingDown,
   TrendingUp,
   Wallet,
+  CheckCircle2,
+  Link2,
   Zap,
 } from "lucide-react";
 
@@ -30,6 +32,8 @@ import {
 ============================================================ */
 
 type ScenarioKey = "bear" | "base" | "bull";
+
+type AnalysisBasis = "FULL_GRANT" | "CURRENTLY_VESTED";
 
 type Scenario = {
   key: ScenarioKey;
@@ -69,6 +73,97 @@ export default function ProComparePage() {
     proState,
     hydrated,
   } = useProEquityState();
+
+  const [
+    analysisBasis,
+    setAnalysisBasis,
+  ] = useState<AnalysisBasis>(
+    "FULL_GRANT"
+  );
+
+  const [
+    connectedGrant,
+    setConnectedGrant,
+  ] = useState<{
+    id?: string;
+    documentId?: string;
+    companyName?: string | null;
+    grantName?: string | null;
+    optionCount?: number | null;
+    strikePrice?: number | null;
+  } | null>(
+    null
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadActiveGrant() {
+      try {
+        const response = await fetch(
+          "/api/pro/equity/active",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const payload =
+          await response.json();
+
+        if (
+          !cancelled &&
+          payload?.grant
+        ) {
+          setConnectedGrant(
+            payload.grant
+          );
+        }
+      } catch {
+        // Shared PRO state remains a valid fallback.
+      }
+    }
+
+    loadActiveGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const confirmedGrantConnected =
+    Boolean(
+      proState.sourceGrantId ||
+        connectedGrant?.id
+    );
+
+  const fullGrantOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.totalOptions ||
+          connectedGrant?.optionCount ||
+          0
+      )
+    );
+
+  const currentlyVestedOptions =
+    Math.max(
+      0,
+      normalizeProNumber(
+        proState.vestedOptions
+      )
+    );
+
+  const modeledOptions =
+    analysisBasis ===
+    "FULL_GRANT"
+      ? fullGrantOptions
+      : currentlyVestedOptions;
 
   /* ==========================================================
      INTERACTIVE OUTCOME RANGE
@@ -129,12 +224,7 @@ export default function ProComparePage() {
       : 0;
 
   const vestedOptions =
-    Math.max(
-      0,
-      normalizeProNumber(
-        proState.vestedOptions
-      )
-    );
+    modeledOptions;
 
   const totalCompanyShares =
     Math.max(
@@ -192,39 +282,21 @@ export default function ProComparePage() {
 
   const dilutedOwnership =
     useMemo(() => {
-      const sharedDilutedOwnership =
-        normalizeProNumber(
-          proState.dilutedOwnershipPercentage
-        );
-
       if (
-        sharedDilutedOwnership > 0
+        currentOwnership <= 0
       ) {
-        return Math.max(
-          0,
-          Math.min(
-            100,
-            sharedDilutedOwnership
-          )
-        );
+        return 0;
       }
 
-      if (
-        currentOwnership > 0
-      ) {
-        return (
-          currentOwnership *
-          (
-            1 -
-            futureDilutionPercentage /
-              100
-          )
-        );
-      }
-
-      return 0;
+      return (
+        currentOwnership *
+        (
+          1 -
+          futureDilutionPercentage /
+            100
+        )
+      );
     }, [
-      proState.dilutedOwnershipPercentage,
       currentOwnership,
       futureDilutionPercentage,
     ]);
@@ -571,6 +643,237 @@ export default function ProComparePage() {
         </div>
 
         {/* ======================================================
+            CONFIRMED GRANT
+        ====================================================== */}
+
+        {confirmedGrantConnected && (
+          <section className="mt-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                  <CheckCircle2 size={17} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                    Using confirmed grant
+                  </p>
+
+                  <p className="mt-1 text-sm font-black text-slate-950">
+                    {proState.sourceCompanyName ||
+                      connectedGrant?.companyName ||
+                      "Confirmed ESOP grant"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    confirmed options ·{" "}
+                    {formatCurrency(
+                      normalizeProNumber(
+                        proState.exercisePrice ||
+                          connectedGrant?.strikePrice ||
+                          0
+                      )
+                    )}{" "}
+                    exercise price ·{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    vested today
+                  </p>
+                </div>
+              </div>
+
+              {(proState.sourceDocumentId ||
+                connectedGrant?.documentId) && (
+                <Link
+                  href={`/pro/grants/${
+                    proState.sourceDocumentId ||
+                    connectedGrant?.documentId
+                  }/review`}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-black text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                >
+                  View source grant
+                  <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ======================================================
+            CONNECTED MODEL
+        ====================================================== */}
+
+        <section className="mt-5">
+          <div className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm">
+                <Link2 size={16} />
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-700">
+                  Shared outcome model
+                </p>
+
+                <p className="mt-1 text-sm font-black text-blue-950">
+                  {formatPercentage(
+                    futureDilutionPercentage
+                  )}{" "}
+                  relative dilution ·{" "}
+                  {formatCurrency(
+                    baseExitValuation
+                  )}{" "}
+                  base exit valuation
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-blue-900/80">
+                  Compare reads the same shared assumptions used by Dilution,
+                  Simulator and Exit. It does not write back to those models.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/pro/dilution"
+                className="rounded-xl border border-blue-200 bg-white px-3 py-2 text-[10px] font-black text-blue-700 transition hover:bg-blue-100"
+              >
+                Open Dilution
+              </Link>
+
+              <Link
+                href="/pro/exit"
+                className="rounded-xl border border-blue-200 bg-white px-3 py-2 text-[10px] font-black text-blue-700 transition hover:bg-blue-100"
+              >
+                Open Exit
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ======================================================
+            ANALYSIS BASIS
+        ====================================================== */}
+
+        <section className="mt-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Analysis basis
+                </p>
+
+                <h2 className="mt-1 text-sm font-black text-slate-950">
+                  Choose which option position Compare should use.
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">
+                  Full Grant compares the potential outcome for all confirmed
+                  options. Currently Vested compares only options earned today.
+                </p>
+              </div>
+
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:min-w-[430px]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "FULL_GRANT"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "FULL_GRANT"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Full grant
+                    </span>
+
+                    {analysisBasis ===
+                      "FULL_GRANT" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model all{" "}
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    options.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAnalysisBasis(
+                      "CURRENTLY_VESTED"
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    analysisBasis ===
+                    "CURRENTLY_VESTED"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20"
+                      : "border-slate-200 bg-slate-50 hover:border-blue-200 hover:bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-slate-950">
+                      Currently vested
+                    </span>
+
+                    {analysisBasis ===
+                      "CURRENTLY_VESTED" && (
+                      <span className="rounded-full bg-blue-600 px-2 py-1 text-[9px] font-black text-white">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                    Model only{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    options earned today.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {analysisBasis ===
+              "FULL_GRANT" &&
+              currentlyVestedOptions <
+                fullGrantOptions && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-[10px] font-bold leading-5 text-amber-900">
+                    This is a potential future-outcome comparison. Only{" "}
+                    {formatNumber(
+                      currentlyVestedOptions
+                    )}{" "}
+                    options are vested today; Compare is modeling all{" "}
+                    {formatNumber(
+                      fullGrantOptions
+                    )}{" "}
+                    confirmed options across Bear, Base and Bull outcomes.
+                  </p>
+                </div>
+              )}
+          </div>
+        </section>
+
+        {/* ======================================================
             HERO
         ====================================================== */}
 
@@ -633,7 +936,7 @@ export default function ProComparePage() {
               <div className="mt-7 flex flex-wrap gap-3">
 
                 <HeroStat
-                  label="Current ownership"
+                  label={analysisBasis === "FULL_GRANT" ? "Potential ownership" : "Current ownership"}
                   value={formatPercentage(
                     currentOwnership
                   )}
@@ -785,9 +1088,9 @@ export default function ProComparePage() {
 
                   <p className="mt-1 text-xs text-slate-500">
 
-                    Vesting, ownership, dilution and exit
-                    assumptions are being read from your
-                    shared PRO equity state.
+                    Confirmed grant, ownership basis, relative dilution
+                    and exit assumptions are being read from your
+                    connected PRO equity model.
 
                   </p>
 
@@ -836,11 +1139,21 @@ export default function ProComparePage() {
         >
 
           <Snapshot
-            label="Vested options"
+            label={
+              analysisBasis ===
+              "FULL_GRANT"
+                ? "Options modeled"
+                : "Vested options"
+            }
             value={formatNumber(
               vestedOptions
             )}
-            description="Currently vested in your grant"
+            description={
+              analysisBasis ===
+              "FULL_GRANT"
+                ? "Full confirmed grant used in this comparison"
+                : "Currently vested in your grant"
+            }
             icon={<Coins size={18} />}
           />
 
@@ -1496,11 +1809,11 @@ export default function ProComparePage() {
 
               <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-600 md:text-base">
 
-                Your modeled ownership remains the same across
+                Your selected ownership basis remains the same across
                 these scenarios. What changes is the value of
                 that ownership as the company exit valuation
-                changes. That's why a diluted percentage does
-                not tell the whole ESOP story.
+                changes. That is why dilution alone does not
+                tell the whole ESOP story.
 
               </p>
 

@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import confetti from "canvas-confetti";
 import Footer from "@/components/sections/Footer";
 import { FileText } from "lucide-react";
 import {
@@ -15,9 +14,6 @@ import {
   Calendar,
   Shield,
   ShieldCheck,
-  Sparkles,
-  Brain,
-  Rocket,
   Crown,
   BarChart3,
   ArrowRight,
@@ -25,12 +21,15 @@ import {
   EyeOff,
   X,
   Loader2,
-  TrendingUp,
   Wallet,
   LineChart,
   CheckCircle2,
   Activity,
   Receipt,
+  Scale,
+  Sparkles,
+  Clock3,
+  TrendingUp,
 } from "lucide-react";
 
 interface UserData {
@@ -74,8 +73,6 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-  const [joinedWaitlist, setJoinedWaitlist] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -253,67 +250,7 @@ const [showCancelModal, setShowCancelModal] = useState(false);
   }
 }
 
-  const handleJoinWaitlist = async () => {
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        credentials: "include",
-      });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        toast.error("Unable to join the waitlist", {
-          description: data.message || "Please try again.",
-        });
-        return;
-      }
-
-      setJoinedWaitlist(true);
-
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      const frame = () => {
-        confetti({
-          particleCount: 5,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ["#3b82f6", "#8b5cf6", "#f59e0b"],
-        });
-
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ["#3b82f6", "#8b5cf6", "#f59e0b"],
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
-
-      toast.success(
-        data.alreadyJoined
-          ? "You're already on the list!"
-          : "You're on the list!",
-        {
-          description: data.message,
-        }
-      );
-    } catch (error) {
-      console.error("Waitlist request failed:", error);
-
-      toast.error("Something went wrong", {
-        description: "Please try again in a few moments.",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -351,26 +288,27 @@ const [showCancelModal, setShowCancelModal] = useState(false);
     .toUpperCase();
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <section className="relative overflow-hidden rounded-3xl bg-slate-900 p-10 text-white shadow-2xl">
+    <main className="min-h-screen bg-[#f7f9fc] px-6 py-10">
+      <section className="relative mx-auto max-w-[1480px] overflow-hidden rounded-[30px] bg-[#030817] p-8 text-white shadow-[0_35px_100px_-45px_rgba(15,23,42,.8)] md:p-10">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
 
         <div className="relative z-10">
-          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">
-            <Activity size={16} /> User Dashboard
+          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+            <Activity size={16} /> Equity Decision Workspace
           </p>
-          <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">
+          <h1 className="mt-4 text-4xl font-extrabold tracking-[-0.045em] md:text-5xl">
             Welcome back, {user.name}
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-slate-300">
-            Manage your equity portfolio, upgrade your security, and discover
-            upcoming AI-powered financial tools.
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+            Review your saved equity analysis, account settings and decision history,
+            then move into the tools that explain vesting, dilution, exercise cost,
+            tax, exit scenarios and complete offer economics.
           </p>
         </div>
       </section>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mx-auto mt-8 grid max-w-[1480px] gap-6 lg:grid-cols-3">
         <div className="space-y-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md">
             <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-slate-800 to-slate-900 text-3xl font-bold text-white shadow-lg">
@@ -425,13 +363,11 @@ const [showCancelModal, setShowCancelModal] = useState(false);
                 title="Portfolio Value"
                 value={`₹${user.stats.portfolioValue.toLocaleString("en-IN")}`}
                 icon={<Wallet />}
-                trend="+12.5%"
               />
               <StatCard
                 title="Highest Exit"
                 value={`₹${user.stats.highestExit.toLocaleString("en-IN")}`}
                 icon={<LineChart />}
-                trend="+8.2%"
               />
             </div>
           </div>
@@ -688,120 +624,405 @@ const [showCancelModal, setShowCancelModal] = useState(false);
               </div>
             )}
           </div>
-          <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-200/50 blur-3xl" />
+          {/* =====================================================
+              CONNECTED EQUITY DECISION WORKSPACE
+              Visible to FREE, PRO and Founder accounts.
+              Messaging + CTA adapt to account state.
+          ====================================================== */}
+          <section className="relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_40px_120px_-55px_rgba(15,23,42,.95)] md:p-9">
+            <div className="profile-dark-grid pointer-events-none absolute inset-0 opacity-55" />
+            <div className="profile-orb-one pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-blue-600/15 blur-[100px]" />
+            <div className="profile-orb-two pointer-events-none absolute -bottom-40 left-[28%] h-80 w-80 rounded-full bg-violet-600/10 blur-[110px]" />
 
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-600 p-2.5 text-white shadow-lg shadow-blue-600/30">
-                <Brain size={24} />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900">
-                AI Intelligence Studio
-              </h2>
-            </div>
+            <div className="relative">
+              <div className="grid gap-8 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.08] px-3 py-1.5">
+                    <Crown className="h-3.5 w-3.5 text-blue-300" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.17em] text-blue-200">
+                      {user.account.isFounder
+                        ? "FOUNDER PRO · FULL WORKSPACE"
+                        : user.account.isPro
+                        ? "PRO · DECISION WORKSPACE ACTIVE"
+                        : "YOUR NEXT LAYER · PRO"}
+                    </span>
+                  </div>
 
-            <p className="relative z-10 mt-3 font-medium text-slate-600">
-              We're building the next generation of predictive ESOP analytics.
-            </p>
+                  <h2 className="mt-5 max-w-3xl text-3xl font-black leading-[1.05] tracking-[-0.05em] md:text-5xl">
+                    {user.account.isPro ? (
+                      <>
+                        Your equity model becomes
+                        <span className="block bg-gradient-to-r from-blue-300 via-cyan-200 to-violet-300 bg-clip-text text-transparent">
+                          a connected decision workspace.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Your ESOP number is only
+                        <span className="block bg-gradient-to-r from-blue-300 via-cyan-200 to-violet-300 bg-clip-text text-transparent">
+                          the beginning of the decision.
+                        </span>
+                      </>
+                    )}
+                  </h2>
 
-            <div className="relative z-10 mt-8 grid gap-4 md:grid-cols-2">
-              <FeatureCard
-                title="AI Equity Advisor"
-                desc="Personalized vest-and-sell strategies"
-              />
-              <FeatureCard
-                title="Smart Exit Prediction"
-                desc="Forecast IPOs and acquisitions"
-              />
-              <FeatureCard
-                title="Tax Optimization"
-                desc="Minimize capital gains intelligently"
-              />
-              <FeatureCard
-                title="Company Benchmarking"
-                desc="Compare equity against competitors"
-              />
-              <FeatureCard
-                title="Portfolio Health Score"
-                desc="Real-time risk assessment"
-              />
-              <FeatureCard
-                title="NLP Financial Insights"
-                desc="Chat with your equity data"
-              />
-            </div>
-          </div>
+                  <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-400 md:text-base">
+                    {user.account.isPro
+                      ? "Move across the complete ESOP Value Clarity workflow—from vesting and dilution to exercise economics, tax context, exit scenarios, saved reports and Offer Intelligence."
+                      : "PRO turns a saved simulation into a connected equity decision workspace—so you can understand what is vested, what dilution can change, what exercise may cost, what different exits could mean and how an entire job offer compares beyond headline CTC."}
+                  </p>
 
-          <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white shadow-2xl">
-            <div className="absolute inset-0 bg-[url('[https://grainy-gradients.vercel.app/noise.svg](https://grainy-gradients.vercel.app/noise.svg)')] opacity-20 mix-blend-overlay" />
-            <div className="absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 blur-[80px]" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 p-2 text-white shadow-lg shadow-yellow-500/30">
-                  <Crown size={24} />
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {[
+                      "Vesting",
+                      "Dilution",
+                      "Exercise",
+                      "Exit",
+                      "Tax",
+                      "Compare",
+                      "Reports",
+                      "Offers",
+                    ].map((item, index) => (
+                      <span
+                        key={item}
+                        className="profile-chip rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.11em] text-slate-400"
+                        style={{ animationDelay: `${index * 110}ms` }}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <h2 className="text-3xl font-extrabold tracking-tight">
-                  Value Clarity{" "}
-                  <span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">
-                    PRO
-                  </span>
-                </h2>
+
+                <div className="relative overflow-hidden rounded-[25px] border border-white/10 bg-white/[0.04] p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500">
+                      {user.account.isPro ? "WORKSPACE STATUS" : "FREE → PRO"}
+                    </p>
+                    <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                      {user.account.isPro ? "Unlocked" : "Available"}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 flex items-center gap-3">
+                    <div className="min-w-0 flex-1 rounded-2xl border border-white/[0.07] bg-[#08111f] p-4">
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-slate-600">
+                        {user.account.isPro ? "INPUT" : "FREE"}
+                      </p>
+                      <p className="mt-2 text-sm font-black text-white">
+                        Model the equity
+                      </p>
+                    </div>
+
+                    <div className="relative h-px w-12 shrink-0 bg-gradient-to-r from-blue-400/20 via-white/60 to-violet-400/20">
+                      <span className="profile-energy absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,.9)]" />
+                    </div>
+
+                    <div className="min-w-0 flex-1 rounded-2xl border border-blue-400/20 bg-blue-400/[0.07] p-4">
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-blue-300">
+                        {user.account.isPro ? "DECISION" : "PRO"}
+                      </p>
+                      <p className="mt-2 text-sm font-black text-white">
+                        Understand the trade-off
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.055] p-4">
+                    <p className="text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300">
+                      PRODUCT PRINCIPLE
+                    </p>
+                    <p className="mt-2 text-xs font-black text-white">
+                      Scenarios, not predictions. Context, not black boxes.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <p className="mt-4 max-w-xl text-lg font-medium text-slate-300">
-                Unlock premium predictive modeling, unlimited scenario
-                comparisons, and priority AI access designed for top-tier
-                professionals.
-              </p>
+              <div className="mt-9">
+                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
+                      THE PRO WORKSPACE
+                    </p>
+                    <h3 className="mt-2 text-2xl font-black tracking-[-0.035em]">
+                      Eight connected layers of equity intelligence.
+                    </h3>
+                  </div>
+                  <p className="max-w-md text-xs leading-6 text-slate-500">
+                    Each layer answers a different employee-equity question.
+                    Together they explain the economics behind the grant.
+                  </p>
+                </div>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                <ProItem text="Unlimited Simulations" />
-                <ProItem text="AI Assistant" />
-                <ProItem text="Advanced Reports" />
-                <ProItem text="Scenario Comparison" />
-                <ProItem text="PDF Export" />
-                <ProItem text="Priority Support" />
+                <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    {
+                      n: "01",
+                      title: "Vesting Intelligence",
+                      desc: "Track vested and unvested equity, cliffs and time-based ownership.",
+                      icon: Clock3,
+                      signal: "WHAT IS EARNED?",
+                    },
+                    {
+                      n: "02",
+                      title: "Dilution Intelligence",
+                      desc: "Model how future funding and share expansion can change ownership.",
+                      icon: BarChart3,
+                      signal: "WHAT CAN SHRINK?",
+                    },
+                    {
+                      n: "03",
+                      title: "Exercise Decision",
+                      desc: "Understand strike price, exercise cost and the cash required to act.",
+                      icon: Wallet,
+                      signal: "WHAT MUST I PAY?",
+                    },
+                    {
+                      n: "04",
+                      title: "Exit Scenarios",
+                      desc: "Compare company outcomes without presenting a scenario as a forecast.",
+                      icon: LineChart,
+                      signal: "WHAT COULD HAPPEN?",
+                    },
+                    {
+                      n: "05",
+                      title: "Tax Estimation",
+                      desc: "Bring estimated tax impact into the economic picture beyond gross value.",
+                      icon: Receipt,
+                      signal: "WHAT MAY I KEEP?",
+                    },
+                    {
+                      n: "06",
+                      title: "Scenario Comparison",
+                      desc: "Compare assumptions side by side and identify what drives the difference.",
+                      icon: Scale,
+                      signal: "WHAT CHANGED?",
+                    },
+                    {
+                      n: "07",
+                      title: "Reports & History",
+                      desc: "Save analysis, revisit decisions and create clearer equity outputs.",
+                      icon: FileText,
+                      signal: "WHAT DID I MODEL?",
+                    },
+                    {
+                      n: "08",
+                      title: "Offer Intelligence",
+                      desc: "Compare salary, variable pay and equity economics across complete job offers.",
+                      icon: Crown,
+                      signal: "WHICH TRADE-OFF?",
+                    },
+                  ].map((feature, index) => {
+                    const Icon = feature.icon;
+
+                    return (
+                      <div
+                        key={feature.n}
+                        className="profile-pro-card group relative min-h-[210px] overflow-hidden rounded-[22px] border border-white/[0.08] bg-white/[0.035] p-5 transition duration-500 hover:-translate-y-2 hover:border-blue-400/25 hover:bg-blue-400/[0.055]"
+                        style={{ animationDelay: `${index * 120}ms` }}
+                      >
+                        <span className="absolute right-4 top-4 font-mono text-[9px] font-black text-slate-700">
+                          {feature.n}
+                        </span>
+
+                        <div className="grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-[#0b1526] text-blue-300 transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                          <Icon className="h-4 w-4" />
+                        </div>
+
+                        <p className="mt-5 text-[8px] font-black uppercase tracking-[0.13em] text-blue-300">
+                          {feature.signal}
+                        </p>
+                        <h4 className="mt-2 text-sm font-black text-white">
+                          {feature.title}
+                        </h4>
+                        <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                          {feature.desc}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="mt-10 flex w-full max-w-sm flex-col gap-3">
-                <Link
-                  href="/pricing"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 px-8 py-4 font-bold text-slate-950 shadow-xl shadow-yellow-500/20 transition-all duration-300 hover:scale-[1.02] hover:from-yellow-300 hover:to-amber-400"
-                >
-                  Upgrade to PRO
-                  <ArrowRight size={20} />
-                </Link>
+              <div className="mt-5 grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
+                <div className="relative overflow-hidden rounded-[24px] border border-violet-400/15 bg-violet-400/[0.05] p-5">
+                  <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-500/10 blur-[60px]" />
 
-                <button
-                  onClick={handleJoinWaitlist}
-                  disabled={joinedWaitlist}
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl px-8 py-4 font-bold transition-all duration-300 ${
-                    joinedWaitlist
-                      ? "cursor-default bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                      : "bg-white text-slate-900 shadow-xl shadow-white/10 hover:scale-[1.02] hover:bg-slate-50"
-                  }`}
-                >
-                  {joinedWaitlist ? (
+                  <div className="relative">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.15em] text-violet-300">
+                          OFFER INTELLIGENCE
+                        </p>
+                        <p className="mt-2 text-lg font-black">
+                          Two CTCs can hide two very different economics.
+                        </p>
+                      </div>
+
+                      <div className="relative hidden h-11 w-11 place-items-center rounded-xl border border-violet-400/20 bg-violet-400/10 text-violet-300 sm:grid">
+                        <Scale className="h-4 w-4" />
+                        <span className="profile-pulse absolute inset-0 rounded-xl border border-violet-300/20" />
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                      <div className="rounded-2xl border border-white/10 bg-[#08111f] p-4">
+                        <p className="text-[8px] font-black text-slate-600">OFFER A</p>
+                        <p className="mt-2 text-xs font-black">Guaranteed cash</p>
+                        <p className="mt-1 text-xs font-black text-blue-300">+ Equity terms</p>
+                      </div>
+
+                      <div className="relative h-px w-10 bg-gradient-to-r from-blue-400/20 via-white/50 to-violet-400/20">
+                        <span className="profile-energy absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,.9)]" />
+                      </div>
+
+                      <div className="rounded-2xl border border-violet-400/20 bg-violet-400/[0.07] p-4">
+                        <p className="text-[8px] font-black text-violet-300">OFFER B</p>
+                        <p className="mt-2 text-xs font-black">Guaranteed cash</p>
+                        <p className="mt-1 text-xs font-black text-violet-300">+ Equity terms</p>
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-[11px] leading-5 text-slate-500">
+                      Compare guaranteed compensation separately from uncertain
+                      equity opportunity, vesting, dilution and exercise risk.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative overflow-hidden rounded-[24px] border border-blue-400/15 bg-blue-400/[0.045] p-5">
+                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
+                    {user.account.isPro ? "DECISION LENS" : "WHY PRO?"}
+                  </p>
+
+                  <h4 className="mt-3 text-xl font-black tracking-[-0.025em]">
+                    The expensive mistake is not a bad chart.
+                  </h4>
+                  <p className="mt-2 text-xl font-black tracking-[-0.025em] text-blue-300">
+                    It is misunderstanding the equity.
+                  </p>
+
+                  <div className="mt-5 space-y-3">
+                    {[
+                      "See exercise cost before treating options as value.",
+                      "See dilution before assuming today's ownership lasts.",
+                      "See offer economics before treating headline CTC as cash.",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-start gap-3 text-[11px] leading-5 text-slate-400"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-7 flex flex-col gap-5 rounded-[22px] border border-white/10 bg-white/[0.035] p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  {user.account.isPro ? (
                     <>
-                      <CheckCircle2 className="animate-in zoom-in" size={20} />
-                      Joined the Waitlist
+                      <p className="text-lg font-black text-white">
+                        Your complete decision workspace is ready.
+                      </p>
+                      <p className="mt-1 text-lg font-black text-blue-300">
+                        Continue where the equity question takes you.
+                      </p>
                     </>
                   ) : (
                     <>
-                      Join the Waitlist
-                      <ArrowRight
-                        size={20}
-                        className="transition-transform group-hover:translate-x-1"
-                      />
+                      <p className="text-lg font-black text-white">
+                        Go from “What could this be worth?”
+                      </p>
+                      <p className="mt-1 text-lg font-black text-blue-300">
+                        to “What should I understand before I decide?”
+                      </p>
                     </>
                   )}
-                </button>
+
+                  <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                    {user.account.isPro
+                      ? "Open the connected PRO workspace for deeper equity analysis and Offer Intelligence."
+                      : "View pricing and unlock the complete PRO workspace."}
+                  </p>
+                </div>
+
+                <Link
+                  href={user.account.isPro ? "/pro" : "/pricing"}
+                  className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-black text-white shadow-[0_15px_35px_-15px_rgba(37,99,235,.9)] transition hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_20px_45px_-12px_rgba(37,99,235,.75)]"
+                >
+                  {user.account.isPro ? "Open PRO workspace" : "See what PRO unlocks"}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1.5" />
+                </Link>
               </div>
             </div>
-          </div>
+          </section>
+
         </div>
       </div>
+      <style jsx global>{`
+        @keyframes profilePulse {
+          0% { transform: scale(1); opacity: 0.55; }
+          100% { transform: scale(1.55); opacity: 0; }
+        }
+
+        @keyframes profileEnergy {
+          0% { transform: translateX(0); opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { transform: translateX(40px); opacity: 0; }
+        }
+
+        @keyframes profileCardFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+
+        @keyframes profileChipBreathe {
+          0%, 100% { opacity: 0.62; }
+          50% { opacity: 1; }
+        }
+
+        @keyframes profileOrbOne {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-42px, 34px) scale(1.12); }
+        }
+
+        @keyframes profileOrbTwo {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(38px, -28px) scale(1.1); }
+        }
+
+        .profile-dark-grid {
+          background-image:
+            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+          background-size: 34px 34px;
+        }
+
+        .profile-pulse { animation: profilePulse 2.2s ease-out infinite; }
+        .profile-energy { animation: profileEnergy 1.8s linear infinite; }
+        .profile-pro-card { animation: profileCardFloat 6s ease-in-out infinite; }
+        .profile-chip { animation: profileChipBreathe 4s ease-in-out infinite; }
+        .profile-orb-one { animation: profileOrbOne 12s ease-in-out infinite; }
+        .profile-orb-two { animation: profileOrbTwo 14s ease-in-out infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .profile-pulse,
+          .profile-energy,
+          .profile-pro-card,
+          .profile-chip,
+          .profile-orb-one,
+          .profile-orb-two {
+            animation: none !important;
+          }
+        }
+      `}</style>
+
 {showCancelModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
     <div className="w-full max-w-md rounded-3xl border border-red-100 bg-white p-8 shadow-2xl animate-in fade-in zoom-in-95">
@@ -954,6 +1175,9 @@ const [showCancelModal, setShowCancelModal] = useState(false);
           </div>
         </div>
       )}
+      <div className="-mx-6 -mb-10 mt-16">
+        <Footer />
+      </div>
     </main>
   );
 }

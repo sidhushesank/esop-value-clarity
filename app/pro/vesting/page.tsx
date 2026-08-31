@@ -74,6 +74,34 @@ const DEFAULT_INPUTS: VestingInput = {
 const VESTING_SCHEDULE_STORAGE_KEY =
   "esop-value-clarity-pro-vesting-schedule";
 
+type ActiveConfirmedGrant = {
+  id: string;
+  companyName: string | null;
+  grantName: string | null;
+  grantDate: string | null;
+  optionCount: number | null;
+  strikePrice: number | null;
+  currency: string | null;
+  vestingStartDate: string | null;
+  vestingDurationMonths: number | null;
+  cliffMonths: number | null;
+  vestingFrequency: string | null;
+  expiryDate: string | null;
+  postTerminationExerciseDays: number | null;
+  confirmedAt: string | null;
+  document: {
+    id: string;
+    originalFileName: string | null;
+    status: string;
+  } | null;
+};
+
+type ActiveGrantResponse = {
+  success: boolean;
+  grant?: ActiveConfirmedGrant | null;
+  message?: string;
+};
+
 /* ============================================================
    PAGE
 ============================================================ */
@@ -89,17 +117,45 @@ export default function ProVestingPage() {
     hydrated,
   } = useProEquityState();
 
+  const [requestedGrantId, setRequestedGrantId] =
+    useState<string | null>(null);
+
+  const [grantQueryReady, setGrantQueryReady] =
+    useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    setRequestedGrantId(
+      params.get("grantId")
+    );
+
+    setGrantQueryReady(true);
+  }, []);
+
+  const [activeGrant, setActiveGrant] =
+    useState<ActiveConfirmedGrant | null>(null);
+
+  const [activeGrantLoading, setActiveGrantLoading] =
+    useState(false);
+
+  const [activeGrantError, setActiveGrantError] =
+    useState("");
+
   /* ==========================================================
      LOCAL VESTING SCHEDULE
 
-     Shared:
+     Shared through PRO state:
      - totalOptions
      - exercisePrice
-
-     Persisted locally:
      - vestingPeriodMonths
      - cliffMonths
      - monthsCompleted
+
+     The separate Vesting localStorage key remains as a
+     backward-compatible schedule fallback.
   ========================================================== */
 
   const [inputs, setInputs] =
@@ -152,42 +208,71 @@ export default function ProVestingPage() {
             >
           >;
 
-        setInputs((previous) => ({
-          ...previous,
-
-          vestingPeriodMonths:
+        setInputs((previous) => {
+          const restoredVestingPeriodMonths =
             Number.isFinite(
               Number(
                 parsed.vestingPeriodMonths
               )
             )
-              ? Number(
-                  parsed.vestingPeriodMonths
+              ? Math.max(
+                  Math.round(
+                    Number(
+                      parsed.vestingPeriodMonths
+                    )
+                  ),
+                  1
                 )
-              : previous.vestingPeriodMonths,
+              : previous.vestingPeriodMonths;
 
-          cliffMonths:
+          const restoredCliffMonths =
             Number.isFinite(
               Number(
                 parsed.cliffMonths
               )
             )
-              ? Number(
-                  parsed.cliffMonths
+              ? Math.min(
+                  Math.max(
+                    Math.round(
+                      Number(
+                        parsed.cliffMonths
+                      )
+                    ),
+                    0
+                  ),
+                  restoredVestingPeriodMonths
                 )
-              : previous.cliffMonths,
+              : previous.cliffMonths;
 
-          monthsCompleted:
+          const restoredMonthsCompleted =
             Number.isFinite(
               Number(
                 parsed.monthsCompleted
               )
             )
-              ? Number(
-                  parsed.monthsCompleted
+              ? Math.min(
+                  Math.max(
+                    Math.round(
+                      Number(
+                        parsed.monthsCompleted
+                      )
+                    ),
+                    0
+                  ),
+                  restoredVestingPeriodMonths
                 )
-              : previous.monthsCompleted,
-        }));
+              : previous.monthsCompleted;
+
+          return {
+            ...previous,
+            vestingPeriodMonths:
+              restoredVestingPeriodMonths,
+            cliffMonths:
+              restoredCliffMonths,
+            monthsCompleted:
+              restoredMonthsCompleted,
+          };
+        });
       }
     } catch {
       /*
@@ -198,6 +283,194 @@ export default function ProVestingPage() {
       setScheduleHydrated(true);
     }
   }, [hydrated]);
+
+  /* ==========================================================
+     LOAD CONFIRMED GRANT
+
+     The confirmed grant is the trusted source-of-truth
+     default. Analysis inputs remain editable and never
+     write back to the confirmed grant record.
+  ========================================================== */
+
+  useEffect(() => {
+    if (
+      !hydrated ||
+      !scheduleHydrated ||
+      !grantQueryReady
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadConfirmedGrant() {
+      setActiveGrantLoading(true);
+      setActiveGrantError("");
+
+      try {
+        const query = requestedGrantId
+          ? `?grantId=${encodeURIComponent(requestedGrantId)}`
+          : "";
+
+        const response = await fetch(
+          `/api/pro/equity/active${query}`,
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const data =
+          (await response.json()) as ActiveGrantResponse;
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.message ||
+              "We could not load your confirmed grant."
+          );
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        const grant = data.grant ?? null;
+        setActiveGrant(grant);
+
+        if (!grant) {
+          return;
+        }
+
+        const shouldSeedFromGrant =
+          Boolean(requestedGrantId) ||
+          !proState.sourceGrantId ||
+          proState.sourceGrantId !== grant.id;
+
+        if (!shouldSeedFromGrant) {
+          return;
+        }
+
+        const vestingPeriodMonths =
+          grant.vestingDurationMonths ??
+          DEFAULT_INPUTS.vestingPeriodMonths;
+
+        const nextInputs: VestingInput = {
+          totalOptions:
+            grant.optionCount ??
+            proState.totalOptions ??
+            DEFAULT_INPUTS.totalOptions,
+          exercisePrice:
+            grant.strikePrice ??
+            proState.exercisePrice ??
+            DEFAULT_INPUTS.exercisePrice,
+          vestingPeriodMonths,
+          cliffMonths:
+            grant.cliffMonths ??
+            DEFAULT_INPUTS.cliffMonths,
+          monthsCompleted:
+            calculateMonthsCompletedFromGrant(
+              grant.vestingStartDate,
+              vestingPeriodMonths
+            ),
+        };
+
+        const nextResult =
+          calculateVesting(nextInputs);
+
+        setInputs(nextInputs);
+
+        try {
+          window.localStorage.setItem(
+            VESTING_SCHEDULE_STORAGE_KEY,
+            JSON.stringify({
+              vestingPeriodMonths:
+                nextInputs.vestingPeriodMonths,
+              cliffMonths:
+                nextInputs.cliffMonths,
+              monthsCompleted:
+                nextInputs.monthsCompleted,
+            })
+          );
+        } catch {
+          // Analysis still works if local storage is unavailable.
+        }
+
+        updateProState({
+          sourceGrantId: grant.id,
+          sourceDocumentId:
+            grant.document?.id ?? null,
+          sourceCompanyName:
+            grant.companyName,
+          sourceGrantName:
+            grant.grantName,
+          sourceCurrency:
+            grant.currency || "INR",
+          sourceConfirmedAt:
+            grant.confirmedAt,
+          sourceVestingStartDate:
+            grant.vestingStartDate,
+          sourceVestingDurationMonths:
+            grant.vestingDurationMonths,
+          sourceCliffMonths:
+            grant.cliffMonths,
+          sourceVestingFrequency:
+            grant.vestingFrequency,
+          sourceExpiryDate:
+            grant.expiryDate,
+          sourcePostTerminationExerciseDays:
+            grant.postTerminationExerciseDays,
+          totalOptions:
+            nextResult.totalOptions,
+          vestedOptions:
+            nextResult.vestedOptions,
+          vestedPercentage:
+            nextResult.vestedPercent,
+          exercisePrice:
+            nextResult.exercisePrice,
+
+          vestingPeriodMonths:
+            nextResult.vestingPeriodMonths,
+
+          cliffMonths:
+            nextResult.cliffMonths,
+
+          monthsCompleted:
+            nextResult.monthsCompleted,
+        });
+
+        setScrollProgress(
+          nextResult.vestedPercent
+        );
+      } catch (loadError) {
+        if (!cancelled) {
+          setActiveGrantError(
+            loadError instanceof Error
+              ? loadError.message
+              : "We could not load your confirmed grant."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setActiveGrantLoading(false);
+        }
+      }
+    }
+
+    loadConfirmedGrant();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hydrated,
+    scheduleHydrated,
+    grantQueryReady,
+    requestedGrantId,
+    proState.sourceGrantId,
+    proState.totalOptions,
+    proState.exercisePrice,
+    updateProState,
+  ]);
 
   /* ==========================================================
      SAVE VESTING SCHEDULE
@@ -255,6 +528,105 @@ export default function ProVestingPage() {
   );
 
   /* ==========================================================
+     PUBLISH ACTIVE VESTING POSITION TO SHARED PRO STATE
+
+     Vesting is the source of truth for:
+     - vestedOptions
+     - vestedPercentage
+     - vestingPeriodMonths
+     - cliffMonths
+     - monthsCompleted
+
+     The persisted Vesting schedule can be restored without
+     updateInput() being called. In that case the page can show
+     the correct result while shared PRO state still contains an
+     older value such as 0 vested.
+
+     This guarded effect publishes the calculated Vesting result
+     only when shared state is actually different. The guard is
+     important: it prevents an update loop while keeping Simulator,
+     Tax, Exercise, Exit and Reports connected to Phase 2.
+  ========================================================== */
+
+  useEffect(() => {
+    if (!hydrated || !scheduleHydrated) {
+      return;
+    }
+
+    const sharedVestedOptions =
+      normalizeProNumber(
+        proState.vestedOptions
+      );
+
+    const sharedVestedPercentage =
+      normalizeProNumber(
+        proState.vestedPercentage
+      );
+
+    const sharedVestingPeriodMonths =
+      normalizeProNumber(
+        proState.vestingPeriodMonths
+      );
+
+    const sharedCliffMonths =
+      normalizeProNumber(
+        proState.cliffMonths
+      );
+
+    const sharedMonthsCompleted =
+      normalizeProNumber(
+        proState.monthsCompleted
+      );
+
+    const vestingPositionChanged =
+      sharedVestedOptions !==
+        result.vestedOptions ||
+      sharedVestedPercentage !==
+        result.vestedPercent ||
+      sharedVestingPeriodMonths !==
+        result.vestingPeriodMonths ||
+      sharedCliffMonths !==
+        result.cliffMonths ||
+      sharedMonthsCompleted !==
+        result.monthsCompleted;
+
+    if (!vestingPositionChanged) {
+      return;
+    }
+
+    updateProState({
+      vestedOptions:
+        result.vestedOptions,
+
+      vestedPercentage:
+        result.vestedPercent,
+
+      vestingPeriodMonths:
+        result.vestingPeriodMonths,
+
+      cliffMonths:
+        result.cliffMonths,
+
+      monthsCompleted:
+        result.monthsCompleted,
+    });
+  }, [
+    hydrated,
+    scheduleHydrated,
+    result.vestedOptions,
+    result.vestedPercent,
+    result.vestingPeriodMonths,
+    result.cliffMonths,
+    result.monthsCompleted,
+    proState.vestedOptions,
+    proState.vestedPercentage,
+    proState.vestingPeriodMonths,
+    proState.cliffMonths,
+    proState.monthsCompleted,
+    updateProState,
+  ]);
+
+  /* ==========================================================
      SYNC SHARED GRANT VALUES INTO LOCAL VESTING INPUTS
 
      Shared PRO state can be changed from:
@@ -264,7 +636,8 @@ export default function ProVestingPage() {
      - Tax
      - other PRO tools
 
-     Only the shared grant fields are synchronized here.
+     Grant fields and the active connected vesting schedule are
+     synchronized here.
 
      IMPORTANT:
      This effect NEVER writes back to shared state.
@@ -273,9 +646,28 @@ export default function ProVestingPage() {
   ========================================================== */
 
   useEffect(() => {
-    if (!hydrated) {
+    if (!hydrated || !scheduleHydrated) {
       return;
     }
+
+    /*
+     * IMPORTANT SOURCE-OF-TRUTH RULE
+     *
+     * Vesting owns the schedule fields:
+     * - vestingPeriodMonths
+     * - cliffMonths
+     * - monthsCompleted
+     *
+     * Other PRO modules may read those fields, but they must not
+     * push an older shared-state schedule back into this page.
+     *
+     * Only grant-level values that are genuinely shared across the
+     * product are pulled into the local Vesting inputs here.
+     *
+     * This prevents a future Exercise Planner context such as +36m,
+     * or a stale PRO-state value such as monthsCompleted = 48, from
+     * turning an actual 18-month vesting position into 100% vested.
+     */
 
     const sharedTotalOptions =
       normalizeProNumber(
@@ -305,16 +697,13 @@ export default function ProVestingPage() {
 
       return {
         ...previous,
-
-        totalOptions:
-          sharedTotalOptions,
-
-        exercisePrice:
-          sharedExercisePrice,
+        totalOptions: sharedTotalOptions,
+        exercisePrice: sharedExercisePrice,
       };
     });
   }, [
     hydrated,
+    scheduleHydrated,
     proState.totalOptions,
     proState.exercisePrice,
   ]);
@@ -512,6 +901,11 @@ export default function ProVestingPage() {
       nextMilestone,
     ]);
 
+  const displayCurrency =
+    activeGrant?.currency ||
+    proState.sourceCurrency ||
+    "INR";
+
   /* ==========================================================
      ADDITIONAL FINANCIAL VALUES
   ========================================================== */
@@ -598,6 +992,15 @@ export default function ProVestingPage() {
 
       exercisePrice:
         nextResult.exercisePrice,
+
+      vestingPeriodMonths:
+        nextResult.vestingPeriodMonths,
+
+      cliffMonths:
+        nextResult.cliffMonths,
+
+      monthsCompleted:
+        nextResult.monthsCompleted,
     });
 
     /*
@@ -671,6 +1074,15 @@ export default function ProVestingPage() {
 
       exercisePrice:
         resetResult.exercisePrice,
+
+      vestingPeriodMonths:
+        resetResult.vestingPeriodMonths,
+
+      cliffMonths:
+        resetResult.cliffMonths,
+
+      monthsCompleted:
+        resetResult.monthsCompleted,
     });
 
     /*
@@ -692,11 +1104,11 @@ export default function ProVestingPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
-            href="/pro"
+            href="/pro/equity"
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors duration-200 hover:text-slate-950"
           >
             <ArrowLeft size={16} />
-            Back to PRO Workspace
+            Back to Equity Profile
           </Link>
 
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-blue-700">
@@ -737,6 +1149,71 @@ export default function ProVestingPage() {
             </div>
           </div>
         </section>
+
+        {(activeGrant || activeGrantLoading || activeGrantError) && (
+          <section className="mt-6">
+            <div
+              className={`rounded-2xl border p-4 sm:p-5 ${
+                activeGrantError
+                  ? "border-amber-200 bg-amber-50"
+                  : "border-emerald-200 bg-emerald-50"
+              }`}
+            >
+              {activeGrantLoading ? (
+                <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-500" />
+                  Loading confirmed grant…
+                </div>
+              ) : activeGrantError ? (
+                <div className="flex items-start gap-3">
+                  <AlertTriangle
+                    size={18}
+                    className="mt-0.5 shrink-0 text-amber-600"
+                  />
+                  <div>
+                    <p className="text-sm font-black text-amber-950">
+                      Confirmed grant could not be loaded
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-amber-800">
+                      {activeGrantError}
+                    </p>
+                  </div>
+                </div>
+              ) : activeGrant ? (
+                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-600 shadow-sm">
+                      <ShieldCheck size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                        Using confirmed grant
+                      </p>
+                      <p className="mt-1 text-sm font-black text-slate-950">
+                        {activeGrant.companyName || "Confirmed ESOP grant"}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-slate-600">
+                        {formatNumber(activeGrant.optionCount ?? inputs.totalOptions)} options · {formatCurrency(activeGrant.strikePrice ?? inputs.exercisePrice, activeGrant.currency || "INR")} exercise price
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {activeGrant.document && (
+                      <Link
+                        href={`/pro/grants/${activeGrant.document.id}/review`}
+                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3.5 py-2 text-xs font-black text-emerald-700 transition hover:bg-emerald-50"
+                      >
+                        View source grant
+                        <ArrowUpRight size={14} />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        )}
 
         {/* ======================================================
             EQUITY POSITION HERO
@@ -839,7 +1316,8 @@ export default function ProVestingPage() {
 
                     <p className="mt-2 text-3xl font-black text-white transition-colors duration-300 group-hover:text-blue-100">
                       {formatCurrency(
-                        result.exerciseCost
+                        result.exerciseCost,
+                        displayCurrency
                       )}
                     </p>
 
@@ -1283,8 +1761,9 @@ export default function ProVestingPage() {
               <DecisionRow
                 label="Modeled exercise cost"
                 value={formatCurrency(
-                  result.exerciseCost
-                )}
+                        result.exerciseCost,
+                        displayCurrency
+                      )}
               />
 
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -1340,7 +1819,8 @@ export default function ProVestingPage() {
               <DecisionRow
                 label="Additional exercise cost"
                 value={formatCurrency(
-                  additionalExerciseCost
+                  additionalExerciseCost,
+                  displayCurrency
                 )}
               />
 
@@ -1489,8 +1969,9 @@ export default function ProVestingPage() {
                 <FinanceMetric
                   label="Exercise cost today"
                   value={formatCurrency(
-                    result.exerciseCost
-                  )}
+                        result.exerciseCost,
+                        displayCurrency
+                      )}
                   description="Cash required to exercise vested options"
                   highlight
                 />
@@ -1498,7 +1979,8 @@ export default function ProVestingPage() {
                 <FinanceMetric
                   label="Full grant exercise cost"
                   value={formatCurrency(
-                    fullExerciseCost
+                    fullExerciseCost,
+                    displayCurrency
                   )}
                   description="Cash required if the full grant eventually vests"
                 />
@@ -2884,20 +3366,62 @@ function getNextMilestone(
   };
 }
 
+function calculateMonthsCompletedFromGrant(
+  vestingStartDate: string | null,
+  vestingPeriodMonths: number
+) {
+  if (!vestingStartDate) {
+    return 0;
+  }
+
+  const start = new Date(vestingStartDate);
+  const today = new Date();
+
+  if (
+    Number.isNaN(start.getTime()) ||
+    start.getTime() > today.getTime()
+  ) {
+    return 0;
+  }
+
+  let months =
+    (today.getFullYear() - start.getFullYear()) * 12 +
+    (today.getMonth() - start.getMonth());
+
+  if (today.getDate() < start.getDate()) {
+    months -= 1;
+  }
+
+  return Math.min(
+    Math.max(months, 0),
+    Math.max(vestingPeriodMonths, 0)
+  );
+}
+
 /* ============================================================
    FORMATTERS
 ============================================================ */
 
 function formatCurrency(
-  value: number
+  value: number,
+  currency = "INR"
 ) {
   if (!Number.isFinite(value)) {
-    return "₹0";
+    value = 0;
   }
 
-  return `₹${Math.round(
-    value
-  ).toLocaleString("en-IN")}`;
+  try {
+    return new Intl.NumberFormat(
+      "en-IN",
+      {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+      }
+    ).format(value);
+  } catch {
+    return `${currency} ${value.toLocaleString("en-IN")}`;
+  }
 }
 
 function formatPercentage(

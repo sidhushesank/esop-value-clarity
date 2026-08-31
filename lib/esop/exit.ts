@@ -29,9 +29,23 @@ export type AdvancedExitInput = {
   ========================================================== */
 
   totalShares: number;
+
   esopsGranted: number;
+
   vestedPercentage: number;
+
+  /**
+   * Optional explicit option quantity.
+   *
+   * When provided, Exit models exactly this many options rather
+   * than deriving the quantity from vestedPercentage.
+   *
+   * Used by Exercise Intelligence -> Exit integration.
+   */
+  modeledOptions?: number;
+
   strikePrice: number;
+
   currentValuation: number;
 
   /* ==========================================================
@@ -45,6 +59,7 @@ export type AdvancedExitInput = {
   ========================================================== */
 
   exitValuation: number;
+
   selectedScenario: ExitScenario;
 
   /* ==========================================================
@@ -52,11 +67,18 @@ export type AdvancedExitInput = {
   ========================================================== */
 
   exerciseFMV: number;
+
   otherAnnualIncome: number;
+
   holdingPeriodMonths: number;
 
-  equityType: "UNLISTED" | "LISTED";
-  taxRegime: "NEW" | "OLD";
+  equityType:
+    | "UNLISTED"
+    | "LISTED";
+
+  taxRegime:
+    | "NEW"
+    | "OLD";
 };
 
 /* ============================================================
@@ -147,29 +169,88 @@ export type AdvancedExitResult = {
 };
 
 /* ============================================================
+   LOGGING
+============================================================ */
+
+const LOG =
+  "[EVC:EXIT:ENGINE]";
+
+function devLog(
+  event: string,
+  payload?: Record<
+    string,
+    unknown
+  >
+) {
+  if (
+    process.env.NODE_ENV !==
+    "production"
+  ) {
+    console.info(
+      LOG,
+      event,
+      payload ?? {}
+    );
+  }
+}
+
+/* ============================================================
    HELPERS
 ============================================================ */
 
-function safeNumber(value: number) {
+function safeNumber(
+  value: number
+) {
   return Number.isFinite(value)
     ? value
     : 0;
 }
 
-function positiveNumber(value: number) {
+function positiveNumber(
+  value: number
+) {
   return Math.max(
     safeNumber(value),
     0
   );
 }
 
-function clampPercentage(value: number) {
+function clampPercentage(
+  value: number
+) {
   return Math.min(
     Math.max(
       safeNumber(value),
       0
     ),
     100
+  );
+}
+
+/* ============================================================
+   EXPLICIT MODELED OPTIONS
+============================================================ */
+
+function normalizeModeledOptions(
+  value: number | undefined,
+  totalGranted: number
+) {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value)
+  ) {
+    return undefined;
+  }
+
+  return Math.min(
+    Math.max(
+      Math.floor(value),
+      0
+    ),
+    Math.max(
+      Math.floor(totalGranted),
+      0
+    )
   );
 }
 
@@ -249,41 +330,58 @@ function calculateScenario(
       scenario
     );
 
+  const esopsGranted =
+    positiveNumber(
+      input.esopsGranted
+    );
+
+  const modeledOptions =
+    normalizeModeledOptions(
+      input.modeledOptions,
+      esopsGranted
+    );
+
   /* ==========================================================
      SIMULATOR
   ========================================================== */
 
-  const simulatorInput: AdvancedSimulatorInput = {
-    totalShares:
-      positiveNumber(
-        input.totalShares
-      ),
+  const simulatorInput:
+    AdvancedSimulatorInput = {
+      totalShares:
+        positiveNumber(
+          input.totalShares
+        ),
 
-    esopsGranted:
-      positiveNumber(
-        input.esopsGranted
-      ),
+      esopsGranted,
 
-    vestedPercentage:
-      clampPercentage(
-        input.vestedPercentage
-      ),
+      vestedPercentage:
+        clampPercentage(
+          input.vestedPercentage
+        ),
 
-    strikePrice:
-      positiveNumber(
-        input.strikePrice
-      ),
+      /*
+       * Explicit Exercise-plan quantity.
+       *
+       * Undefined means the Simulator retains its historical
+       * percentage-based behavior.
+       */
+      modeledOptions,
 
-    currentValuation:
-      positiveNumber(
-        input.currentValuation
-      ),
+      strikePrice:
+        positiveNumber(
+          input.strikePrice
+        ),
 
-    futureDilutionPercentage:
-      dilutionPercentage,
+      currentValuation:
+        positiveNumber(
+          input.currentValuation
+        ),
 
-    exitValuation,
-  };
+      futureDilutionPercentage:
+        dilutionPercentage,
+
+      exitValuation,
+    };
 
   const simulator =
     calculateAdvancedESOP(
@@ -294,46 +392,52 @@ function calculateScenario(
      TAX
   ========================================================== */
 
-  const taxInput: AdvancedTaxInput = {
-    vestedShares:
-      simulator.vestedShares,
+  const taxInput:
+    AdvancedTaxInput = {
+      /*
+       * This is deliberately taken from Simulator.
+       *
+       * Therefore Full Grant, Currently Vested and Exercise Plan
+       * all send the SAME modeled option quantity downstream
+       * into the Tax engine.
+       */
+      vestedShares:
+        simulator.vestedShares,
 
-    strikePrice:
-      positiveNumber(
-        input.strikePrice
-      ),
+      strikePrice:
+        positiveNumber(
+          input.strikePrice
+        ),
 
-    exerciseFMV:
-      positiveNumber(
-        input.exerciseFMV
-      ),
+      exerciseFMV:
+        positiveNumber(
+          input.exerciseFMV
+        ),
 
-    /*
-     * IMPORTANT:
-     *
-     * Tax uses the same post-dilution
-     * share price calculated by Simulator.
-     */
+      /*
+       * Tax uses the same post-dilution share price calculated
+       * by Simulator.
+       */
+      salePrice:
+        simulator
+          .exitSharePriceAfterDilution,
 
-    salePrice:
-      simulator.exitSharePriceAfterDilution,
+      otherAnnualIncome:
+        positiveNumber(
+          input.otherAnnualIncome
+        ),
 
-    otherAnnualIncome:
-      positiveNumber(
-        input.otherAnnualIncome
-      ),
+      holdingPeriodMonths:
+        positiveNumber(
+          input.holdingPeriodMonths
+        ),
 
-    holdingPeriodMonths:
-      positiveNumber(
-        input.holdingPeriodMonths
-      ),
+      equityType:
+        input.equityType,
 
-    equityType:
-      input.equityType,
-
-    taxRegime:
-      input.taxRegime,
-  };
+      taxRegime:
+        input.taxRegime,
+    };
 
   const tax =
     calculateAdvancedTax(
@@ -384,18 +488,56 @@ function calculateScenario(
         100
       : 0;
 
+  devLog(
+    "scenario_calculated",
+    {
+      scenario,
+
+      explicitModeledOptions:
+        modeledOptions ??
+        null,
+
+      simulatorModeledShares:
+        simulator.vestedShares,
+
+      exitValuation,
+
+      dilutionPercentage,
+
+      exerciseFMV:
+        input.exerciseFMV,
+
+      exerciseCost,
+
+      estimatedTax,
+
+      estimatedTakeHome,
+    }
+  );
+
   return {
     scenario,
+
     exitValuation,
+
     dilutionPercentage,
+
     simulator,
+
     tax,
+
     grossExitValue,
+
     exerciseCost,
+
     preTaxProceeds,
+
     estimatedTax,
+
     estimatedTakeHome,
+
     returnMultiple,
+
     roiPercentage,
   };
 }
@@ -422,9 +564,8 @@ export function calculateAdvancedExit(
 
   /* ==========================================================
      ALL SCENARIOS
-     
-     These power the interactive Bear/Base/Bull
-     comparison cards.
+
+     These power the interactive Bear/Base/Bull comparison.
   ========================================================== */
 
   const scenarioResults =
@@ -460,24 +601,37 @@ export function calculateAdvancedExit(
         }
 
         return {
-          name: scenario,
+          name:
+            scenario,
+
           description,
+
           exitValuation:
             result.exitValuation,
+
           dilutionPercentage:
-            result.dilutionPercentage,
+            result
+              .dilutionPercentage,
+
           grossExitValue:
             result.grossExitValue,
+
           exerciseCost:
             result.exerciseCost,
+
           estimatedTax:
             result.estimatedTax,
+
           estimatedTakeHome:
-            result.estimatedTakeHome,
+            result
+              .estimatedTakeHome,
+
           returnMultiple:
             result.returnMultiple,
+
           roiPercentage:
             result.roiPercentage,
+
           exitSharePriceAfterDilution:
             result.simulator
               .exitSharePriceAfterDilution,
@@ -491,26 +645,70 @@ export function calculateAdvancedExit(
 
   const moneyJourney = [
     {
-      label: "Gross exit value",
+      label:
+        "Gross exit value",
+
       value:
         selected.grossExitValue,
     },
+
     {
-      label: "Exercise cost",
+      label:
+        "Exercise cost",
+
       value:
         -selected.exerciseCost,
     },
+
     {
-      label: "Estimated tax",
+      label:
+        "Estimated tax",
+
       value:
         -selected.estimatedTax,
     },
+
     {
-      label: "Estimated take-home",
+      label:
+        "Estimated take-home",
+
       value:
-        selected.estimatedTakeHome,
+        selected
+          .estimatedTakeHome,
     },
   ];
+
+  /* ==========================================================
+     FINAL LOG
+  ========================================================== */
+
+  devLog(
+    "exit_calculated",
+    {
+      selectedScenario,
+
+      requestedModeledOptions:
+        input.modeledOptions ??
+        null,
+
+      actualModeledOptions:
+        selected.simulator
+          .vestedShares,
+
+      exerciseFMV:
+        input.exerciseFMV,
+
+      exerciseCost:
+        selected.exerciseCost,
+
+      estimatedTax:
+        selected.estimatedTax,
+
+      estimatedTakeHome:
+        selected
+          .estimatedTakeHome,
+    }
+  );
 
   /* ==========================================================
      RETURN
@@ -541,7 +739,8 @@ export function calculateAdvancedExit(
       selected.estimatedTax,
 
     estimatedTakeHome:
-      selected.estimatedTakeHome,
+      selected
+        .estimatedTakeHome,
 
     returnMultiple:
       selected.returnMultiple,

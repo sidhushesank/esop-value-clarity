@@ -4,18 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  WalletCards,
   Calculator,
   ReceiptIndianRupee,
   GitBranch,
   Clock3,
+  Landmark,
   Trophy,
   Scale,
   FileText,
+  Sparkles,
   Menu,
   X,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ProUserMenu from "./ProUserMenu";
 
 const navItems = [
@@ -23,6 +28,16 @@ const navItems = [
     href: "/pro",
     label: "Overview",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/pro/offers",
+    label: "Offer Intelligence",
+    icon: Sparkles,
+  },
+  {
+    href: "/pro/equity",
+    label: "Equity",
+    icon: WalletCards,
   },
   {
     href: "/pro/simulator",
@@ -45,6 +60,11 @@ const navItems = [
     icon: Clock3,
   },
   {
+    href: "/pro/exercise",
+    label: "Exercise",
+    icon: Landmark,
+  },
+  {
     href: "/pro/exit",
     label: "Exit",
     icon: Trophy,
@@ -64,7 +84,12 @@ const navItems = [
 export default function ProNavBar() {
   const pathname = usePathname();
 
+  const desktopNavRef = useRef<HTMLElement | null>(null);
+  const activeDesktopItemRef = useRef<HTMLAnchorElement | null>(null);
+
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
 
   function isActive(href: string) {
@@ -101,6 +126,57 @@ export default function ProNavBar() {
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    const nav = desktopNavRef.current;
+    if (!nav) return;
+
+    const updateScrollState = () => {
+      const current = desktopNavRef.current;
+      if (!current) return;
+
+      const maxScrollLeft = current.scrollWidth - current.clientWidth;
+      setCanScrollLeft(current.scrollLeft > 4);
+      setCanScrollRight(current.scrollLeft < maxScrollLeft - 4);
+    };
+
+    updateScrollState();
+    nav.addEventListener("scroll", updateScrollState, { passive: true });
+
+    const resizeObserver = new ResizeObserver(updateScrollState);
+    resizeObserver.observe(nav);
+
+    return () => {
+      nav.removeEventListener("scroll", updateScrollState);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const activeItem = activeDesktopItemRef.current;
+    if (!activeItem) return;
+
+    window.requestAnimationFrame(() => {
+      activeItem.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    });
+  }, [pathname]);
+
+  function scrollDesktopNav(direction: "left" | "right") {
+    const nav = desktopNavRef.current;
+    if (!nav) return;
+
+    nav.scrollBy({
+      left:
+        direction === "left"
+          ? -Math.max(nav.clientWidth * 0.55, 260)
+          : Math.max(nav.clientWidth * 0.55, 260),
+      behavior: "smooth",
+    });
+  }
 
   return (
     <>
@@ -320,60 +396,107 @@ export default function ProNavBar() {
             {/* DESKTOP PRO NAVIGATION                           */}
             {/* ================================================= */}
 
-            <nav
-              className="
-                hidden
-                min-w-0
-                flex-1
-                items-center
-                gap-0.5
+            <div className="relative hidden min-w-0 flex-1 items-center xl:flex">
+              <div
+                aria-hidden="true"
+                className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white via-white/90 to-transparent transition-opacity duration-200 ${
+                  canScrollLeft ? "opacity-100" : "opacity-0"
+                }`}
+              />
 
-                xl:flex
-              "
-            >
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
+              <button
+                type="button"
+                aria-label="Scroll navigation left"
+                onClick={() => scrollDesktopNav("left")}
+                className={`absolute left-1 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-500 shadow-sm backdrop-blur transition-all duration-200 hover:-translate-x-0.5 hover:border-slate-300 hover:text-slate-950 active:scale-90 ${
+                  canScrollLeft
+                    ? "visible scale-100 opacity-100"
+                    : "invisible scale-90 opacity-0"
+                }`}
+              >
+                <ChevronLeft size={16} />
+              </button>
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      flex
-                      h-10
-                      shrink-0
-                      items-center
-                      gap-2
-                      rounded-xl
-                      px-3
-                      text-sm
-                      font-medium
-                      transition-all
-                      duration-200
+              <nav
+                ref={desktopNavRef}
+                aria-label="PRO workspace navigation"
+                className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain px-1 py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                onWheel={(event) => {
+                  const nav = desktopNavRef.current;
 
-                      ${
+                  if (!nav || nav.scrollWidth <= nav.clientWidth) {
+                    return;
+                  }
+
+                  if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+                    nav.scrollLeft += event.deltaY;
+                  }
+                }}
+              >
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      ref={active ? activeDesktopItemRef : undefined}
+                      className={`group relative flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] ${
                         active
-                          ? "bg-blue-50 text-blue-600"
+                          ? "bg-blue-50 text-blue-600 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.04)]"
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
-                      }
-                    `}
-                  >
-                    <Icon
-                      size={16}
-                      strokeWidth={1.9}
-                      className={
-                        active
-                          ? "text-blue-600"
-                          : "text-slate-500"
-                      }
-                    />
+                      }`}
+                    >
+                      <Icon
+                        size={16}
+                        strokeWidth={1.9}
+                        className={`shrink-0 transition-all duration-300 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 ${
+                          item.href === "/pro/offers"
+                            ? "group-hover:rotate-12"
+                            : ""
+                        } ${
+                          active
+                            ? "text-blue-600"
+                            : "text-slate-500 group-hover:text-slate-700"
+                        }`}
+                      />
+                      <span>{item.label}</span>
 
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+                      <span
+                        aria-hidden="true"
+                        className={`absolute bottom-0 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-blue-600 transition-all duration-300 ease-out ${
+                          active
+                            ? "w-5 opacity-100"
+                            : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-40"
+                        }`}
+                      />
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div
+                aria-hidden="true"
+                className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white via-white/90 to-transparent transition-opacity duration-200 ${
+                  canScrollRight ? "opacity-100" : "opacity-0"
+                }`}
+              />
+
+              <button
+                type="button"
+                aria-label="Scroll navigation right"
+                onClick={() => scrollDesktopNav("right")}
+                className={`absolute right-1 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-500 shadow-sm backdrop-blur transition-all duration-200 hover:translate-x-0.5 hover:border-slate-300 hover:text-slate-950 active:scale-90 ${
+                  canScrollRight
+                    ? "visible scale-100 opacity-100"
+                    : "invisible scale-90 opacity-0"
+                }`}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+
 
             {/* ================================================= */}
             {/* DESKTOP USER MENU                                */}
@@ -606,6 +729,7 @@ export default function ProNavBar() {
                         setMobileOpen(false)
                       }
                       className={`
+                        group
                         flex
                         min-h-[58px]
                         items-center
@@ -616,9 +740,12 @@ export default function ProNavBar() {
                         text-sm
                         font-semibold
                         transition-all
-                        duration-200
+                        duration-300
+                        ease-out
 
-                        active:scale-[0.99]
+                        hover:translate-x-1
+                        active:translate-x-0
+                        active:scale-[0.98]
 
                         ${
                           active
@@ -636,7 +763,9 @@ export default function ProNavBar() {
                           items-center
                           justify-center
                           rounded-xl
-                          transition
+                          transition-all
+                          duration-300
+                          group-hover:scale-105
 
                           ${
                             active
