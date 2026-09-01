@@ -1,481 +1,571 @@
-# 💰 ESOP Value Clarity
+# 💎 ESOP Value Clarity
 
-### **Your ESOPs have a number. Understanding what that number could become is the real problem.**
+### Employee equity decisions, made clearer.
 
-[🌐 **Explore ESOP Value Clarity**](https://esop-value-clarity.vercel.app/) · [💻 **GitHub**](https://github.com/sidhushesank/esop-value-clarity)
+**ESOP Value Clarity is an employee-first fintech SaaS platform built for startup employees navigating ESOP grants, vesting, exercise, dilution, tax, exits and equity-heavy job offers.**
+
+🌐 **Live Product:**  
+https://esop-value-clarity.vercel.app/
 
 ---
 
-> **Startup equity is often presented as a number.**
+> **Companies have systems to manage equity.**
 >
-> **I believe employees deserve to understand the story behind that number.**
-
----
-
-## 🧠 Why I built this
-
-A startup can tell an employee:
-
-**“Your ESOPs are worth ₹10 lakh.”**
-
-Sounds exciting.
-
-But that number alone doesn't answer the questions that actually matter.
-
-**How much will I actually vest?**
-
-**What happens if the company raises more money?**
-
-**How does dilution affect me?**
-
-**What could my equity be worth if the company exits at different valuations?**
-
-**What does exercising the options cost?**
-
-**What might remain after estimated tax?**
-
-**What happens if my assumptions change?**
-
-And ultimately:
-
-### **“What could this equity actually mean for my financial future?”**
-
-For many employees, answering those questions means spreadsheets, scattered calculations, cap-table terminology and assumptions that are difficult to connect.
-
-I didn't think it had to be that way.
-
-So I built **ESOP Value Clarity**.
+> **Employees deserve a system to understand it.**
 
 ---
 
 # 🚀 What is ESOP Value Clarity?
 
-**ESOP Value Clarity is a fintech SaaS product built to help startup employees understand the potential value of their equity.**
+Employee equity is rarely one simple number.
 
-It connects the pieces that are usually treated separately:
+An employee may receive an ESOP grant and be told:
+
+> **“You have 10,000 options.”**
+
+But that does not automatically explain:
+
+- What do I actually own?
+- How much has vested?
+- What will exercising cost?
+- What happens if the company raises another funding round?
+- How could dilution affect my ownership?
+- What could taxes change?
+- What happens if I leave?
+- What could different exit outcomes mean?
+- How should I compare equity with guaranteed cash in another job offer?
+
+These are not isolated calculations.
+
+They are connected decisions.
+
+### **ESOP Value Clarity brings those decisions into one employee-first workspace.**
+
+---
+
+# 🧭 The Employee Equity Journey
 
 ```text
-          📄 ESOP Grant
-                ↓
-           ⏳ Vesting
-                ↓
-          🏢 Ownership
-                ↓
-          📉 Dilution
-                ↓
-       💰 Exercise Cost
-                ↓
-       📈 Exit Scenarios
-                ↓
-          🧾 Estimated Tax
-                ↓
-         ⚖️ Compare
-                ↓
-          🧠 Understand
-                ↓
-          📊 Report
+EQUITY-HEAVY OFFER
+        ↓
+      GRANT
+        ↓
+     VESTING
+        ↓
+    EXERCISE
+        ↓
+    DILUTION
+        ↓
+       TAX
+        ↓
+      EXIT
 ```
 
-The goal is **not** to predict what a startup will become.
+The objective is not to predict the future.
 
-The goal is to help an employee understand:
-
-### **“If the future looks like this, what could my equity look like?”**
+The objective is to help employees understand the decisions they are making along the way.
 
 ---
 
-# 💎 The product philosophy
+# 🧠 Grant Intelligence
 
-Most equity conversations start with:
+Bring an ESOP grant into the platform and turn the document into structured equity information.
 
-> **“How much are my ESOPs worth?”**
+Grant Intelligence follows a review-first workflow:
 
-I think the better question is:
+```text
+GRANT DOCUMENT
+      ↓
+EXTRACTION
+      ↓
+EVIDENCE
+      ↓
+EMPLOYEE REVIEW
+      ↓
+CONFIRMED GRANT
+```
 
-> **“What could my ESOPs mean under different futures?”**
+Extracted information is not automatically treated as confirmed financial truth.
 
-Because startup equity isn't a fixed number.
+The employee reviews the information before it becomes part of their confirmed equity analysis.
 
-It moves with assumptions.
+### Facts stay facts.
 
-A company can raise more capital.
-
-Ownership can change.
-
-Dilution can happen.
-
-Valuations can move.
-
-Vesting takes time.
-
-Exercise costs matter.
-
-Taxes matter.
-
-Liquidity matters.
-
-Your own career can change.
-
-So instead of giving employees one shiny number and calling it the answer...
-
-### **ESOP Value Clarity is built around possibilities.**
-
-**Understand the range.  
-Understand the assumptions.  
-Understand the trade-offs.  
-Then make better decisions.**
+### Assumptions stay assumptions.
 
 ---
 
-# ⚡ From equity grant → financial clarity
+# 👤 Equity Profile
 
-The product is designed as one connected experience rather than a collection of disconnected calculators.
+Create a connected view of an employee's confirmed equity position.
 
-### 🧮 Model
+Instead of repeatedly entering the same information across disconnected calculators, the Equity Profile becomes the foundation for deeper analysis across ESOP Value Clarity.
 
-Start with the equity you actually received.
+---
 
-Explore the assumptions that influence its potential value.
+# ⏳ Vesting Intelligence
 
-### ⏳ Vest
+Understand how equity develops over time.
 
-Understand what has vested, what remains, and how time changes your position.
+Explore:
 
-### 📉 Dilution
+- vested options
+- unvested options
+- vesting schedules
+- cliff periods
+- vesting progression
 
-See how future funding and ownership changes can affect the potential outcome.
+Because:
 
-### 📈 Exit
+> **Receiving equity and earning equity are not the same thing.**
 
-Explore different company valuations and see how your equity could change across scenarios.
+---
 
-### 🧾 Tax
+# 💰 Exercise Analysis
 
-Bring estimated tax impact into the picture instead of stopping at the headline value.
+Vested options may still require real money to exercise.
 
-### ⚖️ Compare
+ESOP Value Clarity helps employees understand potential exercise costs before treating vested options as realised wealth.
 
-Change assumptions and compare different possible outcomes side by side.
+Understand:
 
-### 📊 Report
+- exercise price
+- exercisable options
+- potential exercise capital
+- exercise scenarios
 
-Turn your analysis into a structured equity report you can revisit.
+---
 
-### 🗂️ History
+# 📉 Dilution Modelling
 
-Keep previous analyses available so your equity story doesn't disappear after one calculation.
+Ownership can change when companies raise additional capital.
+
+ESOP Value Clarity allows employees to model potential dilution scenarios and understand how changing ownership assumptions may affect their position.
+
+The purpose is not to predict a funding round.
+
+It is to make the impact of assumptions visible.
+
+---
+
+# 🧾 Tax Scenarios
+
+Employee equity decisions can create tax consequences.
+
+ESOP Value Clarity brings estimated tax effects into the analysis instead of stopping at a headline equity value.
+
+> **Tax calculations are educational and scenario-based. They are not tax advice.**
+
+---
+
+# 📈 Exit Modelling
+
+Private-company equity does not have one guaranteed outcome.
+
+Model different company valuations and potential exit scenarios to understand how changing assumptions may affect equity outcomes.
+
+Explore different possibilities without presenting any one scenario as guaranteed.
+
+---
+
+# ⚖️ Scenario Comparison
+
+Change assumptions.
+
+Compare outcomes.
+
+Understand the trade-offs.
+
+Instead of asking:
+
+> **“What will my ESOPs be worth?”**
+
+ESOP Value Clarity encourages a more useful question:
+
+> **“Under these assumptions, what could my equity look like — and what could change that outcome?”**
+
+---
+
+# 🧠 Offer Intelligence
+
+Employee equity decisions often begin **before an ESOP grant exists**.
+
+They begin with a job offer.
+
+One company may offer:
+
+### Higher guaranteed cash + lower equity
+
+Another may offer:
+
+### Lower guaranteed cash + larger private-company equity
+
+Those numbers should not automatically be treated as economically equivalent.
+
+**Offer Intelligence helps employees understand the cash and equity components separately before bringing them together into a decision framework.**
+
+It helps employees examine questions such as:
+
+- How much compensation is guaranteed?
+- How much depends on private-company equity?
+- What does the vesting structure look like?
+- What assumptions are required to value the equity?
+- What happens under different outcomes?
+- Which offer provides more certainty?
+- Which offer provides greater potential upside?
+
+Offer Intelligence extends ESOP Value Clarity beyond grant analysis into the broader employee-equity decision journey.
 
 ---
 
 # 🌱 Free → Pro
 
-ESOP Value Clarity is available as a real product with both **Free** and **Pro** experiences.
+ESOP Value Clarity is live with both **Free** and **Pro** experiences.
 
-The idea is simple:
+## 🆓 Free
 
-### 🆓 Free
+A useful starting point for employees who want to understand and model ESOP scenarios.
 
-Give employees a useful starting point for understanding their equity.
+The Free experience helps users explore the basic economics behind employee equity without needing spreadsheets.
 
-### 💎 Pro
+## 💎 Pro
 
-Give employees deeper tools for analysing, comparing and understanding their equity across more scenarios.
+A connected personal equity decision workspace.
 
-The product isn't designed around making the free experience useless.
+Pro brings together deeper capabilities including:
 
-It is designed around this belief:
+- 🧠 Grant Intelligence
+- 👤 Equity Profile
+- ⏳ Vesting Intelligence
+- 💰 Exercise Analysis
+- 📉 Dilution Modelling
+- 🧾 Tax Scenarios
+- 📈 Exit Modelling
+- ⚖️ Scenario Comparison
+- 🧠 Offer Intelligence
+- 📊 Reports
+- 🗂️ History
 
-> **Let people understand the problem first.**
->
-> **Then give them more power when they need it.**
+The Free experience helps employees start understanding the problem.
+
+**Pro provides the deeper workspace when the decisions become more important.**
 
 ---
 
-# 🔥 What makes this different?
+# 💎 Our Product Philosophy
 
-This isn't meant to be another:
+Private-company equity contains uncertainty.
 
-- ❌ ESOP calculator
+Software should not hide that uncertainty simply because it can generate an attractive number.
+
+ESOP Value Clarity is built around three principles.
+
+## Facts remain facts.
+
+Confirmed information should remain distinguishable from assumptions.
+
+## Assumptions remain visible.
+
+Employees should understand what assumptions are driving a modelled outcome.
+
+## Scenarios are never promises.
+
+A potential future valuation is not guaranteed wealth.
+
+ESOP Value Clarity is deliberately **not** designed to say:
+
+> **“Your ESOPs will be worth ₹X.”**
+
+Instead:
+
+> **“Under these assumptions, here is what your equity could look like — and here is what could change that outcome.”**
+
+---
+
+# 🔥 What Makes ESOP Value Clarity Different?
+
+ESOP Value Clarity is not designed to be another:
+
+- ❌ single-number ESOP calculator
 - ❌ spreadsheet replacement
-- ❌ single-number valuation tool
-- ❌ dashboard full of financial jargon
+- ❌ guaranteed valuation engine
+- ❌ cap-table administration platform
+- ❌ company compliance system
+- ❌ dashboard filled with financial jargon
 
-The bigger idea is **equity decision support**.
+The bigger idea is:
 
-Because knowing:
+# **Employee Equity Decision Intelligence**
 
-> **“I have 10,000 ESOPs.”**
+Companies manage equity.
 
-is information.
-
-Understanding:
-
-> **“Here is how those 10,000 ESOPs could change under different vesting, dilution, valuation, exercise and tax assumptions.”**
-
-is clarity.
-
-### **That's the difference I'm trying to build.**
+### **ESOP Value Clarity helps employees understand the decisions around it.**
 
 ---
 
-# 🎯 Built around real employee questions
+# 🏗️ Built as a Real SaaS Product
 
-### “What do I actually own?”
+ESOP Value Clarity is not a prototype.
 
-→ Ownership & equity analysis
+It is not a mock-up.
 
-### “How much have I earned so far?”
-
-→ Vesting
-
-### “What happens when the company raises another round?”
-
-→ Dilution scenarios
-
-### “What could this be worth if the company exits?”
-
-→ Exit scenarios
-
-### “What happens if the valuation is much higher or lower?”
-
-→ Scenario comparison
-
-### “What could I actually keep after estimated tax?”
-
-→ Tax analysis
-
-### “Can I save this and come back later?”
-
-→ History
-
-### “Can I turn this into something I can keep?”
-
-→ Reports
-
----
-
-# 🧠 The bigger thesis
-
-I don't believe employees need another tool that tells them:
-
-## **“Your equity is worth ₹X.”**
-
-They need to understand:
-
-## **“Why could it be worth ₹X — and what could make that number change?”**
-
-That distinction matters.
-
-Because startup equity is inherently uncertain.
-
-There isn't one guaranteed future.
-
-There are **possible futures**.
-
-And employees deserve a way to see them.
-
----
-
-# 🏗️ Why this matters
-
-For founders, ESOPs can be a powerful way to align employees with the company's long-term journey.
-
-For employees, however, equity can sometimes feel like a number written inside an offer letter that nobody really explains.
-
-That creates a strange gap:
-
-**Companies talk about ownership.**
-
-**Employees receive equity.**
-
-**But understanding often gets lost somewhere in between.**
-
-I want to close that gap.
-
-Not by making equity more complicated.
-
-### **By making the complicated parts easier to understand.**
-
----
-
-# 💡 The problem I'm obsessed with
-
-There are many financial products that help people understand:
-
-- 💳 spending
-- 📈 investments
-- 🏦 savings
-- 🧾 taxes
-- 💰 personal wealth
-
-But startup equity can represent a meaningful part of an employee's potential financial future — and yet the experience around understanding it is often surprisingly fragmented.
-
-That is the problem I'm exploring.
-
-### **How do we make startup equity understandable to the person who actually owns it?**
-
-ESOP Value Clarity is my answer so far.
-
----
-
-# 👨‍💻 Built by a founder who cares about the problem
-
-## **Sheshank Sidheshwar**
-
-**Founder & Builder — ESOP Value Clarity**
-
-I built this product because I became interested in a simple question:
-
-> **Why is something that can become such an important part of an employee's financial future still so difficult to understand?**
-
-ESOP Value Clarity started with calculations.
-
-But the more I worked on it, the clearer the opportunity became.
-
-This isn't really about building a better calculator.
-
-It's about building a better **employee experience around equity**.
-
-So I'm building the product around a simple principle:
-
-### **Give employees clarity before asking them to make decisions about their equity.**
-
-I'm building this publicly, learning from real users, and figuring out what an employee-first equity product should become.
-
----
-
-# 🛠️ What exists today
-
-This isn't just an idea or a design concept.
+It is not a design concept.
 
 ### **The product is live.**
 
-Users can already explore their startup equity through a connected experience covering:
+The platform includes production infrastructure supporting:
 
-| Capability | What it helps with |
-|---|---|
-| 🧮 **Simulator** | Explore equity assumptions and potential outcomes |
-| ⏳ **Vesting** | Understand vested and unvested equity |
-| 📉 **Dilution** | Understand the impact of changing ownership |
-| 📈 **Exit Scenarios** | Explore potential outcomes across valuations |
-| 🧾 **Tax Analysis** | Include estimated tax impact |
-| ⚖️ **Comparison** | Compare different scenarios |
-| 📊 **Reports** | Create structured equity reports |
-| 🗂️ **History** | Revisit previous analyses |
-| 💎 **Pro** | Unlock deeper product capabilities |
-
-And underneath that is a real SaaS product with:
-
-**accounts → verification → subscriptions → payments → billing → invoices → saved analysis**
+```text
+AUTHENTICATION
+      ↓
+EMAIL VERIFICATION
+      ↓
+USER WORKSPACE
+      ↓
+FREE / PRO ACCESS
+      ↓
+SUBSCRIPTIONS
+      ↓
+PAYMENTS
+      ↓
+BILLING
+      ↓
+SAVED ANALYSIS
+      ↓
+REPORTS
+      ↓
+HISTORY
+```
 
 The goal was never to build a demo.
 
-### **The goal was to build the actual product.**
+# **The goal was to ship the actual product.**
 
 ---
 
-# 🔭 Where this can go
+# 👨‍💻 Built by Sheshank Sidheshwar
 
-I don't want ESOP Value Clarity to remain a place where someone enters numbers and gets a result.
+## Founder — ESOP Value Clarity
 
-The bigger opportunity is creating an **equity intelligence layer for startup employees.**
+I founded and built **ESOP Value Clarity as a solo founder**.
 
-A place where an employee can understand:
+I have worked across the complete product:
 
-**what they received → what they have earned → what they own → what could change → what different futures could look like → what the equity could ultimately mean**
+**Product Strategy**
 
-That's the direction.
+**Product Engineering**
 
-And I'm still early.
+**Frontend**
+
+**Backend**
+
+**Database Architecture**
+
+**User Experience**
+
+**Authentication**
+
+**Subscriptions**
+
+**Payments**
+
+**Security**
+
+**Infrastructure**
+
+**Deployment**
+
+**Product Positioning**
+
+**Go-to-Market**
+
+But the technology itself is not why ESOP Value Clarity exists.
+
+The reason is much simpler:
+
+> ## **Employees deserve better infrastructure for understanding their own equity.**
+
+Companies already have systems for administering equity.
+
+Employees deserve a system designed around the decisions equity creates for them.
+
+That is what I built ESOP Value Clarity around.
 
 ---
 
-# ❤️ What I care about
+# 🎯 The Direction
 
-### **Clarity over jargon.**
+The ambition is bigger than building an ESOP calculator.
+
+The direction is to make ESOP Value Clarity an:
+
+# **Employee-Side Equity Decision Layer**
+
+A place that follows the employee through the complete equity lifecycle:
+
+```text
+OFFER
+  ↓
+GRANT
+  ↓
+VEST
+  ↓
+EXERCISE
+  ↓
+DILUTION
+  ↓
+TAX
+  ↓
+EXIT
+```
+
+From the moment equity enters someone's career...
+
+to the point where that equity may eventually become liquid...
+
+employees should have somewhere to understand:
+
+**what they received**
+
+↓
+
+**what they earned**
+
+↓
+
+**what they own**
+
+↓
+
+**what it may cost**
+
+↓
+
+**what could change**
+
+↓
+
+**what assumptions matter**
+
+↓
+
+**what different outcomes could mean**
+
+---
+
+# ❤️ What We Value
+
+## Clarity over jargon
 
 Financial concepts can be complicated.
 
-The product doesn't have to be.
-
-### **Scenarios over false certainty.**
-
-Nobody knows exactly what a startup will become.
-
-The product should help people understand possibilities instead.
-
-### **Decisions over dashboards.**
-
-A beautiful chart means nothing if it doesn't help someone understand their equity.
-
-### **Employee-first over finance-first.**
-
-The person using this shouldn't need to be a finance expert.
-
-### **Product over pitch.**
-
-I'd rather build something people actually use than write a perfect description of something that doesn't exist.
-
-### **Ship over speculation.**
-
-The product is live.
-
-Now the real work is learning whether it genuinely helps people.
+The product experience should not have to be.
 
 ---
 
-# 🌐 Try it
+## Evidence over assumption
 
-## **ESOP Value Clarity**
-
-### Your equity has a number.
-
-### **Now understand what that number could mean.**
-
-👉 **[Explore the product](https://esop-value-clarity.vercel.app/)**
+Where information can be confirmed, employees should be able to understand where it came from.
 
 ---
 
-# 🤝 If you're building, working with, or thinking about startup equity
+## Scenarios over false certainty
 
-I'd love to hear from:
+Nobody knows exactly what a private company will become.
 
-👩‍💻 **Startup employees**  
-👨‍💼 **Founders**  
-🧑‍💼 **HR & compensation teams**  
-💰 **Fintech builders**  
-📊 **People thinking seriously about equity**
-
-Especially if you've ever looked at an ESOP offer and thought:
-
-> **“Okay... but what does this actually mean for me?”**
-
-That is exactly the problem I'm trying to solve.
+Our product should acknowledge that uncertainty.
 
 ---
 
-# 📬 Connect
+## Decisions over dashboards
 
-**Founder:** Sheshank Sidheshwar
-
-📧 **Email:** [sidhusheshank@gmail.com](mailto:sidhusheshank@gmail.com)
-
-💻 **GitHub:** [@sidhushesank](https://github.com/sidhushesank)
-
-𝕏 **X:** [@SheshankSi60747](https://x.com/SheshankSi60747)
-
-🌐 **Product:** [esop-value-clarity.vercel.app](https://esop-value-clarity.vercel.app/)
+A beautiful chart has limited value if it does not help someone understand the decision behind it.
 
 ---
 
-<br>
+## Employee-first
 
-## **Don't just know how many ESOPs you have.**
+Employees should not need to become finance professionals to understand their own compensation.
 
-# **Understand what they could actually mean.**
+---
 
-<br>
+## Product over pitch
 
-**Built with conviction by Sheshank Sidheshwar.**
+Build something real.
+
+Put it in people's hands.
+
+Let the usefulness of the product determine what happens next.
+
+---
+
+# 💡 Why This Matters
+
+Employee equity can potentially become one of the most meaningful financial components of someone's career.
+
+Yet employees often receive considerably less clarity around their equity than they receive around salary.
+
+That creates a strange gap.
+
+### Companies talk about ownership.
+
+### Employees receive ownership.
+
+### Understanding often gets lost somewhere between the two.
+
+**ESOP Value Clarity exists to close that gap.**
+
+---
+
+# 🌐 Try ESOP Value Clarity
+
+## Your equity is more than a headline number.
+
+### Understand the grant.
+
+### Understand the assumptions.
+
+### Understand the decision.
+
+👉 **[Explore ESOP Value Clarity](https://esop-value-clarity.vercel.app/)**
+
+**Free and Pro experiences are live.**
+
+---
+
+# 🤝 Connect With the Founder
+
+## Sheshank Sidheshwar
 
 **Founder — ESOP Value Clarity**
+
+🌐 **Product**  
+https://esop-value-clarity.vercel.app/
+
+💼 **LinkedIn**  
+https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/
+
+𝕏 **X**  
+https://x.com/SheshankSi60747
+
+---
+
+# ⚠️ Disclaimer
+
+ESOP Value Clarity is designed for educational and scenario-analysis purposes.
+
+It does not provide financial, investment, tax or legal advice.
+
+Private-company equity is inherently uncertain, and modelled scenarios should not be interpreted as guaranteed future outcomes.
+
+---
+
+<p align="center">
+
+# ESOP VALUE CLARITY
+
+### Employee equity decisions, made clearer.
+
+**Founded & built by Sheshank Sidheshwar**
+
+</p>
