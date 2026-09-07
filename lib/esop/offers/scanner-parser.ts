@@ -69,6 +69,7 @@ import {
 
 import {
   applyScannerValidation,
+  applyScannerHardFilters,
 } from "./scanner-validation";
 
 /* ============================================================
@@ -387,7 +388,7 @@ function parseMoneyFromText(
    */
   const crore =
     normalized.match(
-      /(?:₹|rs\.?|inr)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:crores?|cr)\b/i
+      /(?:₹|rs\.?|inr)?\s*([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:crores?|cr)\b/i
     );
 
   if (crore) {
@@ -605,6 +606,108 @@ function extractMoneyField(
 }
 
 /* ============================================================
+   PERCENTAGE-OF-BASE CASH EXTRACTION
+
+   Indian offer letters often state variable compensation as
+   "10% of base salary" instead of an INR amount. Derive it only
+   when the base salary was directly extracted from the same offer.
+============================================================ */
+
+function extractPercentageOfBaseSalary(
+  lines: TextLine[],
+  labelPatterns: RegExp[],
+  baseSalary: OfferScannerField<number>,
+  label: string
+): OfferScannerField<number> {
+  if (
+    !baseSalary.value ||
+    baseSalary.value <= 0
+  ) {
+    return createMissingScannerField<number>();
+  }
+
+  for (
+    const candidate of allMatches(
+      lines,
+      labelPatterns
+    )
+  ) {
+    const match =
+      candidate.line.text.match(
+        /([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:of\s+)?(?:base|basic)\s+(?:salary|pay)\b/i
+      );
+
+    if (!match) {
+      continue;
+    }
+
+    const percentage =
+      Number(match[1]);
+
+    if (
+      !Number.isFinite(percentage) ||
+      percentage < 0 ||
+      percentage > 100
+    ) {
+      continue;
+    }
+
+    return createExtractedScannerField(
+      Math.round(
+        (baseSalary.value * percentage) / 100
+      ),
+      {
+        rawValue:
+          `${match[1]}% of base salary`,
+        confidence: "MEDIUM",
+        evidence: evidenceFromLine(
+          candidate.line,
+          label
+        ),
+        inferred: true,
+        notes: [
+          `Calculated from ${match[1]}% of the directly extracted base salary.`,
+        ],
+      }
+    );
+  }
+
+  return createMissingScannerField<number>();
+}
+
+function extractTargetVariablePayField(
+  lines: TextLine[],
+  currency: OfferScannerCurrency,
+  basicSalary: OfferScannerField<number>
+): OfferScannerField<number> {
+  const explicitlyLabelled = extractMoneyField(
+    lines,
+    [
+      /^\s*(?:target\s+variable\s+pay|annual\s+variable\s+pay|variable\s+pay)\b/i,
+      /^\s*(?:target\s+bonus|performance\s+bonus)\b/i,
+    ],
+    currency,
+    "Target variable pay"
+  );
+
+  if (explicitlyLabelled.value !== null) {
+    return explicitlyLabelled;
+  }
+
+  return extractPercentageOfBaseSalary(
+    lines,
+    [
+      /\bperformance\s+bonus\b/i,
+      /\bperformance\s+incentive\b/i,
+      /\btarget\s+variable\s+pay\b/i,
+      /\btarget\s+bonus\b/i,
+    ],
+    basicSalary,
+    "Target variable pay"
+  );
+}
+
+/* ============================================================
    NUMBER EXTRACTION
 ============================================================ */
 
@@ -685,7 +788,7 @@ function parseDurationMonths(
 ): number | null {
   const years =
     text.match(
-      /([0-9]+(?:\.[0-9]+)?)\s*(?:years?|yrs?)\b/i
+      /([0-9]+(?:\.[0-9]+)?)\s*(?:-\s*)?(?:years?|yrs?)\b/i
     );
 
   if (years) {
@@ -705,7 +808,7 @@ function parseDurationMonths(
 
   const months =
     text.match(
-      /([0-9]+)\s*(?:months?|mos?)\b/i
+      /([0-9]+)\s*(?:-\s*)?(?:months?|mos?)\b/i
     );
 
   if (months) {
@@ -1322,11 +1425,7 @@ function detectCompanyStatus(
       )
       .join("\n");
 
-  if (
-    /\bunlisted\b|\bprivate\s+limited\b|\bpvt\.?\s+ltd\.?\b/i.test(
-      text
-    )
-  ) {
+  if (/\bunlisted\b/i.test(text)) {
     return createExtractedScannerField(
       "UNLISTED",
       {
@@ -1340,7 +1439,7 @@ function detectCompanyStatus(
           true,
 
         notes: [
-          "Company status was inferred from private/unlisted terminology and should be confirmed.",
+          "Company status was inferred from explicit unlisted terminology and should be confirmed.",
         ],
       }
     );
@@ -1706,7 +1805,7 @@ function parseEmployerFields(
     extractTextAfterLabel(
       lines,
       [
-        /^(?:company\s+name|company|employer|organisation|organization)\s*(?::|\-)?\s*(.*)$/i,
+        /^(?:employer\s*\/\s*company\s+name|company\s+name|company|employer|organisation|organization)\s*(?::|\-)?\s*(.*)$/i,
       ],
       "Company name"
     );
@@ -1931,6 +2030,44 @@ function parseCashFields(
   currency:
     OfferScannerCurrency
 ): OfferScannerCashFields {
+  const basicSalary =
+    extractMoneyField(
+      lines,
+      [
+        /\bbasic\s+salary\b/i,
+        /\bbase\s+salary\b/i,
+        /\bbasic\s+pay\b/i,
+        /\bbase\s+pay\b/i,
+        /^\s*basic\b/i,
+      ],
+      currency,
+      "Basic salary"
+    );
+
+  const statedPerformanceBonus =
+    extractMoneyField(
+      lines,
+      [
+        /\bperformance\s+bonus\b/i,
+        /\bperformance\s+incentive\b/i,
+      ],
+      currency,
+      "Performance bonus"
+    );
+
+  const performanceBonus =
+    statedPerformanceBonus.value !== null
+      ? statedPerformanceBonus
+      : extractPercentageOfBaseSalary(
+          lines,
+          [
+            /\bperformance\s+bonus\b/i,
+            /\bperformance\s+incentive\b/i,
+          ],
+          basicSalary,
+          "Performance bonus"
+        );
+
   return {
     headlineCTC:
       extractMoneyField(
@@ -1961,17 +2098,7 @@ function parseCashFields(
         "Fixed salary"
       ),
 
-    basicSalary:
-      extractMoneyField(
-        lines,
-        [
-          /\bbasic\s+salary\b/i,
-          /\bbasic\s+pay\b/i,
-          /^\s*basic\b/i,
-        ],
-        currency,
-        "Basic salary"
-      ),
+    basicSalary,
 
     hra:
       extractMoneyField(
@@ -2006,16 +2133,10 @@ function parseCashFields(
       ),
 
     targetVariablePay:
-      extractMoneyField(
+      extractTargetVariablePayField(
         lines,
-        [
-          /\btarget\s+variable\s+pay\b/i,
-          /\bannual\s+variable\s+pay\b/i,
-          /\bvariable\s+pay\b/i,
-          /\btarget\s+bonus\b/i,
-        ],
         currency,
-        "Target variable pay"
+        basicSalary
       ),
 
     maximumVariablePay:
@@ -2063,16 +2184,7 @@ function parseCashFields(
         "Relocation benefit"
       ),
 
-    performanceBonus:
-      extractMoneyField(
-        lines,
-        [
-          /\bperformance\s+bonus\b/i,
-          /\bperformance\s+incentive\b/i,
-        ],
-        currency,
-        "Performance bonus"
-      ),
+    performanceBonus,
 
     employerPF:
       extractMoneyField(
@@ -2860,7 +2972,7 @@ export function parseOfferLetterText(
    */
 
   return applyScannerValidation(
-    withSummary
+    applyScannerHardFilters(withSummary)
   );
 }
 

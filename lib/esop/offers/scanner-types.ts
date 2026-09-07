@@ -517,6 +517,7 @@ export type OfferScannerIssueCode =
   | "SUSPICIOUS_MONETARY_VALUE"
 
   | "CURRENCY_UNKNOWN"
+  | "INR_NORMALIZATION_REQUIRED"
   | "OTHER";
 
 /* ============================================================
@@ -583,6 +584,27 @@ export type OfferScannerEquityReadiness =
   | "NOT_APPLICABLE";
 
 /* ============================================================
+   DECISION READINESS
+
+   The scanner must distinguish a valid cash comparison from a
+   fully modelled equity comparison. This prevents a missing ESOP
+   term from blocking a cash-only decision, while also preventing
+   unknown equity from being presented as zero or as no equity.
+============================================================ */
+
+export type OfferScannerEquityState =
+  | "NO_EQUITY_CONFIRMED"
+  | "EQUITY_READY"
+  | "EQUITY_INCOMPLETE"
+  | "EQUITY_UNKNOWN";
+
+export type OfferScannerDecisionState =
+  | "FULL_DECISION_READY"
+  | "CASH_ONLY_READY"
+  | "CASH_READY_EQUITY_INCOMPLETE"
+  | "NEEDS_CLARIFICATION";
+
+/* ============================================================
    OFFER MODEL READINESS
 ============================================================ */
 
@@ -610,6 +632,31 @@ export type OfferScannerReadiness = {
 
   canModelEquity:
     boolean;
+
+  /*
+   * Optional until the connected parser/validation files are
+   * updated, so previously saved scanner snapshots remain readable.
+   */
+  canCompareGuaranteedCash?:
+    boolean;
+
+  canRunFullComparison?:
+    boolean;
+
+  equityState?:
+    OfferScannerEquityState;
+
+  decisionState?:
+    OfferScannerDecisionState;
+
+  missingCashFields?:
+    string[];
+
+  missingEquityFields?:
+    string[];
+
+  clarificationQuestions?:
+    string[];
 
   blockingIssueCount:
     number;
@@ -968,10 +1015,6 @@ export const OFFER_SCANNER_CRITICAL_PATHS =
     "employer.roleTitle",
 
     "cash.fixedSalary",
-
-    "cash.targetVariablePay",
-
-    "cash.joiningBonus",
 
     "equity.type",
   ] as const;

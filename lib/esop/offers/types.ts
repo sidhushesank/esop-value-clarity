@@ -74,6 +74,7 @@ export type OfferEquityType =
   | "ESOP"
   | "RSU"
   | "STOCK"
+  | "UNKNOWN"
   | "OTHER";
 
 export type OfferCompanyEquityStatus =
@@ -125,6 +126,45 @@ export type OfferWinner =
   | "B"
   | "TIE"
   | "UNDETERMINED";
+
+/* ============================================================
+   DECISION AVAILABILITY
+
+   These states keep document facts separate from calculation
+   availability. A missing term is never silently converted into
+   zero, and an offer can be useful for cash comparison even when
+   its equity cannot yet be valued.
+============================================================ */
+
+export type OfferCashComparisonReadiness =
+  | "READY"
+  | "MISSING_REQUIRED_CASH";
+
+export type OfferEquityComparisonReadiness =
+  | "NOT_APPLICABLE"
+  | "READY"
+  | "INCOMPLETE"
+  | "UNKNOWN";
+
+export type OfferOverallDecisionReadiness =
+  | "READY"
+  | "CASH_ONLY"
+  | "CASH_READY_EQUITY_INCOMPLETE"
+  | "NEEDS_CLARIFICATION";
+
+export type OfferDecisionReadiness = {
+  cashComparison: OfferCashComparisonReadiness;
+
+  equityComparison: OfferEquityComparisonReadiness;
+
+  overallDecision: OfferOverallDecisionReadiness;
+
+  missingCashFields: string[];
+
+  missingEquityFields: string[];
+
+  clarificationQuestions: string[];
+};
 
 /* ============================================================
    EXTRACTION / REVIEW TYPES
@@ -386,6 +426,12 @@ export type OfferInput = {
   sourceDocument: OfferDocumentSource | null;
 
   fields: OfferExtractedField<unknown>[];
+
+  /*
+   * Optional while existing saved/manual offers are migrated.
+   * Document normalization supplies this for Offer Intelligence.
+   */
+  decisionReadiness?: OfferDecisionReadiness;
 
   notes: string;
 

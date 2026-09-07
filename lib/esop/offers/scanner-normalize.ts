@@ -29,6 +29,7 @@
 ============================================================ */
 
 import type {
+  OfferDecisionReadiness,
   OfferCompanyEquityStatus,
   OfferCurrency,
   OfferDocumentSource,
@@ -337,7 +338,7 @@ export function mapScannerEquityType(
 
     case "UNKNOWN":
     default:
-      return "OTHER";
+      return "UNKNOWN";
   }
 }
 
@@ -1180,6 +1181,41 @@ export function normalizeScannedOfferToOfferInput(
       mode
     );
 
+  const decisionReadiness: OfferDecisionReadiness = {
+    cashComparison:
+      scan.readiness.canCompareGuaranteedCash
+        ? "READY"
+        : "MISSING_REQUIRED_CASH",
+
+    equityComparison:
+      scan.readiness.equityState === "NO_EQUITY_CONFIRMED"
+        ? "NOT_APPLICABLE"
+        : scan.readiness.equityState === "EQUITY_READY"
+        ? "READY"
+        : scan.readiness.equityState === "EQUITY_UNKNOWN"
+        ? "UNKNOWN"
+        : "INCOMPLETE",
+
+    overallDecision:
+      scan.readiness.decisionState === "FULL_DECISION_READY"
+        ? "READY"
+        : scan.readiness.decisionState === "CASH_ONLY_READY"
+        ? "CASH_ONLY"
+        : scan.readiness.decisionState ===
+          "CASH_READY_EQUITY_INCOMPLETE"
+        ? "CASH_READY_EQUITY_INCOMPLETE"
+        : "NEEDS_CLARIFICATION",
+
+    missingCashFields:
+      scan.readiness.missingCashFields ?? [],
+
+    missingEquityFields:
+      scan.readiness.missingEquityFields ?? [],
+
+    clarificationQuestions:
+      scan.readiness.clarificationQuestions ?? [],
+  };
+
   /* ----------------------------------------------------------
      SPECIAL BENEFIT AGGREGATION
 
@@ -1682,6 +1718,8 @@ export function normalizeScannedOfferToOfferInput(
 
     fields:
       provenance.fields,
+
+    decisionReadiness,
 
     notes:
       [

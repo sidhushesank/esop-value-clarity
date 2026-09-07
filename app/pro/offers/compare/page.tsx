@@ -10,17 +10,14 @@ import {
   ArrowLeft,
   ArrowRight,
   BriefcaseBusiness,
-  Building2,
   CheckCircle2,
   CircleAlert,
   Clock3,
   Coins,
   FileText,
-  Gift,
   IndianRupee,
   Loader2,
   MapPin,
-  RefreshCcw,
   Scale,
   ShieldAlert,
   Sparkles,
@@ -224,12 +221,6 @@ type ComparisonWinner =
   | "TIE"
   | "UNKNOWN";
 
-type MetricTone =
-  | "POSITIVE"
-  | "NEGATIVE"
-  | "NEUTRAL"
-  | "UNKNOWN";
-
 type ComparisonMetric = {
   label: string;
 
@@ -295,6 +286,16 @@ type ComparisonScores = {
   totalB: number;
 };
 
+type OfferDecisionAvailability = {
+  cashReady: boolean;
+
+  overallReady: boolean;
+
+  reason: string | null;
+
+  clarificationQuestions: string[];
+};
+
 /* ============================================================
    BASIC HELPERS
 ============================================================ */
@@ -334,50 +335,6 @@ function money(
       }
     ).format(value);
   }
-}
-
-function compactMoney(
-  value: unknown,
-  currency = "INR"
-): string {
-  if (!isFiniteNumber(value)) {
-    return "—";
-  }
-
-  if (currency !== "INR") {
-    return money(
-      value,
-      currency
-    );
-  }
-
-  const absolute =
-    Math.abs(value);
-
-  if (
-    absolute >=
-    10_000_000
-  ) {
-    return `₹${(
-      value /
-      10_000_000
-    ).toFixed(2)} Cr`;
-  }
-
-  if (
-    absolute >=
-    100_000
-  ) {
-    return `₹${(
-      value /
-      100_000
-    ).toFixed(2)} L`;
-  }
-
-  return money(
-    value,
-    currency
-  );
 }
 
 function number(
@@ -497,6 +454,115 @@ function safeObject(
   }
 
   return value as JsonRecord;
+}
+
+function stringArray(
+  value: unknown
+): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string" &&
+      Boolean(item.trim())
+  );
+}
+
+function getOfferDecisionAvailability(
+  offer: SavedOffer
+): OfferDecisionAvailability {
+  const validation =
+    safeObject(
+      offer.validationSnapshot
+    );
+
+  const scannerReadiness =
+    safeObject(
+      validation?.readiness
+    );
+
+  const normalized =
+    safeObject(
+      offer.normalizedSnapshot
+    );
+
+  const decision =
+    safeObject(
+      normalized?.decisionReadiness
+    );
+
+  const cashReady =
+    decision?.cashComparison === "READY" ||
+    scannerReadiness?.canCompareGuaranteedCash === true ||
+    (Boolean(offer.companyName?.trim()) &&
+      Boolean(offer.roleTitle?.trim()) &&
+      isFiniteNumber(offer.fixedSalary) &&
+      offer.fixedSalary > 0);
+
+  const decisionState =
+    decision?.overallDecision ??
+    scannerReadiness?.decisionState;
+
+  const overallReady =
+    decisionState === "READY" ||
+    decisionState === "CASH_ONLY" ||
+    decisionState === "FULL_DECISION_READY" ||
+    decisionState === "CASH_ONLY_READY" ||
+    (!decisionState &&
+      offer.equityType === "NONE" &&
+      cashReady);
+
+  const missingEquity =
+    stringArray(
+      decision?.missingEquityFields ??
+        scannerReadiness?.missingEquityFields
+    );
+
+  const clarificationQuestions =
+    stringArray(
+      decision?.clarificationQuestions ??
+        scannerReadiness?.clarificationQuestions
+    );
+
+  if (overallReady) {
+    return {
+      cashReady,
+      overallReady: true,
+      reason: null,
+      clarificationQuestions,
+    };
+  }
+
+  if (!cashReady) {
+    return {
+      cashReady: false,
+      overallReady: false,
+      reason:
+        "Required guaranteed-cash information is incomplete.",
+      clarificationQuestions,
+    };
+  }
+
+  if (offer.equityType === "UNKNOWN" || !offer.equityType) {
+    return {
+      cashReady: true,
+      overallReady: false,
+      reason:
+        "The offer letter does not clearly establish whether equity is included.",
+      clarificationQuestions,
+    };
+  }
+
+  return {
+    cashReady: true,
+    overallReady: false,
+    reason: missingEquity.length
+      ? `Material equity terms are incomplete: ${missingEquity.join(", ")}.`
+      : "Material equity terms still need clarification.",
+    clarificationQuestions,
+  };
 }
 
 function absoluteDifference(
@@ -630,7 +696,7 @@ function calculateEquityEconomics(
 ): EquityEconomics {
   const equityType =
     offer.equityType ??
-    "NONE";
+    "UNKNOWN";
 
   if (
     equityType === "NONE"
@@ -653,6 +719,26 @@ function calculateEquityEconomics(
       modelReady: true,
       reason:
         "This offer does not contain equity compensation.",
+    };
+  }
+
+  if (
+    equityType === "UNKNOWN"
+  ) {
+    return {
+      applicable: true,
+      type: "UNKNOWN",
+      quantity: null,
+      referenceShareValue: null,
+      exercisePrice: null,
+      grossReferenceValue: null,
+      exerciseCost: null,
+      intrinsicSpread: null,
+      dilutedIntrinsicSpread: null,
+      dilutionPercentage: null,
+      modelReady: false,
+      reason:
+        "The offer letter does not clearly establish whether equity is included. Unknown equity is not treated as no equity or as ₹0.",
     };
   }
 
@@ -856,8 +942,9 @@ function targetCashValue(
   offer: SavedOffer
 ): number | null {
   if (
+    !isFiniteNumber(offer.fixedSalary) ||
     !isFiniteNumber(
-      offer.fixedSalary
+      offer.targetVariablePay
     )
   ) {
     return null;
@@ -865,8 +952,7 @@ function targetCashValue(
 
   return (
     offer.fixedSalary +
-    (offer.targetVariablePay ??
-      0)
+    offer.targetVariablePay
   );
 }
 
@@ -879,8 +965,15 @@ function firstYearCashValue(
     );
 
   if (
+    !isFiniteNumber(target) ||
     !isFiniteNumber(
-      target
+      offer.joiningBonus
+    ) ||
+    !isFiniteNumber(
+      offer.retentionBonus
+    ) ||
+    !isFiniteNumber(
+      offer.relocationBonus
     )
   ) {
     return null;
@@ -888,12 +981,9 @@ function firstYearCashValue(
 
   return (
     target +
-    (offer.joiningBonus ??
-      0) +
-    (offer.retentionBonus ??
-      0) +
-    (offer.relocationBonus ??
-      0)
+    offer.joiningBonus +
+    offer.retentionBonus +
+    offer.relocationBonus
   );
 }
 
@@ -904,13 +994,27 @@ function firstYearCashValue(
 function comparisonCompleteness(
   offer: SavedOffer
 ): number {
-  const values = [
+  const cashValues = [
     offer.companyName,
     offer.roleTitle,
     offer.fixedSalary,
-    offer.targetVariablePay,
-    offer.joiningBonus,
-    offer.equityType,
+  ];
+
+  const equityType =
+    offer.equityType ??
+    "UNKNOWN";
+
+  if (equityType === "NONE") {
+    return Math.round(
+      (cashValues.filter(Boolean).length /
+        cashValues.length) *
+        100
+    );
+  }
+
+  const values = [
+    ...cashValues,
+    equityType === "UNKNOWN" ? null : equityType,
     offer.totalOptionsOrShares,
     offer.exercisePrice,
     offer.currentFMV ??
@@ -921,17 +1025,8 @@ function comparisonCompleteness(
     offer.expectedDilutionPercentage,
   ];
 
-  const applicable =
-    offer.equityType ===
-      "NONE"
-      ? values.slice(
-          0,
-          6
-        )
-      : values;
-
   const available =
-    applicable.filter(
+    values.filter(
       (value) =>
         value !== null &&
         value !== undefined &&
@@ -939,14 +1034,14 @@ function comparisonCompleteness(
     ).length;
 
   if (
-    applicable.length === 0
+    values.length === 0
   ) {
     return 0;
   }
 
   return Math.round(
     (available /
-      applicable.length) *
+      values.length) *
       100
   );
 }
@@ -1321,9 +1416,16 @@ function validationWarnings(
   }
 
   if (
-    offer.equityType &&
+    !offer.equityType ||
+    offer.equityType ===
+      "UNKNOWN"
+  ) {
+    warnings.push(
+      "The offer letter does not clearly establish whether equity is included. It is not treated as no equity or as ₹0."
+    );
+  } else if (
     offer.equityType !==
-      "NONE"
+    "NONE"
   ) {
     if (
       !isFiniteNumber(
@@ -2205,6 +2307,36 @@ export default function OfferComparePage() {
       [offerB]
     );
 
+  const availabilityA =
+    useMemo(
+      () =>
+        offerA
+          ? getOfferDecisionAvailability(
+              offerA
+            )
+          : null,
+      [offerA]
+    );
+
+  const availabilityB =
+    useMemo(
+      () =>
+        offerB
+          ? getOfferDecisionAvailability(
+              offerB
+            )
+          : null,
+      [offerB]
+    );
+
+  const canShowEquityRankings =
+    Boolean(
+      availabilityA?.overallReady &&
+        availabilityB?.overallReady &&
+        equityA?.modelReady &&
+        equityB?.modelReady
+    );
+
   /* ==========================================================
      SCORES
   ========================================================== */
@@ -2597,7 +2729,7 @@ export default function OfferComparePage() {
         offerB.currency ||
         "INR";
 
-      return [
+      const metrics: ComparisonMetric[] = [
         {
           label:
             "Equity type",
@@ -2907,11 +3039,25 @@ export default function OfferComparePage() {
             ),
         },
       ];
+
+      return metrics.map((metric) =>
+        canShowEquityRankings
+          ? metric
+          : {
+              ...metric,
+              winner: "UNKNOWN" as const,
+              difference: null,
+              note:
+                metric.note ??
+                "Not ranked until both offers have the material terms required for an equity comparison.",
+            }
+      );
     }, [
       offerA,
       offerB,
       equityA,
       equityB,
+      canShowEquityRankings,
     ]);
 
   const termsMetrics =
@@ -2925,7 +3071,7 @@ export default function OfferComparePage() {
         return [];
       }
 
-      return [
+      const metrics: ComparisonMetric[] = [
         {
           label:
             "Company equity status",
@@ -3078,9 +3224,23 @@ export default function OfferComparePage() {
             ),
         },
       ];
+
+      return metrics.map((metric) =>
+        canShowEquityRankings
+          ? metric
+          : {
+              ...metric,
+              winner: "UNKNOWN" as const,
+              difference: null,
+              note:
+                metric.note ??
+                "Not ranked until both offers have the material terms required for an equity comparison.",
+            }
+      );
     }, [
       offerA,
       offerB,
+      canShowEquityRankings,
     ]);
 
   /* ==========================================================
@@ -3142,29 +3302,46 @@ export default function OfferComparePage() {
      FINAL WINNERS
   ========================================================== */
 
+  const canMakeOverallDecision =
+    Boolean(
+      availabilityA?.overallReady &&
+        availabilityB?.overallReady
+    );
+
+  const canCompareEquity =
+    canMakeOverallDecision &&
+    equityA.modelReady &&
+    equityB.modelReady;
+
   const cashWinner =
-    scoreWinner(
-      scores.cashA,
-      scores.cashB
+    numericWinner(
+      offerA.fixedSalary,
+      offerB.fixedSalary
     );
 
   const equityWinner =
-    scoreWinner(
-      scores.equityA,
-      scores.equityB
-    );
+    canCompareEquity
+      ? scoreWinner(
+          scores.equityA,
+          scores.equityB
+        )
+      : "UNKNOWN";
 
   const termsWinner =
-    scoreWinner(
-      scores.termsA,
-      scores.termsB
-    );
+    canCompareEquity
+      ? scoreWinner(
+          scores.termsA,
+          scores.termsB
+        )
+      : "UNKNOWN";
 
   const overallWinner =
-    scoreWinner(
-      scores.totalA,
-      scores.totalB
-    );
+    canMakeOverallDecision
+      ? scoreWinner(
+          scores.totalA,
+          scores.totalB
+        )
+      : "UNKNOWN";
 
   const overallWinnerName =
     winnerLabel(
@@ -3406,7 +3583,9 @@ export default function OfferComparePage() {
                   </p>
 
                   <p className="mt-2 text-lg font-black">
-                    {overallWinnerName}
+                    {canMakeOverallDecision
+                      ? overallWinnerName
+                      : "Clarification needed"}
                   </p>
                 </div>
               </div>
@@ -3456,30 +3635,43 @@ export default function OfferComparePage() {
                 </p>
 
                 <h2 className="mt-2 text-3xl font-black tracking-tight text-violet-950">
-                  {overallWinner ===
+                  {!canMakeOverallDecision
+                    ? "A full offer verdict needs clarification."
+                    : overallWinner ===
                   "TIE"
                     ? "These offers are closely matched."
                     : `${overallWinnerName} has the stronger current comparison signal.`}
                 </h2>
 
                 <p className="mt-3 text-sm leading-7 text-violet-950/75">
-                  This signal combines
-                  confirmed cash,
-                  current reference
-                  equity economics,
-                  vesting/exercise
-                  terms and data
-                  completeness. It
-                  deliberately does not
-                  add speculative
-                  equity value directly
-                  to guaranteed salary.
+                  {canMakeOverallDecision
+                    ? "This signal combines confirmed cash, current reference equity economics, vesting/exercise terms and documented data completeness. It deliberately does not add speculative equity value directly to guaranteed salary."
+                    : `Guaranteed cash remains comparable, but we will not name an overall winner yet. ${availabilityA?.reason ?? "Offer A needs clarification."} ${availabilityB?.reason ?? "Offer B needs clarification."}`}
                 </p>
+
+                {!canMakeOverallDecision ? (
+                  <ul className="mt-4 space-y-1 text-sm font-bold leading-6 text-violet-950/80">
+                    {[
+                      ...(availabilityA?.clarificationQuestions ?? []),
+                      ...(availabilityB?.clarificationQuestions ?? []),
+                    ]
+                      .filter(
+                        (question, index, questions) =>
+                          questions.indexOf(question) === index
+                      )
+                      .slice(0, 4)
+                      .map((question) => (
+                        <li key={question}>• {question}</li>
+                      ))}
+                  </ul>
+                ) : null}
               </div>
 
               <div className="oi-pulse-ring shrink-0 rounded-[24px] bg-slate-950 px-7 py-6 text-white">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-                  Comparison score
+                  {canMakeOverallDecision
+                    ? "Comparison score"
+                    : "Overall score withheld"}
                 </p>
 
                 <div className="mt-3 flex items-end gap-3">
@@ -3489,9 +3681,11 @@ export default function OfferComparePage() {
                     </p>
 
                     <p className="text-3xl font-black">
-                      {scores.totalA.toFixed(
-                        1
-                      )}
+                      {canMakeOverallDecision
+                        ? scores.totalA.toFixed(
+                            1
+                          )
+                        : "—"}
                     </p>
                   </div>
 
@@ -3505,9 +3699,11 @@ export default function OfferComparePage() {
                     </p>
 
                     <p className="text-3xl font-black text-violet-300">
-                      {scores.totalB.toFixed(
-                        1
-                      )}
+                      {canMakeOverallDecision
+                        ? scores.totalB.toFixed(
+                            1
+                          )
+                        : "—"}
                     </p>
                   </div>
                 </div>
@@ -3515,55 +3711,45 @@ export default function OfferComparePage() {
             </div>
           </div>
 
-          <div className="grid gap-6 p-6 md:p-8 lg:grid-cols-2">
-            <div className="space-y-6">
-              <ScoreBar
-                label="Cash strength"
-                scoreA={
-                  scores.cashA
-                }
-                scoreB={
-                  scores.cashB
-                }
-                max={45}
-              />
+          {canMakeOverallDecision ? (
+            <div className="grid gap-6 p-6 md:p-8 lg:grid-cols-2">
+              <div className="space-y-6">
+                <ScoreBar
+                  label="Cash strength"
+                  scoreA={scores.cashA}
+                  scoreB={scores.cashB}
+                  max={45}
+                />
 
-              <ScoreBar
-                label="Equity opportunity"
-                scoreA={
-                  scores.equityA
-                }
-                scoreB={
-                  scores.equityB
-                }
-                max={35}
-              />
+                <ScoreBar
+                  label="Equity opportunity"
+                  scoreA={scores.equityA}
+                  scoreB={scores.equityB}
+                  max={35}
+                />
+              </div>
+
+              <div className="space-y-6">
+                <ScoreBar
+                  label="Terms & flexibility"
+                  scoreA={scores.termsA}
+                  scoreB={scores.termsB}
+                  max={15}
+                />
+
+                <ScoreBar
+                  label="Document completeness"
+                  scoreA={scores.completenessA}
+                  scoreB={scores.completenessB}
+                  max={5}
+                />
+              </div>
             </div>
-
-            <div className="space-y-6">
-              <ScoreBar
-                label="Terms & flexibility"
-                scoreA={
-                  scores.termsA
-                }
-                scoreB={
-                  scores.termsB
-                }
-                max={15}
-              />
-
-              <ScoreBar
-                label="Data completeness"
-                scoreA={
-                  scores.completenessA
-                }
-                scoreB={
-                  scores.completenessB
-                }
-                max={5}
-              />
+          ) : (
+            <div className="border-t border-violet-100 bg-amber-50 px-6 py-5 text-sm leading-6 text-amber-950 md:px-8">
+              The scorecard is intentionally hidden until the missing material terms are clarified. The compensation section below still shows the confirmed guaranteed-cash comparison.
             </div>
-          </div>
+          )}
         </section>
 
         {/* =====================================================
@@ -3880,6 +4066,9 @@ export default function OfferComparePage() {
 
               <p className="mt-3 text-sm leading-7 text-slate-600">
                 {equityWinner ===
+                "UNKNOWN"
+                  ? "Equity is not ranked yet because a material equity term is unknown or incomplete."
+                  : equityWinner ===
                 "TIE"
                   ? "The current equity comparison is closely matched."
                   : `${winnerLabel(
@@ -3922,6 +4111,9 @@ export default function OfferComparePage() {
 
               <p className="mt-3 text-sm leading-7 text-slate-600">
                 {termsWinner ===
+                "UNKNOWN"
+                  ? "Vesting and exercise terms are not ranked until the material equity information is confirmed."
+                  : termsWinner ===
                 "TIE"
                   ? "The currently confirmed vesting and exercise terms are broadly similar."
                   : `${winnerLabel(

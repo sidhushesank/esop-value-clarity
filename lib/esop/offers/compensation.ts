@@ -905,6 +905,14 @@ export function getCompensationWarnings(
   const warnings: string[] =
     [];
 
+  const notStated = (key: string): boolean =>
+    offer.inputMode === "DOCUMENT" &&
+    offer.fields.some(
+      (field) =>
+        field.key === key &&
+        field.status === "NOT_FOUND"
+    );
+
   if (
     breakdown.headlineCTC <= 0
   ) {
@@ -939,6 +947,27 @@ export function getCompensationWarnings(
   ) {
     warnings.push(
       "Target variable compensation is unusually high relative to guaranteed recurring cash. Review the extracted offer terms."
+    );
+  }
+
+  if (notStated("cash.targetVariablePay")) {
+    warnings.push(
+      "Target variable pay is not stated in this offer letter and is excluded from the guaranteed-cash comparison."
+    );
+  }
+
+  if (notStated("cash.joiningBonus")) {
+    warnings.push(
+      "A joining bonus is not stated in this offer letter and is not assumed to be ₹0 or included in the comparison."
+    );
+  }
+
+  if (
+    notStated("benefits.healthInsuranceValue") &&
+    notStated("cash.insuranceValue")
+  ) {
+    warnings.push(
+      "Insurance or health-benefit value is not stated in this offer letter and is excluded from the economic comparison."
     );
   }
 

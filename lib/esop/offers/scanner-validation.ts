@@ -350,11 +350,7 @@ function collectScannerFields(
 
   add(
     "cash.targetVariablePay",
-    scan.cash
-      .targetVariablePay,
-    {
-      critical: true,
-    }
+    scan.cash.targetVariablePay
   );
 
   add(
@@ -365,10 +361,7 @@ function collectScannerFields(
 
   add(
     "cash.joiningBonus",
-    scan.cash.joiningBonus,
-    {
-      critical: true,
-    }
+    scan.cash.joiningBonus
   );
 
   add(
@@ -671,6 +664,158 @@ function collectScannerFields(
 }
 
 /* ============================================================
+   DETERMINISTIC HARD FILTERS
+
+   A clean extraction should not require the user to retype every
+   value. These filters auto-confirm only values that satisfy all
+   of the following:
+
+   - a supported value is present
+   - the parser marked it HIGH confidence, or MEDIUM confidence
+     with explicit non-inferred evidence
+   - inferred company status is accepted only as a bounded enum
+     (LISTED / UNLISTED) because the parser has already matched
+     a strong legal/status term
+   - the value passes basic type/range checks
+
+   Medium/low-confidence values, inferred values, and missing
+   values remain visible for review. This preserves the trust
+   boundary without turning optional missing fields into manual
+   data-entry work.
+============================================================ */
+
+function passesHardFilter(
+  entry: ScannerFieldEntry
+): boolean {
+  const field = entry.field;
+
+  if (
+    field.reviewStatus !== "UNREVIEWED" ||
+    !hasScannerFieldValue(field) ||
+    (field.confidence !== "HIGH" && field.confidence !== "MEDIUM")
+  ) {
+    return false;
+  }
+
+  const boundedInferredStatus =
+    entry.path === "equity.companyStatus" &&
+    field.inferred === true &&
+    (field.value === "LISTED" || field.value === "UNLISTED") &&
+    Boolean(field.rawValue);
+
+  if (field.inferred === true && !boundedInferredStatus) {
+    return false;
+  }
+
+  if (
+    field.confidence === "MEDIUM" &&
+    !boundedInferredStatus &&
+    !field.rawValue &&
+    field.evidence.length === 0
+  ) {
+    return false;
+  }
+
+  const value = field.value;
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || value < 0) {
+      return false;
+    }
+
+    if (
+      entry.path.toLowerCase().includes("percentage") &&
+      value > 100
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  if (typeof value === "string") {
+    if (!value.trim()) {
+      return false;
+    }
+
+    if (
+      entry.path === "equity.type" &&
+      value === "UNKNOWN"
+    ) {
+      return false;
+    }
+
+    return Boolean(field.rawValue || field.evidence.length > 0);
+  }
+
+  if (typeof value === "boolean") {
+    return Boolean(field.rawValue || field.evidence.length > 0);
+  }
+
+  return false;
+}
+
+function updateScannerField(
+  scan: ScannedOfferLetter,
+  path: string,
+  updater: (
+    field: OfferScannerField<unknown>
+  ) => OfferScannerField<unknown>
+): ScannedOfferLetter {
+  const [section, fieldName] = path.split(".");
+
+  if (!section || !fieldName) {
+    return scan;
+  }
+
+  const sectionValue = scan[section as keyof ScannedOfferLetter];
+
+  if (!sectionValue || typeof sectionValue !== "object") {
+    return scan;
+  }
+
+  const currentField =
+    (sectionValue as Record<string, unknown>)[fieldName];
+
+  if (!currentField || typeof currentField !== "object") {
+    return scan;
+  }
+
+  return {
+    ...scan,
+    [section]: {
+      ...(sectionValue as Record<string, unknown>),
+      [fieldName]: updater(
+        currentField as OfferScannerField<unknown>
+      ),
+    },
+  } as ScannedOfferLetter;
+}
+
+export function applyScannerHardFilters(
+  scan: ScannedOfferLetter
+): ScannedOfferLetter {
+  let next = scan;
+
+  for (const entry of collectScannerFields(scan)) {
+    if (!passesHardFilter(entry)) {
+      continue;
+    }
+
+    next = updateScannerField(next, entry.path, (field) => ({
+      ...field,
+      reviewStatus: "CONFIRMED",
+      notes: [
+        ...(field.notes ?? []),
+        "Automatically confirmed by deterministic scanner hard filters: explicit high-confidence value passed validation.",
+      ],
+    }));
+  }
+
+  return next;
+}
+
+/* ============================================================
    COMPLETENESS
 ============================================================ */
 
@@ -819,8 +964,21 @@ function areCriticalFieldsReviewed(
     scan
   )
     .filter(
-      (entry) =>
-        entry.critical
+      (entry) => {
+        if (!entry.critical) {
+          return false;
+        }
+
+        /*
+         * A document which is silent about equity can still be
+         * saved for cash comparison. UNKNOWN is not equivalent to
+         * NONE, but it is not a reason to block confirmed cash.
+         */
+        return !(
+          entry.path === "equity.type" &&
+          entry.field.value === "UNKNOWN"
+        );
+      }
     )
     .every(
       (entry) =>
@@ -1890,6 +2048,8 @@ function validateCurrency(
 ============================================================ */
 
 function determineModelReadiness(
+  scan:
+    ScannedOfferLetter,
   issues:
     OfferScannerIssue[],
   criticalFieldsReviewed:
@@ -1931,8 +2091,77 @@ function determineModelReadiness(
       "READY";
   }
 
+  const missingCashFields: string[] = [];
+
+  if (!String(scan.employer.companyName.value ?? "").trim()) {
+    missingCashFields.push("Company name");
+  }
+
+  if (!String(scan.employer.roleTitle.value ?? "").trim()) {
+    missingCashFields.push("Role / designation");
+  }
+
+  if (safePositive(scan.cash.fixedSalary.value) <= 0) {
+    missingCashFields.push("Fixed salary");
+  }
+
+  const cashBlockingIssueCount = issues.filter(
+    (item) =>
+      item.severity === "BLOCKING" &&
+      !item.field?.startsWith("equity.")
+  ).length;
+
+  const canCompareGuaranteedCash =
+    missingCashFields.length === 0 &&
+    cashBlockingIssueCount === 0;
+
+  const equityType = scan.equity.type.value;
+
+  const equityState =
+    equityType === "NONE"
+      ? "NO_EQUITY_CONFIRMED"
+      : equityType === "UNKNOWN"
+      ? "EQUITY_UNKNOWN"
+      : equityReadiness === "READY"
+      ? "EQUITY_READY"
+      : "EQUITY_INCOMPLETE";
+
+  const missingEquityFields = issues
+    .filter(
+      (item) =>
+        item.severity === "BLOCKING" &&
+        item.field?.startsWith("equity.")
+    )
+    .map((item) => item.title);
+
+  const clarificationQuestions: string[] = [];
+
+  if (equityState === "EQUITY_UNKNOWN") {
+    clarificationQuestions.push(
+      "Does this offer include ESOPs, RSUs, shares, or any other equity grant?"
+    );
+  }
+
+  if (missingEquityFields.includes("Equity quantity missing")) {
+    clarificationQuestions.push(
+      "What is the exact number of options, RSUs, or shares offered?"
+    );
+  }
+
+  if (missingEquityFields.includes("Exercise price missing")) {
+    clarificationQuestions.push(
+      "What is the exercise or strike price per option?"
+    );
+  }
+
+  if (missingEquityFields.includes("Private-company value basis missing")) {
+    clarificationQuestions.push(
+      "What is the latest FMV per share, or the latest valuation and fully diluted share count?"
+    );
+  }
+
   const canCreateOffer =
-    blockingIssueCount === 0 &&
+    canCompareGuaranteedCash &&
     criticalFieldsReviewed;
 
   const canModelEquity =
@@ -1941,9 +2170,20 @@ function determineModelReadiness(
     equityReadiness ===
       "NOT_APPLICABLE";
 
-  const canRunComparison =
+  const canRunFullComparison =
     canCreateOffer &&
     canModelEquity;
+
+  const canRunComparison = canRunFullComparison;
+
+  const decisionState =
+    !canCompareGuaranteedCash
+      ? "NEEDS_CLARIFICATION"
+      : equityState === "NO_EQUITY_CONFIRMED"
+      ? "CASH_ONLY_READY"
+      : equityState === "EQUITY_READY"
+      ? "FULL_DECISION_READY"
+      : "CASH_READY_EQUITY_INCOMPLETE";
 
   let explanation:
     string;
@@ -1975,6 +2215,20 @@ function determineModelReadiness(
     canRunComparison,
 
     canModelEquity,
+
+    canCompareGuaranteedCash,
+
+    canRunFullComparison,
+
+    equityState,
+
+    decisionState,
+
+    missingCashFields,
+
+    missingEquityFields,
+
+    clarificationQuestions,
 
     blockingIssueCount,
 
@@ -2050,6 +2304,7 @@ export function validateScannedOffer(
 
   const readiness =
     determineModelReadiness(
+      scan,
       issues,
       criticalFieldsReviewed,
       equityValidation

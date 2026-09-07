@@ -286,7 +286,16 @@ type OfferSummary = {
   hasEquity:
     boolean;
 
+  equityUnknown:
+    boolean;
+
   equityModelReady:
+    boolean;
+
+  cashComparisonReady:
+    boolean;
+
+  overallDecisionReady:
     boolean;
 
   confirmed:
@@ -547,6 +556,9 @@ function formatDate(
   return new Intl.DateTimeFormat(
     "en-IN",
     {
+      timeZone:
+        "UTC",
+
       day:
         "2-digit",
 
@@ -1256,6 +1268,9 @@ export default function SavedOfferPage({
   const hasEquity =
     summary.hasEquity;
 
+  const equityUnknown =
+    summary.equityUnknown;
+
   /* ==========================================================
      SUCCESS
   ========================================================== */
@@ -1606,7 +1621,9 @@ export default function SavedOfferPage({
                   </p>
 
                   <h2 className="mt-2 text-2xl font-black">
-                    {hasEquity
+                    {equityUnknown
+                      ? "Equity not established"
+                      : hasEquity
                       ? `${humanize(
                           offer.equityType
                         )} grant`
@@ -1644,13 +1661,35 @@ export default function SavedOfferPage({
                   )}
 
                   {summary
+                    .equityUnknown
+                    ? "Equity unknown"
+                    : summary
                     .equityModelReady
                     ? "Model ready"
                     : "Needs more information"}
                 </div>
               </div>
 
-              {hasEquity ? (
+              {equityUnknown ? (
+                <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                  <div className="flex gap-3">
+                    <CircleAlert
+                      className="mt-0.5 shrink-0 text-amber-700"
+                      size={18}
+                    />
+
+                    <div>
+                      <p className="font-black text-amber-950">
+                        Equity is not stated clearly
+                      </p>
+
+                      <p className="mt-1 text-sm leading-6 text-amber-900/80">
+                        This offer can still be compared on confirmed cash. A full offer verdict remains withheld until you confirm whether equity is included and, if it is, the material grant terms.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : hasEquity ? (
                 <div className="mt-5">
                   <DetailRow
                     label="Equity type"
@@ -1912,7 +1951,7 @@ export default function SavedOfferPage({
                   " "
                 )}
               >
-                Model readiness
+                Comparison readiness
               </p>
 
               <h3
@@ -1927,8 +1966,10 @@ export default function SavedOfferPage({
                 )}
               >
                 {summary
-                  .readyForComparison
-                  ? "Ready for comparison"
+                  .cashComparisonReady
+                  ? summary.overallDecisionReady
+                    ? "Ready for full comparison"
+                    : "Cash comparison ready"
                   : "Needs attention"}
               </h3>
 
@@ -1944,9 +1985,11 @@ export default function SavedOfferPage({
                 )}
               >
                 {summary
-                  .readyForComparison
-                  ? "This confirmed offer can now be compared against another job offer."
-                  : "Resolve the remaining modeling requirements before comparing this offer."}
+                  .cashComparisonReady
+                  ? summary.overallDecisionReady
+                    ? "This confirmed offer has the material terms needed for the full Offer Intelligence comparison."
+                    : "Compare confirmed cash now. The comparison will clearly withhold an overall winner until the material equity terms are clarified."
+                  : "Confirm the company, role and annual fixed compensation before comparing this offer."}
               </p>
 
               {actions.canCompare ? (
@@ -2002,14 +2045,13 @@ export default function SavedOfferPage({
                       "Equity classification",
 
                     pass:
-                      Boolean(
-                        offer.equityType
-                      ),
+                      !summary
+                        .equityUnknown,
                   },
 
                   {
                     label:
-                      "Economic modeling basis",
+                      "Full decision basis",
 
                     pass:
                       summary

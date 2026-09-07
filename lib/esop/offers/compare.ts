@@ -590,7 +590,9 @@ export function compareOfferHorizon(
   horizonMonths:
     OfferComparisonHorizon,
   scenario:
-    OfferScenarioKey
+    OfferScenarioKey,
+  allowOverallEconomicDecision =
+    true
 ): OfferHorizonComparison {
   const valueA =
     getScenarioTotalValue(
@@ -628,10 +630,12 @@ export function compareOfferHorizon(
       ),
 
     winner:
-      determineNumericWinner(
-        valueA,
-        valueB
-      ),
+      allowOverallEconomicDecision
+        ? determineNumericWinner(
+            valueA,
+            valueB
+          )
+        : "UNDETERMINED",
   };
 }
 
@@ -645,7 +649,9 @@ export function buildHorizonComparisons(
   offerA:
     OfferAnalysisResult,
   offerB:
-    OfferAnalysisResult
+    OfferAnalysisResult,
+  allowOverallEconomicDecision =
+    true
 ): OfferHorizonComparison[] {
   const comparisons:
     OfferHorizonComparison[] =
@@ -664,7 +670,8 @@ export function buildHorizonComparisons(
           offerA,
           offerB,
           horizon,
-          scenario
+          scenario,
+          allowOverallEconomicDecision
         )
       );
     }
@@ -768,7 +775,9 @@ export function buildDecisionMatrix(
   offerA:
     OfferAnalysisResult,
   offerB:
-    OfferAnalysisResult
+    OfferAnalysisResult,
+  allowOverallEconomicDecision =
+    true
 ): OfferDecisionMatrixItem[] {
   const matrix:
     OfferDecisionMatrixItem[] =
@@ -882,10 +891,12 @@ export function buildDecisionMatrix(
 
         item.label,
 
-        determineNumericWinner(
-          valueA,
-          valueB
-        ),
+        allowOverallEconomicDecision
+          ? determineNumericWinner(
+              valueA,
+              valueB
+            )
+          : "UNDETERMINED",
 
         formatMoneyForDecision(
           valueA
@@ -895,7 +906,9 @@ export function buildDecisionMatrix(
           valueB
         ),
 
-        "Uses cumulative target compensation plus the Base modeled post-dilution equity value."
+        allowOverallEconomicDecision
+          ? "Uses cumulative target compensation plus the Base modeled post-dilution equity value."
+          : "Not ranked because one or more material offer terms still need clarification. Guaranteed recurring cash remains comparable above."
       )
     );
   }
@@ -922,10 +935,12 @@ export function buildDecisionMatrix(
 
       "Modeled equity upside",
 
-      determineNumericWinner(
-        bullEquityA,
-        bullEquityB
-      ),
+      allowOverallEconomicDecision
+        ? determineNumericWinner(
+            bullEquityA,
+            bullEquityB
+          )
+        : "UNDETERMINED",
 
       formatMoneyForDecision(
         bullEquityA
@@ -935,7 +950,9 @@ export function buildDecisionMatrix(
         bullEquityB
       ),
 
-      "Compares the 4-year Bull modeled equity value after the simplified dilution assumption."
+      allowOverallEconomicDecision
+        ? "Compares the 4-year Bull modeled equity value after the simplified dilution assumption."
+        : "Not ranked until the material equity terms are confirmed."
     )
   );
 
@@ -949,14 +966,16 @@ export function buildDecisionMatrix(
 
       "Equity liquidity",
 
-      determineNumericWinner(
-        liquidityScore(
-          offerA.liquidity
-        ),
-        liquidityScore(
-          offerB.liquidity
-        )
-      ),
+      allowOverallEconomicDecision
+        ? determineNumericWinner(
+            liquidityScore(
+              offerA.liquidity
+            ),
+            liquidityScore(
+              offerB.liquidity
+            )
+          )
+        : "UNDETERMINED",
 
       formatLiquidityForDecision(
         offerA.liquidity
@@ -966,7 +985,9 @@ export function buildDecisionMatrix(
         offerB.liquidity
       ),
 
-      "Listed equity is generally modeled as more liquid than private-company equity."
+      allowOverallEconomicDecision
+        ? "Listed equity is generally modeled as more liquid than private-company equity."
+        : "Not ranked until the material equity terms are confirmed."
     )
   );
 
@@ -1027,10 +1048,12 @@ export function buildDecisionMatrix(
 
       "Lower exercise capital",
 
-      determineLowerValueWinner(
-        exerciseBurdenA,
-        exerciseBurdenB
-      ),
+      allowOverallEconomicDecision
+        ? determineLowerValueWinner(
+            exerciseBurdenA,
+            exerciseBurdenB
+          )
+        : "UNDETERMINED",
 
       formatMoneyForDecision(
         exerciseBurdenA
@@ -1040,7 +1063,9 @@ export function buildDecisionMatrix(
         exerciseBurdenB
       ),
 
-      "Compares modeled employee capital required for the 4-year Base equity position. Phase 4 tax integration is not yet included."
+      allowOverallEconomicDecision
+        ? "Compares modeled employee capital required for the 4-year Base equity position. Phase 4 tax integration is not yet included."
+        : "Not ranked until the material equity terms are confirmed."
     )
   );
 
@@ -1054,14 +1079,16 @@ export function buildDecisionMatrix(
 
       "Lower equity risk",
 
-      determineLowerValueWinner(
-        riskScore(
-          offerA.equityRisk
-        ),
-        riskScore(
-          offerB.equityRisk
-        )
-      ),
+      allowOverallEconomicDecision
+        ? determineLowerValueWinner(
+            riskScore(
+              offerA.equityRisk
+            ),
+            riskScore(
+              offerB.equityRisk
+            )
+          )
+        : "UNDETERMINED",
 
       formatRiskForDecision(
         offerA.equityRisk
@@ -1071,7 +1098,9 @@ export function buildDecisionMatrix(
         offerB.equityRisk
       ),
 
-      "Compares the model's qualitative equity-risk classification rather than a probability of loss."
+      allowOverallEconomicDecision
+        ? "Compares the model's qualitative equity-risk classification rather than a probability of loss."
+        : "Not ranked until the material equity terms are confirmed."
     )
   );
 
@@ -1130,6 +1159,85 @@ function winnerLabel(
 }
 
 /* ============================================================
+   DECISION AVAILABILITY
+
+   A comparison can still show a verified guaranteed-cash
+   result when equity is absent, unknown or incomplete. It must
+   not turn unavailable equity into a zero-value input and then
+   call one offer the overall winner.
+============================================================ */
+
+function getOverallDecisionBlocker(
+  offer: OfferInput,
+  analysis: OfferAnalysisResult,
+  side: "A" | "B"
+): string | null {
+  const readiness =
+    offer.decisionReadiness;
+
+  if (readiness) {
+    if (
+      readiness.cashComparison ===
+      "MISSING_REQUIRED_CASH"
+    ) {
+      const fields =
+        readiness.missingCashFields.join(
+          ", "
+        );
+
+      return `Offer ${side} is missing required cash information${
+        fields ? `: ${fields}.` : "."
+      }`;
+    }
+
+    if (
+      readiness.overallDecision ===
+        "READY" ||
+      readiness.overallDecision ===
+        "CASH_ONLY"
+    ) {
+      return null;
+    }
+
+    const fields =
+      readiness.missingEquityFields.join(
+        ", "
+      );
+
+    return `Offer ${side} has equity that is unknown or incomplete${
+      fields ? `: ${fields}.` : "."
+    }`;
+  }
+
+  /*
+   * Compatibility fallback for offers saved before document
+   * readiness was introduced.
+   */
+  if (
+    offer.equity.type ===
+    "UNKNOWN"
+  ) {
+    return `Offer ${side} does not clearly state whether equity is included.`;
+  }
+
+  if (
+    analysis.hasEquity &&
+    !analysis.hasSufficientEquityData
+  ) {
+    const fields =
+      analysis.missingEquityFields.join(
+        ", "
+      );
+
+    return `Offer ${side} has incomplete equity information${
+      fields ? `: ${fields}.` : "."
+    }`;
+  }
+
+  return null;
+}
+
+/* ============================================================
    SUMMARY
 ============================================================ */
 
@@ -1141,7 +1249,9 @@ export function buildComparisonSummary(
   shortTermWinner:
     OfferWinner,
   longTermWinner:
-    OfferWinner
+    OfferWinner,
+  decisionBlockers: string[] =
+    []
 ): string {
   const shortLabel =
     winnerLabel(
@@ -1163,7 +1273,12 @@ export function buildComparisonSummary(
     longTermWinner ===
       "UNDETERMINED"
   ) {
-    return "The available offer information is not sufficient to produce a complete comparison.";
+    const details =
+      uniqueStrings(
+        decisionBlockers
+      ).join(" ");
+
+    return `A verified guaranteed-cash comparison can still be used, but an overall offer winner is withheld until the material terms are clarified. ${details}`.trim();
   }
 
   if (
@@ -1294,16 +1409,40 @@ export function compareOffers(
       normalizedB
     );
 
+  const decisionBlockers =
+    [
+      getOverallDecisionBlocker(
+        normalizedA,
+        offerA,
+        "A"
+      ),
+
+      getOverallDecisionBlocker(
+        normalizedB,
+        offerB,
+        "B"
+      ),
+    ].filter(
+      (value): value is string =>
+        Boolean(value)
+    );
+
+  const canMakeOverallDecision =
+    decisionBlockers.length ===
+    0;
+
   const comparisons =
     buildHorizonComparisons(
       offerA,
-      offerB
+      offerB,
+      canMakeOverallDecision
     );
 
   const decisionMatrix =
     buildDecisionMatrix(
       offerA,
-      offerB
+      offerB,
+      canMakeOverallDecision
     );
 
   /*
@@ -1318,7 +1457,8 @@ export function compareOffers(
       offerA,
       offerB,
       12,
-      "BASE"
+      "BASE",
+      canMakeOverallDecision
     ).winner;
 
   const longTermWinner =
@@ -1326,7 +1466,8 @@ export function compareOffers(
       offerA,
       offerB,
       48,
-      "BASE"
+      "BASE",
+      canMakeOverallDecision
     ).winner;
 
   const baseCaseWinner =
@@ -1337,7 +1478,8 @@ export function compareOffers(
       offerA,
       offerB,
       shortTermWinner,
-      longTermWinner
+      longTermWinner,
+      decisionBlockers
     );
 
   const assumptions =
@@ -1358,16 +1500,24 @@ export function compareOffers(
 
       "Modeled equity value is not guaranteed realizable cash.",
 
+      canMakeOverallDecision
+        ? "Overall winner language is shown only because both offers have the material information required for the comparison."
+        : "Overall winner language is intentionally withheld until the listed missing or unknown material terms are clarified.",
+
       "Break-even tenure is calculated separately by the Phase 4 break-even engine.",
 
       "Negotiation targets are calculated separately by the Phase 4 negotiation engine.",
     ]);
 
   const warnings =
-    buildComparisonWarnings(
-      offerA,
-      offerB
-    );
+    uniqueStrings([
+      ...buildComparisonWarnings(
+        offerA,
+        offerB
+      ),
+
+      ...decisionBlockers,
+    ]);
 
   return {
     offerA,

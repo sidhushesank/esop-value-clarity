@@ -30,7 +30,6 @@ import {
   Scale,
   Sparkles,
   TrendingUp,
-  WalletCards,
 } from "lucide-react";
 
 /* ============================================================
@@ -124,7 +123,10 @@ type OfferReadiness = {
   confirmed: boolean;
   archived: boolean;
   hasEquity: boolean;
+  equityUnknown: boolean;
   equityModelReady: boolean;
+  cashComparisonReady: boolean;
+  overallDecisionReady: boolean;
   readyForComparison: boolean;
   dataCompletenessPercentage: number;
 };
@@ -517,10 +519,18 @@ function SavedOfferCard({
               </span>
 
               {offer.readiness
-                .readyForComparison ? (
+                .cashComparisonReady ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-violet-700">
                   <Scale size={11} />
-                  Comparison ready
+                  Cash comparison ready
+                </span>
+              ) : null}
+
+              {offer.readiness.cashComparisonReady &&
+              !offer.readiness.overallDecisionReady ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">
+                  <CircleAlert size={11} />
+                  Equity clarification needed
                 </span>
               ) : null}
             </div>
@@ -596,8 +606,9 @@ function SavedOfferCard({
               Equity
             </p>
             <p className="mt-2 text-lg font-black text-slate-950">
-              {offer.equity.type ??
-                "None"}
+              {offer.readiness.equityUnknown
+                ? "Not stated"
+                : offer.equity.type ?? "Not stated"}
             </p>
           </div>
 
@@ -654,7 +665,7 @@ function SavedOfferCard({
           !offer.actions.compareHref ? (
             <span className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-400">
               <AlertTriangle size={14} />
-              More review needed
+              Cash details need review
             </span>
           ) : null}
 
@@ -968,9 +979,10 @@ export default function OffersPage() {
      DERIVED DATA
   ========================================================== */
 
-  const offers =
-    data?.offers ??
-    [];
+  const offers = useMemo(
+    () => data?.offers ?? [],
+    [data]
+  );
 
   const activeOffers =
     useMemo(
@@ -1492,12 +1504,12 @@ export default function OffersPage() {
             />
 
             <StatCard
-              label="Ready to compare"
+              label="Cash comparison ready"
               value={
                 data.stats
                   .readyForComparison
               }
-              helper="Offers with enough confirmed data for comparison."
+              helper="Confirmed INR cash can be compared. Equity may still need clarification."
               icon={
                 <Scale
                   size={21}

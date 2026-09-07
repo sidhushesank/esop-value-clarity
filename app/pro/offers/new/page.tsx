@@ -30,7 +30,6 @@ import {
   Sparkles,
   UploadCloud,
   X,
-  XCircle,
 } from "lucide-react";
 
 import type {
@@ -480,6 +479,12 @@ function updateFieldAtPath(
 function buildReviewSections(
   scan: ScannedOfferLetter
 ): ReviewSection[] {
+  const equityType = String(
+    scan.equity.type.value ?? ""
+  )
+    .trim()
+    .toUpperCase();
+
   return [
     {
       id:
@@ -691,9 +696,6 @@ function buildReviewSections(
 
           kind:
             "MONEY",
-
-          critical:
-            true,
         },
 
         {
@@ -709,9 +711,6 @@ function buildReviewSections(
 
           kind:
             "MONEY",
-
-          critical:
-            true,
         },
 
         {
@@ -769,9 +768,6 @@ function buildReviewSections(
 
           kind:
             "ENUM",
-
-          critical:
-            true,
         },
 
         {
@@ -847,6 +843,51 @@ function buildReviewSections(
 
           kind:
             "MONEY",
+        },
+
+        {
+          path:
+            "equity.companyValuation",
+
+          label:
+            "Company valuation",
+
+          field:
+            scan.equity
+              .companyValuation,
+
+          kind:
+            "MONEY",
+        },
+
+        {
+          path:
+            "equity.totalCompanyShares",
+
+          label:
+            "Fully diluted shares",
+
+          field:
+            scan.equity
+              .totalCompanyShares,
+
+          kind:
+            "NUMBER",
+        },
+
+        {
+          path:
+            "equity.ownershipPercentage",
+
+          label:
+            "Ownership percentage",
+
+          field:
+            scan.equity
+              .ownershipPercentage,
+
+          kind:
+            "NUMBER",
         },
 
         {
@@ -938,7 +979,11 @@ function buildReviewSections(
           kind:
             "NUMBER",
         },
-      ],
+      ].filter((item) =>
+        equityType === "NONE"
+          ? item.path === "equity.type"
+          : true
+      ) as ReviewField[],
     },
   ];
 }
@@ -1362,6 +1407,113 @@ function EditFieldModal({
   );
 }
 
+function HumanReviewActivity({
+  offerSide,
+}: {
+  offerSide: "A" | "B";
+}) {
+  const isOfferB = offerSide === "B";
+
+  return (
+    <div className="relative mt-10 block min-h-[290px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.06] p-5">
+      <style jsx>{`
+        @keyframes evc-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-7px); }
+        }
+
+        @keyframes evc-scan {
+          0%, 100% { transform: translateY(-22px); opacity: .25; }
+          50% { transform: translateY(78px); opacity: 1; }
+        }
+
+        @keyframes evc-live {
+          0%, 100% { opacity: .35; transform: scale(.92); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+
+        .evc-float { animation: evc-float 4.5s ease-in-out infinite; }
+        .evc-scan { animation: evc-scan 2.8s ease-in-out infinite; }
+        .evc-live { animation: evc-live 1.8s ease-in-out infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .evc-float, .evc-scan, .evc-live { animation: none; }
+        }
+      `}</style>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
+            ESOP Value Clarity workspace
+          </p>
+          <p className="mt-1 text-sm font-black text-white">
+            {isOfferB ? "Preparing your second offer" : "Reading your offer"}
+          </p>
+        </div>
+
+        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-200">
+          <span className="evc-live h-1.5 w-1.5 rounded-full bg-emerald-300" />
+          Live review
+        </span>
+      </div>
+
+      <div className="relative mt-5 flex items-center justify-between gap-4">
+        <div className="relative z-10 flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl border border-white/10 bg-slate-900/80 evc-float">
+          <div className="relative h-20 w-20" aria-hidden="true">
+            <div className="absolute left-[27px] top-0 h-8 w-8 rounded-full bg-amber-200 shadow-lg shadow-amber-200/10" />
+            <div className="absolute left-[16px] top-7 h-12 w-14 rounded-t-[22px] rounded-b-xl bg-gradient-to-br from-violet-400 to-violet-700" />
+            <div className="absolute left-[3px] top-[43px] h-4 w-7 rotate-[-22deg] rounded-full bg-amber-200" />
+            <div className="absolute right-0 top-[43px] h-4 w-7 rotate-[22deg] rounded-full bg-amber-200" />
+            <div className="absolute left-[30px] top-[37px] h-3 w-3 rounded-full border-2 border-white/70 bg-white/20" />
+          </div>
+        </div>
+
+        <div className="relative h-28 min-w-0 flex-1 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+          <div className="evc-scan absolute left-4 right-4 top-7 h-0.5 bg-violet-300 shadow-[0_0_14px_rgba(196,181,253,.9)]" />
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-violet-400/15 p-2 text-violet-200">
+              <FileText size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black text-white">
+                offer-letter.pdf
+              </p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                Cash, equity and conditions
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-200">
+            <CheckCircle2 size={14} />
+            Evidence captured for review
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-3 gap-2 text-[10px] font-bold">
+        {[
+          ["01", "Extract"],
+          ["02", "Review"],
+          ["03", isOfferB ? "Compare" : "Understand"],
+        ].map(([number, label], index) => (
+          <div
+            key={number}
+            className={`rounded-xl border px-2.5 py-2.5 ${
+              index === 1
+                ? "border-violet-300/30 bg-violet-300/10 text-violet-100"
+                : "border-white/10 bg-white/[0.03] text-slate-400"
+            }`}
+          >
+            <span className="mr-1.5 text-violet-300">{number}</span>
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================
    MAIN PAGE
 ============================================================ */
@@ -1555,12 +1707,30 @@ export default function NewOfferPage() {
 
   const sections =
     useMemo(
-      () =>
-        scan
-          ? buildReviewSections(
-              scan
-            )
-          : [],
+      () => {
+        if (!scan) {
+          return [];
+        }
+
+        return buildReviewSections(scan)
+          .map((section) => ({
+            ...section,
+            /*
+             * Missing optional fields are not data-entry tasks.
+             * They remain null in the normalized offer and are
+             * shown later as unknown/not provided where relevant.
+             * Keep only populated values and genuinely required
+             * missing fields in this review queue.
+             */
+            fields: section.fields.filter(
+              (item) =>
+                item.critical ||
+                (item.field.value !== null &&
+                  item.field.value !== undefined)
+            ),
+          }))
+          .filter((section) => section.fields.length > 0);
+      },
       [scan]
     );
 
@@ -1572,33 +1742,19 @@ export default function NewOfferPage() {
             section.fields
         );
 
-      const populated =
+      /*
+       * Only the minimum cash identity fields gate creation.
+       * A low-confidence optional amount can remain unconfirmed:
+       * it will not enter the normalized comparison model.
+       */
+      const required =
         fields.filter(
           (item) =>
-            item.field
-              .value !==
-              null &&
-            item.field
-              .value !==
-              undefined
+            item.critical
         );
 
-      const reviewed =
-        populated.filter(
-          (item) =>
-            item.field
-              .reviewStatus ===
-              "CONFIRMED" ||
-            item.field
-              .reviewStatus ===
-              "EDITED" ||
-            item.field
-              .reviewStatus ===
-              "REJECTED"
-        );
-
-      const accepted =
-        populated.filter(
+      const requiredReviewed =
+        required.filter(
           (item) =>
             item.field
               .reviewStatus ===
@@ -1608,33 +1764,41 @@ export default function NewOfferPage() {
               "EDITED"
         );
 
+      const optionalExtracted =
+        fields.filter(
+          (item) =>
+            !item.critical &&
+            item.field.value !== null &&
+            item.field.value !== undefined
+        );
+
       return {
         total:
-          populated.length,
+          required.length,
 
         reviewed:
-          reviewed.length,
+          requiredReviewed.length,
 
-        accepted:
-          accepted.length,
+        optionalExtracted:
+          optionalExtracted.length,
 
         remaining:
           Math.max(
-            populated.length -
-              reviewed.length,
+            required.length -
+              requiredReviewed.length,
             0
           ),
 
         percentage:
-          populated.length
+          required.length
             ? Math.round(
                 (
-                  reviewed.length /
-                  populated.length
+                  requiredReviewed.length /
+                  required.length
                 ) *
                   100
               )
-            : 0,
+            : 100,
       };
     }, [sections]);
 
@@ -1974,7 +2138,6 @@ export default function NewOfferPage() {
     if (
       !scan ||
       !response ||
-      reviewStats.total === 0 ||
       reviewStats.remaining > 0 ||
       creatingOffer
     ) {
@@ -2118,7 +2281,7 @@ export default function NewOfferPage() {
         ====================================================== */}
 
         <section className="overflow-hidden rounded-[32px] bg-slate-950 text-white shadow-xl shadow-slate-950/10">
-          <div className="relative p-7 md:p-10 lg:p-12">
+          <div className="relative grid gap-8 p-7 md:p-10 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:p-12">
             <div className="pointer-events-none absolute right-[-80px] top-[-100px] h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
 
             <div className="pointer-events-none absolute bottom-[-120px] left-[20%] h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
@@ -2129,19 +2292,20 @@ export default function NewOfferPage() {
                   size={14}
                 />
 
-                PRO • Offer Intelligence
+                ESOP VALUE CLARITY • OFFER INTELLIGENCE
               </div>
 
               <h1 className="mt-5 text-3xl font-black tracking-tight md:text-5xl lg:text-6xl">
                 {offerSide === "B"
-                  ? "Add the offer you want to compare."
-                  : "Understand what your offer is really worth."}
+                  ? "Bring your next offer into focus."
+                  : "See the offer behind the headline number."}
               </h1>
 
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
                 {offerSide === "B"
-                  ? "Upload Offer B. We’ll use the same local scanner and review process, then compare it with your saved Offer A."
-                  : "Upload your offer letter. We’ll locally extract the compensation and equity terms, then you review every important number before it enters your comparison."}
+                  ? "At ESOP Value Clarity, you can bring a second offer beside Offer A and keep guaranteed cash, variable pay, equity and conditions clearly separated."
+                  : "At ESOP Value Clarity, we turn an offer letter into a clear, reviewable picture of cash, equity, conditions and what the document does not tell you."
+                }
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3 text-xs font-bold text-slate-300">
@@ -2150,7 +2314,7 @@ export default function NewOfferPage() {
                     size={14}
                   />
 
-                  No external AI
+                  Private processing
                 </span>
 
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2">
@@ -2158,8 +2322,7 @@ export default function NewOfferPage() {
                     size={14}
                   />
 
-                  Evidence-backed
-                  extraction
+                  Evidence-backed terms
                 </span>
 
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2">
@@ -2167,11 +2330,12 @@ export default function NewOfferPage() {
                     size={14}
                   />
 
-                  You confirm before
-                  modeling
+                  You stay in control
                 </span>
               </div>
             </div>
+
+            <HumanReviewActivity offerSide={offerSide} />
           </div>
         </section>
 
@@ -2186,7 +2350,7 @@ export default function NewOfferPage() {
                 </p>
 
                 <h2 className="mt-1 text-lg font-black text-violet-950">
-                  Add the second offer
+                  Compare a second offer
                 </h2>
 
                 <p className="mt-1 text-sm leading-6 text-violet-900/75">
@@ -2225,18 +2389,11 @@ export default function NewOfferPage() {
                 </p>
 
                 <h2 className="mt-2 text-2xl font-black tracking-tight">
-                  Upload your offer
-                  letter
+                  Bring your offer into the workspace
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  For this version,
-                  upload a
-                  text-based PDF.
-                  Scanned/image-only
-                  PDFs will be
-                  detected rather
-                  than guessed.
+                  Upload a text-based PDF and let ESOP Value Clarity organise the terms that matter. Scanned or image-only PDFs are detected rather than guessed.
                 </p>
               </div>
 
@@ -2344,20 +2501,15 @@ export default function NewOfferPage() {
                 ) : (
                   <>
                     <p className="mt-5 text-lg font-black text-slate-950">
-                      Drop your offer
-                      letter here
+                      Drop your offer letter here
                     </p>
 
                     <p className="mt-2 text-sm leading-6 text-slate-500">
-                      or click to
-                      choose a PDF
-                      from your
-                      computer
+                      or click to choose a PDF from your computer
                     </p>
 
                     <p className="mt-4 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-400 shadow-sm">
-                      PDF • Maximum
-                      10 MB
+                      PDF • Maximum 10 MB
                     </p>
                   </>
                 )}
@@ -2442,43 +2594,34 @@ export default function NewOfferPage() {
                 </div>
 
                 <h3 className="mt-4 text-lg font-black text-emerald-950">
-                  Private by design
+                  Your offer stays private
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-emerald-900/80">
-                  The current
-                  scanner processes
-                  text locally on
-                  our application
-                  server. Your offer
-                  is not sent to
-                  OpenAI, Gemini,
-                  Groq or another
-                  external AI
-                  provider.
+                  ESOP Value Clarity processes the extracted text on our application server. Your offer is not sent to OpenAI, Gemini, Groq or another external AI provider.
                 </p>
               </div>
 
               <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                  What we look for
+                  What ESOP Value Clarity checks
                 </p>
 
                 <div className="mt-4 space-y-4">
                   {[
                     [
-                      "Cash reality",
-                      "Fixed salary, variable pay, bonuses, PF and gratuity.",
+                      "Guaranteed cash",
+                      "Fixed compensation, variable pay, bonuses, PF and gratuity—kept separate so the headline number is not misleading.",
                     ],
 
                     [
-                      "Equity reality",
-                      "ESOP/RSU quantity, strike price, FMV, vesting and cliff.",
+                      "Equity terms",
+                      "ESOP/RSU quantity, strike price, FMV, vesting, cliff and exercise windows.",
                     ],
 
                     [
-                      "Hidden conditions",
-                      "Clawbacks, exercise windows and important missing information.",
+                      "Conditions and gaps",
+                      "Clawbacks, performance conditions and important information missing from the offer.",
                     ],
                   ].map(
                     ([
@@ -2523,14 +2666,7 @@ export default function NewOfferPage() {
                   />
 
                   <p className="text-xs leading-5 text-amber-900">
-                    Extraction is
-                    assistance, not
-                    truth. You&apos;ll
-                    review every
-                    important field
-                    before we use it
-                    in Offer
-                    Intelligence.
+                    Extraction is a starting point, not a verdict. You review the important fields before ESOP Value Clarity uses them in a comparison.
                   </p>
                 </div>
               </div>
@@ -2673,8 +2809,8 @@ export default function NewOfferPage() {
                     {
                       reviewStats.total
                     }{" "}
-                    extracted fields
-                    reviewed
+                    required fields
+                    confirmed
                   </p>
 
                   <p className="text-sm font-black text-violet-700">
@@ -2693,6 +2829,15 @@ export default function NewOfferPage() {
                     }}
                   />
                 </div>
+
+                <p className="mt-3 text-xs leading-5 text-slate-500">
+                  {reviewStats.optionalExtracted} optional extracted term
+                  {reviewStats.optionalExtracted === 1
+                    ? " is"
+                    : "s are"}{" "}
+                  shown below for review. Missing optional terms do not
+                  need manual entry and are never assumed to be ₹0.
+                </p>
               </div>
             </section>
 
@@ -3010,7 +3155,7 @@ export default function NewOfferPage() {
                     </h3>
 
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                      Once every extracted field has been reviewed, we will revalidate the offer on the server, normalize only confirmed values and save Offer {offerSide} for comparison.
+                      We automatically accept values that pass the scanner’s deterministic hard filters. Review only ambiguous or genuinely required fields; the server will revalidate the offer before saving Offer {offerSide} for comparison.
                     </p>
 
                     {createError ? (
@@ -3033,7 +3178,7 @@ export default function NewOfferPage() {
                       </p>
 
                       <p className="mt-1 font-black">
-                        {reviewStats.remaining} remaining
+                        {reviewStats.remaining} required
                       </p>
                     </div>
 
@@ -3041,14 +3186,13 @@ export default function NewOfferPage() {
                       type="button"
                       disabled={
                         creatingOffer ||
-                        reviewStats.total === 0 ||
                         reviewStats.remaining > 0
                       }
                       onClick={createOffer}
                       className="inline-flex min-w-[175px] items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-black text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
                       title={
                         reviewStats.remaining > 0
-                          ? "Review every extracted field before creating the offer."
+                          ? "Review the remaining ambiguous or required fields before creating the offer."
                           : `Create Offer ${offerSide}`
                       }
                     >
@@ -3097,6 +3241,76 @@ export default function NewOfferPage() {
           }
         />
       ) : null}
+
+      <footer className="mx-auto mt-12 max-w-7xl px-4 pb-10 md:px-8 md:pb-14">
+        <div className="overflow-hidden rounded-[28px] bg-slate-950 text-white shadow-xl shadow-slate-950/10">
+          <div className="grid gap-10 p-7 md:grid-cols-[1.2fr_.8fr_.8fr] md:p-9">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-violet-200">
+                <Sparkles size={13} />
+                ESOP Value Clarity
+              </div>
+
+              <h2 className="mt-5 max-w-sm text-2xl font-black tracking-tight md:text-3xl">
+                Make the offer clear before you make the decision.
+              </h2>
+
+              <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">
+                Offer Intelligence helps employees separate guaranteed cash,
+                performance-linked pay, equity and the terms that deserve a
+                closer look.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                How it works
+              </p>
+
+              <div className="mt-4 space-y-3 text-sm font-bold text-slate-300">
+                <div className="flex items-center gap-2.5">
+                  <UploadCloud className="text-violet-300" size={16} />
+                  Upload the offer
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <FileCheck2 className="text-violet-300" size={16} />
+                  Review the evidence
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="text-violet-300" size={16} />
+                  Compare with confidence
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                Our principles
+              </p>
+
+              <div className="mt-4 space-y-3 text-sm font-bold text-slate-300">
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="mt-0.5 shrink-0 text-emerald-300" size={16} />
+                  Evidence before assumptions
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-300" size={16} />
+                  Unknown stays unknown
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <FileText className="mt-0.5 shrink-0 text-emerald-300" size={16} />
+                  Cash and equity stay separate
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-white/10 px-7 py-4 text-xs text-slate-500 md:flex-row md:items-center md:justify-between md:px-9">
+            <span>ESOP Value Clarity • Offer Intelligence</span>
+            <span>Decision support, not financial, tax or legal advice.</span>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

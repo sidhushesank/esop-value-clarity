@@ -314,9 +314,10 @@ export function normalizeOfferEquityType(
       "ESOP",
       "RSU",
       "STOCK",
+      "UNKNOWN",
       "OTHER",
     ] as const,
-    "NONE"
+    "UNKNOWN"
   );
 }
 
@@ -847,34 +848,42 @@ export function normalizeEquityCompensation(
   const source =
     value ?? {};
 
+  const type =
+    normalizeOfferEquityType(
+      source.type
+    );
+
+  const noEquity =
+    type === "NONE";
+
   const vestingDurationMonths =
     Math.max(
       normalizeOfferInteger(
         source.vestingDurationMonths,
-        48
+        0
       ),
-      1
+      0
     );
 
   const cliffMonths =
     Math.min(
       normalizeOfferInteger(
         source.cliffMonths,
-        12
+        0
       ),
       vestingDurationMonths
     );
 
   return {
     type:
-      normalizeOfferEquityType(
-        source.type
-      ),
+      type,
 
     companyStatus:
-      normalizeOfferCompanyEquityStatus(
-        source.companyStatus
-      ),
+      noEquity
+        ? "UNKNOWN"
+        : normalizeOfferCompanyEquityStatus(
+            source.companyStatus
+          ),
 
     employerHeadlineEquityValue:
       normalizePositiveOfferNumber(
@@ -921,14 +930,22 @@ export function normalizeEquityCompensation(
         source.vestingStartDate
       ),
 
-    vestingDurationMonths,
+    vestingDurationMonths:
+      noEquity
+        ? 0
+        : vestingDurationMonths,
 
-    cliffMonths,
+    cliffMonths:
+      noEquity
+        ? 0
+        : cliffMonths,
 
     vestingFrequency:
-      normalizeOfferVestingFrequency(
-        source.vestingFrequency
-      ),
+      noEquity
+        ? "UNKNOWN"
+        : normalizeOfferVestingFrequency(
+            source.vestingFrequency
+          ),
 
     expiryDate:
       normalizeOfferDate(
@@ -1231,6 +1248,9 @@ export function normalizeOfferInput(
 
     fields,
 
+    decisionReadiness:
+      source.decisionReadiness,
+
     notes:
       normalizeOfferString(
         source.notes
@@ -1316,6 +1336,10 @@ export function getMissingEquityFields(
     return [];
   }
 
+  if (equity.type === "UNKNOWN") {
+    return ["Equity type"];
+  }
+
   const missing: string[] =
     [];
 
@@ -1330,7 +1354,7 @@ export function getMissingEquityFields(
 
   if (
     equity.type === "ESOP" &&
-    equity.exercisePrice < 0
+    equity.exercisePrice <= 0
   ) {
     missing.push(
       "Exercise price"

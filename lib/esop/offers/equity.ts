@@ -199,6 +199,16 @@ export function determineEquityValueBasis(
       equityInput
     );
 
+  if (equity.type === "UNKNOWN") {
+    return {
+      basis: "UNAVAILABLE",
+      unitValue: 0,
+      reliableForModeling: false,
+      explanation:
+        "The offer letter does not clearly establish whether equity is included, so no equity value is modeled.",
+    };
+  }
+
   if (
     equity.type === "NONE" ||
     equity.totalOptionsOrShares <= 0
@@ -1146,6 +1156,12 @@ export function getOfferEquityWarnings(
     equity.type === "NONE"
   ) {
     return warnings;
+  }
+
+  if (equity.type === "UNKNOWN") {
+    warnings.push(
+      "The offer letter does not clearly confirm whether equity is included. This is not treated as zero equity or as no equity."
+    );
   }
 
   const missing =

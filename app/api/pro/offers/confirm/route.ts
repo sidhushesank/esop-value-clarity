@@ -58,6 +58,7 @@ import {
 
 import type {
   OfferScannerField,
+  OfferScannerIssue,
   ScannedOfferLetter,
 } from "@/lib/esop/offers/scanner-types";
 
@@ -241,6 +242,23 @@ function safePositiveInteger(
   }
 
   return number;
+}
+
+/* ============================================================
+   SAVEABILITY VS. EQUITY MODELING
+
+   An equity-term problem must not prevent a user from saving a
+   reviewed offer that has enough confirmed cash information.
+   The scanner keeps those issues in the audit snapshot, and the
+   comparison engine withholds the overall winner until resolved.
+============================================================ */
+
+function isSaveBlockingIssue(
+  issue: OfferScannerIssue
+): boolean {
+  return !issue.field?.startsWith(
+    "equity."
+  );
 }
 
 /* ============================================================
@@ -684,25 +702,37 @@ export async function POST(
       );
 
     /* ----------------------------------------------------------
-       BLOCKING ISSUES
+       SAVE-BLOCKING ISSUES
 
-       Never persist a CONFIRMED Offer Intelligence record while
-       economic modeling is blocked.
+       Required cash and document facts must be resolved before
+       persistence. Equity-only gaps remain auditable but do not
+       stop a cash-ready offer from being saved.
     ---------------------------------------------------------- */
 
+    const saveBlockingIssues =
+      validation.blockingIssues.filter(
+        isSaveBlockingIssue
+      );
+
     if (
-      validation
-        .blockingIssues
-        .length > 0
+      saveBlockingIssues.length >
+        0
     ) {
       return errorResponse(
-        "This offer still has blocking issues that must be resolved before it can be created.",
+        "This offer is missing required information that must be resolved before it can be created.",
         422,
         "OFFER_BLOCKED",
         {
           blockingIssues:
-            validation
-              .blockingIssues,
+            saveBlockingIssues,
+
+          deferredEquityIssues:
+            validation.blockingIssues.filter(
+              (issue) =>
+                !isSaveBlockingIssue(
+                  issue
+                )
+            ),
 
           warnings:
             validation
@@ -749,21 +779,21 @@ export async function POST(
     /* ----------------------------------------------------------
        COMPARISON READINESS
 
-       A confirmed offer should be economically usable.
-
-       Cash-only offers can pass because equity readiness becomes
-       NOT_APPLICABLE.
+       A saved offer must be ready for a guaranteed-cash
+       comparison. Equity may be confirmed absent, ready to
+       value, unknown, or incomplete; those states are preserved
+       for the comparison experience.
     ---------------------------------------------------------- */
 
     if (
       !validation
         .readiness
-        .canRunComparison
+        .canCompareGuaranteedCash
     ) {
       return errorResponse(
-        "The offer is not yet ready for comparison.",
+        "Confirm the required cash information before creating this offer.",
         422,
-        "COMPARISON_NOT_READY",
+        "GUARANTEED_CASH_NOT_READY",
         {
           readiness:
             validation
@@ -845,7 +875,7 @@ export async function POST(
     if (
       fixedSalary ===
         null ||
-      fixedSalary < 0
+      fixedSalary <= 0
     ) {
       return errorResponse(
         "Confirm a valid fixed salary before creating the offer.",

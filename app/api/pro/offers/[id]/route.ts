@@ -407,28 +407,43 @@ export async function GET(
        economics. We do not duplicate those calculations here.
     ========================================================== */
 
+    const equityType =
+      offer.equityType ??
+      "UNKNOWN";
+
+    const equityUnknown =
+      equityType ===
+      "UNKNOWN";
+
     const hasEquity =
-      offer.equityType !== null &&
-      offer.equityType !== "NONE";
+      equityType !== "NONE" &&
+      !equityUnknown;
 
     const hasCompleteEsopBasis =
-      offer.equityType === "ESOP" &&
+      equityType === "ESOP" &&
       offer.totalOptionsOrShares !== null &&
       offer.exercisePrice !== null &&
       offer.currentFMV !== null &&
       offer.vestingDurationMonths !== null;
 
     const hasCompleteRsuBasis =
-      offer.equityType === "RSU" &&
+      equityType === "RSU" &&
       offer.totalOptionsOrShares !== null &&
       (offer.listedSharePrice !== null ||
         offer.currentFMV !== null) &&
       offer.vestingDurationMonths !== null;
 
     const equityModelReady =
-      !hasEquity ||
+      equityType === "NONE" ||
       hasCompleteEsopBasis ||
       hasCompleteRsuBasis;
+
+    const cashComparisonReady =
+      offer.status === "CONFIRMED" &&
+      Boolean(offer.companyName?.trim()) &&
+      Boolean(offer.roleTitle?.trim()) &&
+      offer.fixedSalary !== null &&
+      offer.fixedSalary > 0;
 
     const summary = {
       companyName: offer.companyName,
@@ -451,7 +466,15 @@ export async function GET(
 
       hasEquity,
 
+      equityUnknown,
+
       equityModelReady,
+
+      cashComparisonReady,
+
+      overallDecisionReady:
+        cashComparisonReady &&
+        equityModelReady,
 
       confirmed:
         offer.status === "CONFIRMED",
@@ -460,9 +483,7 @@ export async function GET(
         offer.status === "ARCHIVED",
 
       readyForComparison:
-        offer.status === "CONFIRMED" &&
-        offer.fixedSalary !== null &&
-        equityModelReady,
+        cashComparisonReady,
     };
 
     /* ==========================================================

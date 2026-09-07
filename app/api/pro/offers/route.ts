@@ -81,6 +81,16 @@ function isPresent(
   return value !== null && value !== undefined;
 }
 
+function isPositiveAmount(
+  value: unknown
+): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value > 0
+  );
+}
+
 /* ============================================================
    GET
 ============================================================ */
@@ -270,16 +280,24 @@ export async function GET(
            EQUITY PRESENCE
         -------------------------------------------------------- */
 
+        const equityType =
+          offer.equityType ??
+          "UNKNOWN";
+
+        const equityUnknown =
+          equityType ===
+          "UNKNOWN";
+
         const hasEquity =
-          isPresent(offer.equityType) &&
-          offer.equityType !== "NONE";
+          equityType !== "NONE" &&
+          !equityUnknown;
 
         /* --------------------------------------------------------
            ESOP MODEL READINESS
         -------------------------------------------------------- */
 
         const hasCompleteEsopBasis =
-          offer.equityType === "ESOP" &&
+          equityType === "ESOP" &&
           isPresent(
             offer.totalOptionsOrShares
           ) &&
@@ -298,7 +316,7 @@ export async function GET(
         -------------------------------------------------------- */
 
         const hasCompleteRsuBasis =
-          offer.equityType === "RSU" &&
+          equityType === "RSU" &&
           isPresent(
             offer.totalOptionsOrShares
           ) &&
@@ -326,21 +344,10 @@ export async function GET(
            we do not want to invent valuation logic.
         -------------------------------------------------------- */
 
-        let equityModelReady = true;
-
-        if (hasEquity) {
-          if (offer.equityType === "ESOP") {
-            equityModelReady =
-              hasCompleteEsopBasis;
-          } else if (
-            offer.equityType === "RSU"
-          ) {
-            equityModelReady =
-              hasCompleteRsuBasis;
-          } else {
-            equityModelReady = false;
-          }
-        }
+        const equityModelReady =
+          equityType === "NONE" ||
+          hasCompleteEsopBasis ||
+          hasCompleteRsuBasis;
 
         /* --------------------------------------------------------
            CONFIRMATION / ARCHIVE STATE
@@ -361,9 +368,24 @@ export async function GET(
            information for the current comparison model.
         -------------------------------------------------------- */
 
-        const readyForComparison =
+        const cashComparisonReady =
           confirmed &&
-          isPresent(offer.fixedSalary) &&
+          Boolean(offer.companyName?.trim()) &&
+          Boolean(offer.roleTitle?.trim()) &&
+          isPositiveAmount(
+            offer.fixedSalary
+          );
+
+        /*
+         * Comparison entry is deliberately cash-first. The
+         * comparison screen will withhold its overall winner if
+         * equity is unknown or incomplete.
+         */
+        const readyForComparison =
+          cashComparisonReady;
+
+        const overallDecisionReady =
+          cashComparisonReady &&
           equityModelReady;
 
         /* --------------------------------------------------------
@@ -379,14 +401,17 @@ export async function GET(
           offer.companyName,
           offer.roleTitle,
           offer.fixedSalary,
-          offer.targetVariablePay,
-          offer.joiningBonus,
-          offer.employerPF,
-          offer.gratuity,
+
+          ...(equityType === "NONE"
+            ? []
+            : [
+                equityUnknown
+                  ? null
+                  : equityType,
+              ]),
 
           ...(hasEquity
             ? [
-                offer.equityType,
                 offer.totalOptionsOrShares,
                 offer.exercisePrice,
                 (
@@ -575,7 +600,10 @@ export async function GET(
             confirmed,
             archived,
             hasEquity,
+            equityUnknown,
             equityModelReady,
+            cashComparisonReady,
+            overallDecisionReady,
             readyForComparison,
             dataCompletenessPercentage,
           },
