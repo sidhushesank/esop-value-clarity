@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next"
 
 import NavigationShell from "@/components/ui/NavigationShell";
 
@@ -185,6 +186,8 @@ export default function RootLayout({
         />
 
         <GoogleAnalytics gaId="G-1MMW7BTNWT" />
+
+        <Analytics />
       </body>
     </html>
   );
