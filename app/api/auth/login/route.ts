@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
+
 import { loginSchema } from "@/lib/validators";
+
 import { verifyPassword, generateToken } from "@/lib/auth";
+
 import { recordLoginActivity } from "@/lib/activity";
 
 export async function POST(request: Request) {
@@ -28,11 +32,15 @@ export async function POST(request: Request) {
       },
     });
 
+    // ============================================================
+    // INVALID EMAIL
+    // ============================================================
+
     if (!user) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid email or password",
+          message: "Invalid email",
         },
         {
           status: 401,
@@ -49,11 +57,15 @@ export async function POST(request: Request) {
       user.passwordHash
     );
 
+    // ============================================================
+    // INVALID PASSWORD
+    // ============================================================
+
     if (!isPasswordValid) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid email or password",
+          message: "Invalid password",
         },
         {
           status: 401,
