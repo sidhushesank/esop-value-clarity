@@ -76,6 +76,12 @@ type SalePriceMode =
   | "CONNECTED_EXIT"
   | "MANUAL";
 
+type TaxEditableDraftKey =
+  | "exerciseFMV"
+  | "salePrice"
+  | "otherAnnualIncome"
+  | "holdingPeriodMonths";
+
 /* ============================================================
    PRO TAX PAGE
 ============================================================ */
@@ -107,6 +113,11 @@ export default function ProTaxPage() {
   ] = useState<ActiveConfirmedGrant | null>(
     null
   );
+
+  const [inputDrafts, setInputDrafts] =
+    useState<
+      Partial<Record<TaxEditableDraftKey, string>>
+    >({});
 
   /* ==========================================================
      CONFIRMED GRANT -> SHARED PRO MODEL
@@ -343,23 +354,74 @@ export default function ProTaxPage() {
   );
 
   /* ==========================================================
+     EDITABLE INPUT DRAFTS
+
+     These keep fields blank while the user is typing,
+     while calculations still receive safe numeric values.
+  ========================================================== */
+
+  function toEditableNumber(value: string | number) {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (value.trim() === "") {
+      return 0;
+    }
+
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue)
+      ? numericValue
+      : 0;
+  }
+
+  function inputValue(
+    field: TaxEditableDraftKey,
+    value: number
+  ) {
+    return inputDrafts[field] ?? String(value);
+  }
+
+  function setInputDraft(
+    field: TaxEditableDraftKey,
+    value: string
+  ) {
+    setInputDrafts((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  }
+
+  function commitInput(
+    field: TaxEditableDraftKey
+  ) {
+    setInputDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
+  /* ==========================================================
      UPDATE TAX ASSUMPTION
-     
+
      IMPORTANT:
      We do NOT update vestedShares or strikePrice here.
      Those are controlled by Vesting.
   ========================================================== */
 
   function updateTaxInput(
-    field:
-      | "exerciseFMV"
-      | "salePrice"
-      | "otherAnnualIncome"
-      | "holdingPeriodMonths",
+    field: TaxEditableDraftKey,
     value: string
   ) {
+    setInputDraft(
+      field,
+      value
+    );
+
     updateProState({
-      [field]: normalizeProNumber(value),
+      [field]: toEditableNumber(value),
     });
   }
 
@@ -370,6 +432,8 @@ export default function ProTaxPage() {
   ========================================================== */
 
   function resetTaxAssumptions() {
+    setInputDrafts({});
+
     setSalePriceMode(
       "CONNECTED_EXIT"
     );
@@ -793,13 +857,19 @@ export default function ProTaxPage() {
               <Field
                 label="FMV at exercise"
                 description="Estimated fair market value per share at exercise"
-                value={proState.exerciseFMV}
+                value={inputValue(
+                  "exerciseFMV",
+                  proState.exerciseFMV
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateTaxInput(
                     "exerciseFMV",
                     value
                   )
+                }
+                onBlur={() =>
+                  commitInput("exerciseFMV")
                 }
               />
 
@@ -861,13 +931,19 @@ export default function ProTaxPage() {
                 <Field
                   label="Expected sale price"
                   description="Manual estimated price per share at sale"
-                  value={proState.salePrice}
+                  value={inputValue(
+                    "salePrice",
+                    proState.salePrice
+                  )}
                   prefix="₹"
                   onChange={(value) =>
                     updateTaxInput(
                       "salePrice",
                       value
                     )
+                  }
+                  onBlur={() =>
+                    commitInput("salePrice")
                   }
                 />
               )}
@@ -879,13 +955,19 @@ export default function ProTaxPage() {
               <Field
                 label="Other annual income"
                 description="Approximate taxable income before this ESOP perquisite"
-                value={proState.otherAnnualIncome}
+                value={inputValue(
+                  "otherAnnualIncome",
+                  proState.otherAnnualIncome
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateTaxInput(
                     "otherAnnualIncome",
                     value
                   )
+                }
+                onBlur={() =>
+                  commitInput("otherAnnualIncome")
                 }
               />
 
@@ -896,13 +978,19 @@ export default function ProTaxPage() {
               <Field
                 label="Holding period"
                 description="Months between exercise and sale"
-                value={proState.holdingPeriodMonths}
+                value={inputValue(
+                  "holdingPeriodMonths",
+                  proState.holdingPeriodMonths
+                )}
                 suffix="months"
                 onChange={(value) =>
                   updateTaxInput(
                     "holdingPeriodMonths",
                     value
                   )
+                }
+                onBlur={() =>
+                  commitInput("holdingPeriodMonths")
                 }
               />
 
@@ -1457,13 +1545,15 @@ function Field({
   prefix,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   description: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -1489,6 +1579,7 @@ function Field({
           onChange={(event) =>
             onChange(event.target.value)
           }
+          onBlur={onBlur}
           className={`h-11 rounded-xl border-slate-200 bg-slate-50 text-sm font-medium ${
             prefix ? "pl-8" : ""
           } ${suffix ? "pr-20" : ""}`}

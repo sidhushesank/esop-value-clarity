@@ -92,6 +92,13 @@ type ExercisePlannerState = {
   selectedScenario: "Bear" | "Base" | "Bull";
 };
 
+type PlannerDraftKey =
+  | "customOptions"
+  | "futureExerciseFMV"
+  | "exerciseBudget"
+  | "opportunityCostRate"
+  | "yearsToLiquidity";
+
 const PLANNER_STORAGE_KEY =
   "esop-value-clarity-exercise-planner-v2";
 
@@ -161,6 +168,10 @@ export default function ProExercisePage() {
   ] = useState<ExercisePlannerState>(
     DEFAULT_PLANNER_STATE
   );
+
+  const [plannerDrafts, setPlannerDrafts] = useState<
+    Partial<Record<PlannerDraftKey, string>>
+  >({});
 
   /* ==========================================================
      LOAD LOCAL PLANNER ASSUMPTIONS
@@ -761,6 +772,45 @@ export default function ProExercisePage() {
      PLANNER ACTIONS
   ========================================================== */
 
+  function setPlannerDraft(
+    field: PlannerDraftKey,
+    value: string
+  ) {
+    setPlannerDrafts((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  }
+
+  function commitPlannerDraft(
+    field: PlannerDraftKey
+  ) {
+    setPlannerDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function plannerInputValue(
+    field: PlannerDraftKey,
+    value: number
+  ) {
+    return plannerDrafts[field] ?? String(value);
+  }
+
+  function toSafeNumber(value: string) {
+    if (value.trim() === "") {
+      return 0;
+    }
+
+    const numeric = Number(value);
+
+    return Number.isFinite(numeric)
+      ? numeric
+      : 0;
+  }
+
   function selectPercent(
     value: ExerciseStrategyPercent
   ) {
@@ -787,11 +837,16 @@ export default function ProExercisePage() {
   function setCustom(
     value: string
   ) {
+    setPlannerDraft(
+      "customOptions",
+      value
+    );
+
     const amount =
       Math.max(
         0,
         Math.floor(
-          Number(value) || 0
+          toSafeNumber(value)
         )
       );
 
@@ -851,9 +906,14 @@ export default function ProExercisePage() {
   function updateFutureFMV(
     value: string
   ) {
+    setPlannerDraft(
+      "futureExerciseFMV",
+      value
+    );
+
     const numeric =
       Math.max(
-        Number(value) || 0,
+        toSafeNumber(value),
         0
       );
 
@@ -877,9 +937,14 @@ export default function ProExercisePage() {
   function updateExerciseBudget(
     value: string
   ) {
+    setPlannerDraft(
+      "exerciseBudget",
+      value
+    );
+
     const numeric =
       Math.max(
-        Number(value) || 0,
+        toSafeNumber(value),
         0
       );
 
@@ -901,6 +966,8 @@ export default function ProExercisePage() {
   }
 
   function resetPlanner() {
+    setPlannerDrafts({});
+
     const currentFMV =
       normalizeProNumber(
         proState.exerciseFMV
@@ -1914,10 +1981,10 @@ export default function ProExercisePage() {
                   <Input
                     type="number"
                     min={0}
-                    value={
-                      planner
-                        .futureExerciseFMV
-                    }
+                    value={plannerInputValue(
+                      "futureExerciseFMV",
+                      planner.futureExerciseFMV
+                    )}
                     onChange={(
                       event
                     ) =>
@@ -1925,6 +1992,11 @@ export default function ProExercisePage() {
                         event
                           .target
                           .value
+                      )
+                    }
+                    onBlur={() =>
+                      commitPlannerDraft(
+                        "futureExerciseFMV"
                       )
                     }
                     className="h-11 rounded-xl bg-slate-50 pl-8"
@@ -2062,8 +2134,10 @@ export default function ProExercisePage() {
                   value={
                     planner
                       .customMode
-                      ? planner
-                          .customOptions
+                      ? plannerInputValue(
+                          "customOptions",
+                          planner.customOptions
+                        )
                       : ""
                   }
                   placeholder="Enter options"
@@ -2074,6 +2148,11 @@ export default function ProExercisePage() {
                       event
                         .target
                         .value
+                    )
+                  }
+                  onBlur={() =>
+                    commitPlannerDraft(
+                      "customOptions"
                     )
                   }
                   className="mt-2 h-11 rounded-xl bg-slate-50"
@@ -2122,28 +2201,29 @@ export default function ProExercisePage() {
                 <Field
                   label="Opportunity-cost rate"
                   helper="Illustrative annual return you could earn elsewhere"
-                  value={
-                    planner
-                      .opportunityCostRate
-                  }
+                  value={plannerInputValue(
+                    "opportunityCostRate",
+                    planner.opportunityCostRate
+                  )}
                   suffix="% p.a."
-                  onChange={(
-                    value
-                  ) =>
-                    setPlanner(
-                      (
-                        previous
-                      ) => ({
-                        ...previous,
-                        opportunityCostRate:
-                          Math.max(
-                            0,
-                            Number(
-                              value
-                            ) ||
-                              0
-                          ),
-                      })
+                  onChange={(value) => {
+                    setPlannerDraft(
+                      "opportunityCostRate",
+                      value
+                    );
+
+                    setPlanner((previous) => ({
+                      ...previous,
+                      opportunityCostRate:
+                        Math.max(
+                          0,
+                          toSafeNumber(value)
+                        ),
+                    }));
+                  }}
+                  onBlur={() =>
+                    commitPlannerDraft(
+                      "opportunityCostRate"
                     )
                   }
                 />
@@ -2151,28 +2231,29 @@ export default function ProExercisePage() {
                 <Field
                   label="Expected years to liquidity"
                   helper="Illustrative time before a possible exit"
-                  value={
-                    planner
-                      .yearsToLiquidity
-                  }
+                  value={plannerInputValue(
+                    "yearsToLiquidity",
+                    planner.yearsToLiquidity
+                  )}
                   suffix="years"
-                  onChange={(
-                    value
-                  ) =>
-                    setPlanner(
-                      (
-                        previous
-                      ) => ({
-                        ...previous,
-                        yearsToLiquidity:
-                          Math.max(
-                            0,
-                            Number(
-                              value
-                            ) ||
-                              0
-                          ),
-                      })
+                  onChange={(value) => {
+                    setPlannerDraft(
+                      "yearsToLiquidity",
+                      value
+                    );
+
+                    setPlanner((previous) => ({
+                      ...previous,
+                      yearsToLiquidity:
+                        Math.max(
+                          0,
+                          toSafeNumber(value)
+                        ),
+                    }));
+                  }}
+                  onBlur={() =>
+                    commitPlannerDraft(
+                      "yearsToLiquidity"
                     )
                   }
                 />
@@ -2534,10 +2615,18 @@ export default function ProExercisePage() {
                         type="number"
                         min={0}
                         step={10000}
-                        value={planner.exerciseBudget}
+                        value={plannerInputValue(
+                          "exerciseBudget",
+                          planner.exerciseBudget
+                        )}
                         onChange={(event) =>
                           updateExerciseBudget(
                             event.target.value
+                          )
+                        }
+                        onBlur={() =>
+                          commitPlannerDraft(
+                            "exerciseBudget"
                           )
                         }
                         className="h-12 rounded-xl border-violet-200 bg-white pl-8 text-base font-black"
@@ -3927,14 +4016,16 @@ function Field({
   value,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   helper: string;
-  value: number;
+  value: string | number;
   suffix: string;
   onChange: (
     value: string
   ) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -3959,6 +4050,7 @@ function Field({
                 .value
             )
           }
+          onBlur={onBlur}
           className="h-11 rounded-xl bg-slate-50 pr-20"
         />
 

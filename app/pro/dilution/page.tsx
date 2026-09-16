@@ -84,6 +84,11 @@ export default function ProDilutionPage() {
     DEFAULT_DILUTION_ASSUMPTIONS
   );
 
+  const [inputDrafts, setInputDrafts] =
+    useState<
+      Partial<Record<keyof DilutionInput, string>>
+    >({});
+
   /* ==========================================================
      CONFIRMED GRANT / SOURCE-OF-TRUTH BASIS
   ========================================================== */
@@ -243,16 +248,54 @@ export default function ProDilutionPage() {
      INPUT UPDATE
   ========================================================== */
 
+  function toEditableNumber(value: string | number) {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (value.trim() === "") {
+      return 0;
+    }
+
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue)
+      ? numericValue
+      : 0;
+  }
+
+  function inputValue(
+    field: keyof DilutionInput,
+    value: number
+  ) {
+    return inputDrafts[field] ?? String(value);
+  }
+
+  function commitInput(
+    field: keyof DilutionInput
+  ) {
+    setInputDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
   function updateInput(
     field:
       keyof DilutionInput,
     value:
       string | number
   ) {
+    if (typeof value === "string") {
+      setInputDrafts((previous) => ({
+        ...previous,
+        [field]: value,
+      }));
+    }
+
     const numericValue =
-      typeof value === "number"
-        ? value
-        : Number(value) || 0;
+      toEditableNumber(value);
 
     /*
      * Fully diluted shares are a shared analysis assumption.
@@ -297,6 +340,8 @@ export default function ProDilutionPage() {
   ========================================================== */
 
   function reset() {
+    setInputDrafts({});
+
     setFundingAssumptions(
       DEFAULT_DILUTION_ASSUMPTIONS
     );
@@ -737,14 +782,18 @@ export default function ProDilutionPage() {
                   <Input
                     type="number"
                     min={0}
-                    value={
+                    value={inputValue(
+                      "fullyDilutedShares",
                       inputs.fullyDilutedShares
-                    }
+                    )}
                     onChange={(event) =>
                       updateInput(
                         "fullyDilutedShares",
                         event.target.value
                       )
+                    }
+                    onBlur={() =>
+                      commitInput("fullyDilutedShares")
                     }
                     className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm font-medium"
                   />
@@ -762,9 +811,10 @@ export default function ProDilutionPage() {
               <Field
                 label="Pre-money valuation"
                 description="Company valuation immediately before the round"
-                value={
+                value={inputValue(
+                  "preMoneyValuation",
                   inputs.preMoneyValuation
-                }
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
@@ -772,14 +822,18 @@ export default function ProDilutionPage() {
                     value
                   )
                 }
+                onBlur={() =>
+                  commitInput("preMoneyValuation")
+                }
               />
 
               <Field
                 label="New investment"
                 description="Capital being raised in the funding round"
-                value={
+                value={inputValue(
+                  "newInvestment",
                   inputs.newInvestment
-                }
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
@@ -787,14 +841,18 @@ export default function ProDilutionPage() {
                     value
                   )
                 }
+                onBlur={() =>
+                  commitInput("newInvestment")
+                }
               />
 
               <Field
                 label="Current option pool"
                 description="Existing employee option pool"
-                value={
+                value={inputValue(
+                  "currentOptionPoolPercent",
                   inputs.currentOptionPoolPercent
-                }
+                )}
                 suffix="%"
                 onChange={(value) =>
                   updateInput(
@@ -802,20 +860,27 @@ export default function ProDilutionPage() {
                     value
                   )
                 }
+                onBlur={() =>
+                  commitInput("currentOptionPoolPercent")
+                }
               />
 
               <Field
                 label="Target option pool"
                 description="Option pool after the funding round"
-                value={
+                value={inputValue(
+                  "targetOptionPoolPercent",
                   inputs.targetOptionPoolPercent
-                }
+                )}
                 suffix="%"
                 onChange={(value) =>
                   updateInput(
                     "targetOptionPoolPercent",
                     value
                   )
+                }
+                onBlur={() =>
+                  commitInput("targetOptionPoolPercent")
                 }
               />
 
@@ -1336,15 +1401,17 @@ function Field({
   prefix,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   description: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
   onChange: (
     value: string
   ) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -1374,6 +1441,7 @@ function Field({
               event.target.value
             )
           }
+          onBlur={onBlur}
           className={`h-11 rounded-xl border-slate-200 bg-slate-50 text-sm font-medium ${
             prefix
               ? "pl-8"

@@ -141,6 +141,10 @@ export default function ProSimulatorPage() {
     setGrantConnectionLoading,
   ] = useState(false);
 
+  const [inputDrafts, setInputDrafts] = useState<
+    Partial<Record<keyof AdvancedSimulatorInput, string>>
+  >({});
+
   /*
    * CONFIRMED GRANT -> SHARED PRO MODEL
    *
@@ -504,8 +508,13 @@ export default function ProSimulatorPage() {
     field: keyof AdvancedSimulatorInput,
     value: string
   ) {
+    setInputDrafts((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+
     const numericValue =
-      value === ""
+      value.trim() === ""
         ? 0
         : Number(value);
 
@@ -548,11 +557,13 @@ export default function ProSimulatorPage() {
       case "futureDilutionPercentage":
         updateProState({
           futureDilutionPercentage:
-            clamp(
-              safeValue,
-              0,
-              100
-            ),
+            value.trim() === ""
+              ? 0
+              : clamp(
+                  safeValue,
+                  0,
+                  100
+                ),
         });
         break;
 
@@ -565,11 +576,30 @@ export default function ProSimulatorPage() {
     }
   }
 
+  function commitInput(
+    field: keyof AdvancedSimulatorInput
+  ) {
+    setInputDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function inputValue(
+    field: keyof AdvancedSimulatorInput,
+    value: number
+  ) {
+    return inputDrafts[field] ?? String(value);
+  }
+
   /* ===========================================================
      RESET
   =========================================================== */
 
   function resetSimulator() {
+    setInputDrafts({});
+
     updateProState({
       totalCompanyShares:
         DEFAULT_INPUTS.totalShares,
@@ -1291,13 +1321,19 @@ export default function ProSimulatorPage() {
               <InputField
                 label="Total company shares"
                 description="Fully diluted share count"
-                value={
+                value={inputValue(
+                  "totalShares",
                   inputs.totalShares
-                }
+                )}
                 onChange={(value) =>
                   updateInput(
                     "totalShares",
                     value
+                  )
+                }
+                onBlur={() =>
+                  commitInput(
+                    "totalShares"
                   )
                 }
               />
@@ -1307,13 +1343,19 @@ export default function ProSimulatorPage() {
               <InputField
                 label="ESOPs granted"
                 description="Total options in your grant"
-                value={
+                value={inputValue(
+                  "esopsGranted",
                   inputs.esopsGranted
-                }
+                )}
                 onChange={(value) =>
                   updateInput(
                     "esopsGranted",
                     value
+                  )
+                }
+                onBlur={() =>
+                  commitInput(
+                    "esopsGranted"
                   )
                 }
               />
@@ -1335,14 +1377,20 @@ export default function ProSimulatorPage() {
               <InputField
                 label="Strike / exercise price"
                 description="Price paid per option when exercised"
-                value={
+                value={inputValue(
+                  "strikePrice",
                   inputs.strikePrice
-                }
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
                     "strikePrice",
                     value
+                  )
+                }
+                onBlur={() =>
+                  commitInput(
+                    "strikePrice"
                   )
                 }
               />
@@ -1352,14 +1400,20 @@ export default function ProSimulatorPage() {
               <InputField
                 label="Current company valuation"
                 description="Current estimated company equity value"
-                value={
+                value={inputValue(
+                  "currentValuation",
                   inputs.currentValuation
-                }
+                )}
                 prefix="₹"
                 onChange={(value) =>
                   updateInput(
                     "currentValuation",
                     value
+                  )
+                }
+                onBlur={() =>
+                  commitInput(
+                    "currentValuation"
                   )
                 }
               />
@@ -1385,13 +1439,19 @@ export default function ProSimulatorPage() {
                     type="number"
                     min={0}
                     max={100}
-                    value={
+                    value={inputValue(
+                      "futureDilutionPercentage",
                       connectedDilutionPercentage
-                    }
+                    )}
                     onChange={(event) =>
                       updateInput(
                         "futureDilutionPercentage",
                         event.target.value
+                      )
+                    }
+                    onBlur={() =>
+                      commitInput(
+                        "futureDilutionPercentage"
                       )
                     }
                     className="
@@ -1516,13 +1576,19 @@ export default function ProSimulatorPage() {
                   <Input
                     type="number"
                     min={0}
-                    value={
+                    value={inputValue(
+                      "exitValuation",
                       inputs.exitValuation
-                    }
+                    )}
                     onChange={(event) =>
                       updateInput(
                         "exitValuation",
                         event.target.value
+                      )
+                    }
+                    onBlur={() =>
+                      commitInput(
+                        "exitValuation"
                       )
                     }
                     className="
@@ -2510,15 +2576,17 @@ function InputField({
   prefix,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   description: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
   onChange: (
     value: string
   ) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -2558,6 +2626,7 @@ function InputField({
               event.target.value
             )
           }
+          onBlur={onBlur}
           className={`
             h-11
             rounded-xl

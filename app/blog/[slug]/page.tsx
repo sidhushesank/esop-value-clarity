@@ -1,1101 +1,1410 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+
 import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  BriefcaseBusiness,
   Calculator,
   CheckCircle2,
   Clock3,
-  FileText,
+  FileSearch,
   Gauge,
   GraduationCap,
+  Landmark,
   Layers3,
   LineChart,
   Percent,
+  PlayCircle,
   Scale,
   ShieldCheck,
   Target,
   TrendingUp,
+  UsersRound,
   WalletCards,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 
+const BASE_URL = "https://esop-value-clarity.vercel.app";
 const SITE_NAME = "ESOP Value Clarity";
+
 const AUTHOR_NAME = "Sheshank Sidheshwar";
-const PUBLISHED_DATE = "2026-08-31";
-const UPDATED_DATE = "2026-08-31";
+
+const AUTHOR_LINKEDIN =
+  "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";
+
+const PUBLISHED_DATE = "2026-09-16";
+const UPDATED_DATE = "2026-09-16";
+
+const YOUTUBE_ID = "k2LzKS1WkzA";
+
+const YOUTUBE_URL = `https://www.youtube.com/watch?v=${YOUTUBE_ID}`;
+
+type Section = {
+  id: string;
+  title: string;
+  eyebrow?: string;
+  body: string[];
+  bullets?: string[];
+  cards?: { label: string; value: string }[];
+  warning?: string;
+};
+
+type Article = {
+  category: string;
+  stage: string;
+  audience: string[];
+  readTime: string;
+  videoTime: string;
+  title: string;
+  description: string;
+  keywords: string[];
+  icon: LucideIcon;
+  quickAnswer: string[];
+  heroStats: { label: string; value: string }[];
+  modelCards: { label: string; value: string }[];
+  sections: Section[];
+  personaViews: { label: string; value: string }[];
+  checklist: string[];
+  mistakes: string[];
+  faq: { question: string; answer: string }[];
+  related: string[];
+};
 
 const articles = {
-  "what-is-an-esop": {
-    category: "ESOP Basics",
-    readTime: "10 min read",
-    title: "What Is an ESOP? A Practical Beginner's Guide for Employees",
+  "startup-offered-25000-esops": {
+    category: "Offer decision",
+    stage: "I have an offer",
+    audience: ["Employees", "Founders", "HR"],
+    readTime: "12 min read",
+    videoTime: "3 min video",
+    title: "I received 25,000 ESOPs. Is that actually good?",
     description:
-      "Learn what ESOPs are, how employee stock options work, what vesting and exercise price mean, and which factors can change the potential value of startup equity.",
+      "A practical decision guide for employees who received a large option count but do not yet know the ownership percentage, exercise cost, dilution risk, tax impact or realistic outcome range.",
+    keywords: [
+      "25000 ESOPs",
+      "is my ESOP offer good",
+      "startup equity offer",
+      "employee stock options India",
+      "ESOP ownership percentage",
+      "ESOP negotiation",
+    ],
+    icon: Target,
+    quickAnswer: [
+      "25,000 options can be meaningful, ordinary or almost meaningless depending on the denominator.",
+      "The first missing number is ownership percentage: options divided by the relevant fully diluted share count.",
+      "The second missing number is exercise cost: options multiplied by strike price, before any taxes or transaction costs.",
+      "The third missing piece is scenario quality: dilution, liquidity, company value and time horizon.",
+    ],
+    heroStats: [
+      { label: "Headline", value: "25,000 options" },
+      { label: "Missing context", value: "ownership %" },
+      { label: "Cash question", value: "exercise cost" },
+      { label: "Reality check", value: "scenarios" },
+    ],
+    modelCards: [
+      { label: "Ask", value: "What share count is being used?" },
+      { label: "Model", value: "Base, upside and conservative cases" },
+      { label: "Separate", value: "Known terms from assumptions" },
+    ],
+    sections: [
+      {
+        id: "why-count-fails",
+        eyebrow: "The trap",
+        title:
+          "Option count is the loudest number, but often the weakest signal.",
+        body: [
+          "A grant of 25,000 options feels specific, so employees naturally treat it as useful information. But the count is only the numerator. Without the denominator, it does not tell you what percentage of the company the grant represents.",
+          "A 25,000-option grant at a company with 25 lakh fully diluted shares is very different from the same grant at a company with 25 crore fully diluted shares. The number is identical; the economics are not.",
+        ],
+        cards: [
+          { label: "Company A", value: "25,000 / 25,00,000 = 1.00%" },
+          { label: "Company B", value: "25,000 / 25,00,00,000 = 0.01%" },
+        ],
+      },
+      {
+        id: "questions-before-value",
+        eyebrow: "Before estimating value",
+        title: "Ask for the terms that control the outcome.",
+        body: [
+          "Employees often jump directly from option count to a dream exit value. That skips the actual decision structure. First, understand the grant terms. Then model the assumptions.",
+          "If the company cannot share every cap-table detail, that is common. But you can still ask for enough context to avoid treating 25,000 options as a standalone answer.",
+        ],
+        bullets: [
+          "What is the exercise or strike price per option?",
+          "What fully diluted share count is used to estimate ownership?",
+          "What is the vesting schedule and cliff?",
+          "What happens to vested options if I leave?",
+          "Is there a recent FMV, valuation or reference price?",
+          "What dilution assumptions should I consider after future funding rounds?",
+        ],
+      },
+      {
+        id: "cash-reality",
+        eyebrow: "Exercise cost",
+        title: "The grant may require cash before it ever becomes cash.",
+        body: [
+          "Options are not the same as free shares. If your options vest, you may still need to exercise them by paying the strike price. A grant can look attractive on paper but require a cash decision at the worst possible time, such as after leaving the company.",
+          "For example, 25,000 vested options at a strike price of ₹20 create an exercise cost of ₹5,00,000 before considering any taxes or other costs. That is a real personal-finance decision, not a small footnote.",
+        ],
+        warning:
+          "A modelled equity value is not liquidity. Private-company shares may remain unsellable until a permitted buyback, secondary sale, acquisition, IPO or other liquidity event.",
+      },
+      {
+        id: "decision-frame",
+        eyebrow: "How to decide",
+        title:
+          "Do not ask whether 25,000 is good. Ask what decision it changes.",
+        body: [
+          "If you are choosing between two offers, compare guaranteed cash separately from uncertain equity opportunity. If you are negotiating, decide whether you want more cash, more options, a better strike, a clearer exercise window or more transparency. If you are joining because of upside, model the downside too.",
+          "The strongest ESOP analysis does not produce one magical number. It shows the sensitivity of your outcome to assumptions you do not control.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Do not celebrate the count until you know ownership, strike price, vesting and exercise window.",
+      },
+      {
+        label: "Founder",
+        value:
+          "A clean explanation builds trust more than a large number with no context.",
+      },
+      {
+        label: "HR",
+        value:
+          "Give candidates a repeatable explanation path so every offer does not become a custom confusion cycle.",
+      },
+      {
+        label: "CA / advisor",
+        value:
+          "The planning question starts when cash, tax and timing enter the picture.",
+      },
+    ],
+    checklist: [
+      "Get the option count and type of award.",
+      "Ask for the strike price and vesting schedule.",
+      "Estimate ownership percentage using the relevant share count if available.",
+      "Model exercise cost before assuming upside.",
+      "Run conservative, base and upside scenarios.",
+      "Check post-termination exercise rules before resigning later.",
+    ],
+    mistakes: [
+      "Comparing 25,000 options at two companies as if they are equivalent.",
+      "Ignoring strike price and exercise cash requirement.",
+      "Treating valuation as cash you can access today.",
+      "Forgetting dilution after future funding rounds.",
+    ],
+    faq: [
+      {
+        question: "Is 25,000 ESOPs a lot?",
+        answer:
+          "It can be, but the count alone is not enough. You need the relevant fully diluted share count, strike price, vesting schedule, dilution assumptions and liquidity context.",
+      },
+      {
+        question: "What should I ask the company before accepting?",
+        answer:
+          "Ask for strike price, vesting schedule, cliff, exercise window, any available ownership percentage or denominator context, and how employees usually get liquidity.",
+      },
+      {
+        question: "Can I value ESOPs like salary?",
+        answer:
+          "No. Salary is guaranteed cash compensation. ESOPs are uncertain equity opportunity and should be modelled separately from guaranteed compensation.",
+      },
+    ],
+    related: [
+      "should-i-negotiate-esops",
+      "compare-startup-offers-equity",
+      "esop-exercise-cost",
+    ],
+  },
+
+  "should-i-negotiate-esops": {
+    category: "Negotiation",
+    stage: "I am negotiating",
+    audience: ["Employees", "Founders", "HR"],
+    readTime: "11 min read",
+    videoTime: "3 min video",
+    title: "Should I negotiate ESOPs or salary in my startup offer?",
+    description:
+      "A practical guide to comparing guaranteed salary with uncertain equity opportunity when negotiating a startup offer.",
+    keywords: [
+      "ESOP negotiation",
+      "startup salary vs equity",
+      "negotiate stock options",
+      "startup offer negotiation",
+    ],
+    icon: Scale,
+    quickAnswer: [
+      "Negotiate salary when near-term cash, stability or family obligations matter more.",
+      "Negotiate equity when you understand the risk and believe the upside justifies the uncertainty.",
+      "Negotiate terms, not just quantity: strike price, vesting, exercise window and clarity can matter as much as more options.",
+    ],
+    heroStats: [
+      { label: "Cash", value: "guaranteed" },
+      { label: "Equity", value: "uncertain" },
+      { label: "Best lever", value: "depends" },
+      { label: "Rule", value: "separate both" },
+    ],
+    modelCards: [
+      { label: "Salary", value: "Known monthly value" },
+      { label: "ESOP", value: "Scenario-based future value" },
+      { label: "Terms", value: "Often negotiable" },
+    ],
+    sections: [
+      {
+        id: "separate-cash-equity",
+        eyebrow: "Core principle",
+        title:
+          "Do not mix salary and ESOPs into one emotional number.",
+        body: [
+          "A startup offer is usually a mix of guaranteed compensation and uncertain ownership opportunity. The negotiation mistake is to combine them too early and say one offer is better because the total-looking number is bigger.",
+          "Salary pays bills now. Equity may produce upside later, may require cash to exercise and may never become liquid. Negotiate with those differences visible.",
+        ],
+      },
+      {
+        id: "what-to-negotiate",
+        eyebrow: "Negotiation levers",
+        title:
+          "You may have more levers than more options or more salary.",
+        body: [
+          "When candidates negotiate ESOPs, they usually ask for a higher option count. That can help, but it is not the only lever. A clearer ownership percentage, a longer exercise window, a signing bonus or a salary adjustment may be more useful depending on the situation.",
+        ],
+        bullets: [
+          "Higher base salary or joining bonus",
+          "Higher option count or refreshed grant promise",
+          "Clearer ownership percentage context",
+          "Shorter cliff or earlier vesting start date",
+          "Longer post-termination exercise window",
+          "Written explanation of liquidity history and restrictions",
+        ],
+      },
+      {
+        id: "when-equity-matters",
+        eyebrow: "Risk appetite",
+        title:
+          "Equity negotiation makes sense only when you are willing to own uncertainty.",
+        body: [
+          "If you need stable cash flow, do not let a large ESOP story push you into accepting too little salary. If you have enough cash stability and strong conviction in the company, more equity may be worth negotiating.",
+          "The honest answer is not universal. It depends on your finances, conviction, time horizon and the terms attached to the grant.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Ask what problem you are solving: monthly cash, upside, risk reduction or clarity.",
+      },
+      {
+        label: "Founder",
+        value:
+          "A transparent explanation can reduce negotiation friction and improve candidate trust.",
+      },
+      {
+        label: "HR",
+        value:
+          "Give recruiters a standard way to explain salary-equity tradeoffs without making promises.",
+      },
+      {
+        label: "Advisor",
+        value:
+          "Separate personal cash needs from speculative upside before comparing offers.",
+      },
+    ],
+    checklist: [
+      "Write down your minimum acceptable cash compensation.",
+      "Estimate the exercise cost of the proposed grant.",
+      "Model at least three equity scenarios.",
+      "Ask whether a grant refresh is typical after performance or promotion.",
+      "Negotiate terms that reduce confusion, not only bigger numbers.",
+    ],
+    mistakes: [
+      "Accepting lower salary because the ESOP story sounds exciting.",
+      "Negotiating only option count while ignoring exercise window.",
+      "Assuming a future valuation is guaranteed take-home value.",
+    ],
+    faq: [
+      {
+        question: "Should I always negotiate ESOPs?",
+        answer:
+          "Not always. Negotiate when the grant is material to your decision or when terms are unclear enough to create risk.",
+      },
+      {
+        question: "Is salary better than ESOPs?",
+        answer:
+          "They are different. Salary is known cash. ESOPs are uncertain ownership opportunity. The better mix depends on your situation.",
+      },
+    ],
+    related: [
+      "startup-offered-25000-esops",
+      "compare-startup-offers-equity",
+      "vesting-schedule",
+    ],
+  },
+
+  "esop-exercise-cost": {
+    category: "Exercise",
+    stage: "I may exercise",
+    audience: ["Employees", "CAs", "Tax"],
+    readTime: "10 min read",
+    videoTime: "3 min video",
+    title: "How much cash do I need to exercise my ESOPs?",
+    description:
+      "Understand strike price, vested options, exercise cost and why stock options can create a real cash decision before any liquidity happens.",
+    keywords: [
+      "ESOP exercise cost",
+      "ESOP strike price",
+      "exercise stock options India",
+      "vested options exercise",
+    ],
+    icon: WalletCards,
+    quickAnswer: [
+      "Exercise cost is usually vested options multiplied by strike price.",
+      "That cost is separate from taxes, transaction charges and the possibility that shares remain illiquid.",
+      "The decision should be modelled before leaving a company because exercise windows can be short.",
+    ],
+    heroStats: [
+      { label: "Formula", value: "vested x strike" },
+      { label: "Risk", value: "cash before liquidity" },
+      { label: "Timing", value: "exercise window" },
+      { label: "Tax", value: "ask advisor" },
+    ],
+    modelCards: [
+      {
+        label: "Vested options",
+        value: "Only exercisable portion matters",
+      },
+      {
+        label: "Strike price",
+        value: "Cash paid per option",
+      },
+      {
+        label: "Liquidity",
+        value: "Not guaranteed after exercise",
+      },
+    ],
+    sections: [
+      {
+        id: "formula",
+        eyebrow: "The basic math",
+        title:
+          "Start with a simple formula, then add the complications.",
+        body: [
+          "At the simplest level, exercise cost equals the number of vested options you choose to exercise multiplied by the exercise or strike price per option.",
+          "If 10,000 options have vested and the strike price is ₹50, the basic exercise cost is ₹5,00,000. That is before taxes, paperwork costs or any company-specific rules.",
+        ],
+        cards: [
+          {
+            label: "10,000 vested",
+            value: "options available to exercise",
+          },
+          {
+            label: "₹50 strike",
+            value: "cash required per option",
+          },
+          {
+            label: "₹5,00,000",
+            value: "basic exercise cost",
+          },
+        ],
+      },
+      {
+        id: "why-it-hurts",
+        eyebrow: "The real issue",
+        title:
+          "The painful part is paying cash for something you may not be able to sell.",
+        body: [
+          "Private-company shares can remain illiquid even after exercise. That means the employee may pay cash today while the ability to sell depends on a future buyback, secondary sale, acquisition, IPO or company-approved transfer.",
+          "This is why exercise decisions should be treated as personal finance decisions, not just compensation mechanics.",
+        ],
+        warning:
+          "Do not exercise solely because a paper spread looks positive. Check tax, liquidity, company risk and your personal cash position.",
+      },
+      {
+        id: "leaving-window",
+        eyebrow: "Leaving company",
+        title:
+          "Exercise windows can turn a future decision into an urgent one.",
+        body: [
+          "Many plans limit how long vested options can be exercised after employment ends. If the window is short, an employee may need to make a large cash decision soon after resigning or being terminated.",
+        ],
+        bullets: [
+          "Confirm the post-termination exercise window.",
+          "Calculate cash needed for different exercise amounts.",
+          "Check whether partial exercise is allowed.",
+          "Get tax advice before committing cash.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Never wait until the last week of your exercise window to calculate cash required.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Clear exercise-window communication avoids employee distrust later.",
+      },
+      {
+        label: "HR",
+        value:
+          "Leaving checklists should include vested options, deadline and exercise-cost education.",
+      },
+      {
+        label: "CA",
+        value:
+          "Exercise decisions can create tax and cash-flow issues even without liquidity.",
+      },
+    ],
+    checklist: [
+      "Find vested option count.",
+      "Confirm strike price per option.",
+      "Calculate full and partial exercise costs.",
+      "Check tax treatment with a professional.",
+      "Confirm liquidity restrictions.",
+      "Check final exercise deadline in writing.",
+    ],
+    mistakes: [
+      "Calculating exercise cost using total granted options instead of vested options.",
+      "Forgetting taxes and charges.",
+      "Exercising without understanding liquidity restrictions.",
+    ],
+    faq: [
+      {
+        question: "Do I need to exercise all vested options?",
+        answer:
+          "Not always. Some plans may allow partial exercise, but the plan and grant documents control what is allowed.",
+      },
+      {
+        question: "Is exercise cost the same as tax?",
+        answer:
+          "No. Exercise cost is the cash paid to acquire shares. Tax treatment is separate and depends on jurisdiction and circumstances.",
+      },
+    ],
+    related: [
+      "leaving-startup-esop-options",
+      "what-is-an-esop",
+      "vesting-schedule",
+    ],
+  },
+
+  "leaving-startup-esop-options": {
+    category: "Leaving company",
+    stage: "I am leaving",
+    audience: ["Employees", "HR", "CAs"],
+    readTime: "13 min read",
+    videoTime: "3 min video",
+    title:
+      "I am leaving my startup. What happens to my vested options?",
+    description:
+      "A leaving-company checklist for vested options, unvested options, exercise windows, cash decisions and documents to review before your last working day.",
+    keywords: [
+      "what happens to ESOP when leaving company",
+      "vested options after leaving",
+      "post termination exercise window",
+      "unvested ESOP",
+    ],
+    icon: Clock3,
+    quickAnswer: [
+      "Unvested options are commonly forfeited when employment ends, subject to documents.",
+      "Vested options may remain exercisable only for a limited window.",
+      "The leaving decision is often about cash, timing and risk, not just how many options vested.",
+    ],
+    heroStats: [
+      { label: "Unvested", value: "often forfeited" },
+      { label: "Vested", value: "check window" },
+      { label: "Decision", value: "exercise or not" },
+      { label: "Before leaving", value: "get docs" },
+    ],
+    modelCards: [
+      { label: "Vested count", value: "What you may keep" },
+      { label: "Deadline", value: "When the choice expires" },
+      { label: "Cash", value: "What exercise requires" },
+    ],
+    sections: [
+      {
+        id: "vested-unvested",
+        eyebrow: "First split",
+        title:
+          "Separate vested from unvested before anything else.",
+        body: [
+          "When you leave, the first question is not total granted options. It is how many have vested as of your actual termination date and what the plan says about the remaining unvested portion.",
+          "Unvested options are commonly forfeited, but the final answer depends on your grant agreement, plan rules and any special acceleration terms.",
+        ],
+      },
+      {
+        id: "exercise-window",
+        eyebrow: "Deadline risk",
+        title:
+          "The post-termination exercise window can be the most important line in the document.",
+        body: [
+          "Some employees only discover the exercise window after resigning. If the window is short, you may need to quickly decide whether to pay the exercise cost and take private-company share risk.",
+          "Before your last working day, ask for the exact number of vested options, strike price, exercise process and deadline in writing.",
+        ],
+        warning:
+          "Missing the exercise window can cause vested options to lapse. Do not rely on memory or informal messages for the deadline.",
+      },
+      {
+        id: "decision",
+        eyebrow: "Decision lens",
+        title:
+          "Exercising after leaving is a cash allocation decision.",
+        body: [
+          "The decision is not automatically yes because the options vested. You are deciding whether to spend cash on an illiquid, risky asset connected to a company you no longer work for.",
+        ],
+        bullets: [
+          "Can you afford the exercise cost without financial stress?",
+          "What do you believe about the company's future?",
+          "What liquidity paths are realistic?",
+          "What tax consequences could apply?",
+          "Would partial exercise reduce risk?",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Get the final vested count and deadline before your last day.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Transparent offboarding protects trust even when employees leave.",
+      },
+      {
+        label: "HR",
+        value:
+          "Make vested options and exercise window part of every exit process.",
+      },
+      {
+        label: "CA",
+        value:
+          "The leaving date can trigger a compressed tax and cash-planning timeline.",
+      },
+    ],
+    checklist: [
+      "Confirm termination date used for vesting.",
+      "Get vested and unvested counts.",
+      "Confirm strike price.",
+      "Confirm exercise deadline.",
+      "Ask whether partial exercise is allowed.",
+      "Review tax and liquidity before paying cash.",
+    ],
+    mistakes: [
+      "Thinking granted options are the same as vested options.",
+      "Missing the exercise deadline.",
+      "Exercising only because of sunk-cost emotion.",
+    ],
+    faq: [
+      {
+        question:
+          "Do unvested options continue vesting after I leave?",
+        answer:
+          "Usually no, unless your documents provide acceleration or another special treatment. Check the plan and grant terms.",
+      },
+      {
+        question:
+          "What happens if I do not exercise vested options in time?",
+        answer:
+          "They may lapse according to the plan terms. Confirm the deadline directly with the company.",
+      },
+    ],
+    related: [
+      "esop-exercise-cost",
+      "vesting-schedule",
+      "startup-offered-25000-esops",
+    ],
+  },
+
+  "startup-raised-funding-dilution": {
+    category: "Dilution",
+    stage: "Funding happened",
+    audience: ["Employees", "Founders", "HR"],
+    readTime: "12 min read",
+    videoTime: "3 min video",
+    title:
+      "My startup raised funding. Did my ESOP become worthless?",
+    description:
+      "A decision-first dilution guide for employees after a funding round, explaining ownership percentage, valuation, option pools and scenario modelling.",
+    keywords: [
+      "startup funding ESOP dilution",
+      "did my ESOP become worthless",
+      "option pool dilution",
+      "funding round employee equity",
+    ],
+    icon: Percent,
+    quickAnswer: [
+      "Funding usually changes the cap table, but dilution alone does not tell you whether your economics improved or worsened.",
+      "Your percentage can shrink while the company becomes more valuable.",
+      "The useful question is how ownership, company value, exercise cost and liquidity interact after the round.",
+    ],
+    heroStats: [
+      { label: "Ownership", value: "may shrink" },
+      { label: "Company value", value: "may grow" },
+      { label: "Option pool", value: "may expand" },
+      { label: "Answer", value: "model both" },
+    ],
+    modelCards: [
+      { label: "Before round", value: "ownership x value" },
+      { label: "After round", value: "new ownership x new value" },
+      { label: "Sensitivity", value: "more rounds later" },
+    ],
+    sections: [
+      {
+        id: "dilution-not-verdict",
+        eyebrow: "No panic",
+        title:
+          "Dilution is a change, not automatically a verdict.",
+        body: [
+          "After a funding round, new shares or share-like instruments may be issued. That can reduce the percentage ownership represented by existing options. This is dilution.",
+          "But economics depend on both percentage and value. A smaller slice of a much larger company can be worth more than a bigger slice of a smaller company.",
+        ],
+        cards: [
+          { label: "Before", value: "1.00% of ₹50Cr = ₹50L" },
+          { label: "After", value: "0.50% of ₹250Cr = ₹1.25Cr" },
+        ],
+      },
+      {
+        id: "what-changed",
+        eyebrow: "Find the drivers",
+        title: "Ask what exactly changed in the round.",
+        body: [
+          "Employees often hear the headline valuation but not the details that affect their grant. You do not need to become a cap-table expert, but you do need to know which assumptions matter.",
+        ],
+        bullets: [
+          "Was the employee option pool expanded?",
+          "What valuation is being referenced?",
+          "Did the company raise enough capital to reduce failure risk?",
+          "Are refresh grants expected for employees?",
+          "Does the strike price change for future grants?",
+        ],
+      },
+      {
+        id: "model-future-rounds",
+        eyebrow: "Scenario planning",
+        title:
+          "One funding round is rarely the last assumption.",
+        body: [
+          "If the company will raise again, today's ownership may be diluted again. That is why ESOP Value Clarity treats dilution as a scenario input, not a prediction or a fixed truth.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Do not judge dilution without comparing the new company-value scenario.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Explain dilution honestly so employees do not feel misled after fundraising.",
+      },
+      {
+        label: "HR",
+        value:
+          "Funding announcements should include employee-friendly equity context.",
+      },
+      {
+        label: "Advisor",
+        value:
+          "Model post-money value, dilution and liquidity timing together.",
+      },
+    ],
+    checklist: [
+      "Estimate ownership before and after the round.",
+      "Ask whether option pool expansion happened.",
+      "Understand the valuation being referenced.",
+      "Model future dilution, not just the current round.",
+      "Separate paper value from liquidity.",
+    ],
+    mistakes: [
+      "Treating dilution as automatically bad.",
+      "Treating valuation growth as guaranteed employee value.",
+      "Ignoring future dilution after later funding rounds.",
+    ],
+    faq: [
+      {
+        question: "Does dilution reduce my option count?",
+        answer:
+          "Usually the option count stays the same. The percentage represented by that count can reduce if the share base expands.",
+      },
+      {
+        question: "Can dilution be good?",
+        answer:
+          "Dilution itself reduces percentage ownership, but the financing may increase company value or reduce risk. The combined effect must be modelled.",
+      },
+    ],
+    related: [
+      "dilution-explained",
+      "startup-offered-25000-esops",
+      "compare-startup-offers-equity",
+    ],
+  },
+
+  "compare-startup-offers-equity": {
+    category: "Offer comparison",
+    stage: "I have two offers",
+    audience: ["Employees", "HR"],
+    readTime: "14 min read",
+    videoTime: "3 min video",
+    title: "Two startup offers. Which equity package is stronger?",
+    description:
+      "A structured framework for comparing startup offers across salary, variable compensation, ESOP quantity, strike price, vesting, dilution and risk.",
+    keywords: [
+      "compare startup offers",
+      "equity offer comparison",
+      "startup offer ESOP",
+      "salary vs equity comparison",
+    ],
+    icon: BriefcaseBusiness,
+    quickAnswer: [
+      "Do not compare offers by total CTC alone if one offer includes uncertain equity.",
+      "Separate guaranteed cash from variable pay and equity opportunity.",
+      "Compare equity using ownership, strike price, vesting, exercise window, dilution and liquidity probability.",
+    ],
+    heroStats: [
+      { label: "Offer A", value: "cash heavy" },
+      { label: "Offer B", value: "equity heavy" },
+      { label: "Compare", value: "separately" },
+      { label: "Output", value: "decision range" },
+    ],
+    modelCards: [
+      { label: "Guaranteed", value: "Base + fixed pay" },
+      { label: "Variable", value: "Bonus + performance" },
+      { label: "Equity", value: "Scenario value" },
+    ],
+    sections: [
+      {
+        id: "three-buckets",
+        eyebrow: "Comparison structure",
+        title: "Put each offer into three buckets.",
+        body: [
+          "The easiest way to compare offers is to separate guaranteed compensation, variable compensation and equity opportunity. Do not collapse them into one headline number until you understand the risk in each bucket.",
+        ],
+        cards: [
+          {
+            label: "Guaranteed cash",
+            value: "Salary, fixed allowances",
+          },
+          {
+            label: "Variable cash",
+            value: "Bonus, commission, performance",
+          },
+          {
+            label: "Equity",
+            value: "ESOPs, RSUs, options",
+          },
+        ],
+      },
+      {
+        id: "equity-comparison",
+        eyebrow: "Equity details",
+        title:
+          "The stronger equity package is not always the larger option count.",
+        body: [
+          "A smaller option grant at a company with better transparency, lower strike price, stronger business momentum and clearer liquidity path may be more attractive than a larger grant with vague terms.",
+        ],
+        bullets: [
+          "Option count and ownership percentage",
+          "Strike price and exercise cost",
+          "Vesting schedule and cliff",
+          "Post-termination exercise window",
+          "Dilution assumptions",
+          "Liquidity history and realistic path",
+        ],
+      },
+      {
+        id: "decision-output",
+        eyebrow: "Final output",
+        title:
+          "Your final answer should be a tradeoff, not a fake precision number.",
+        body: [
+          "A good comparison might say: Offer A gives more guaranteed cash and lower personal risk; Offer B gives more upside if the company performs and liquidity arrives. That is more honest than pretending one exact expected value decides everything.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Choose the offer whose risk-reward mix fits your life, not just the biggest story.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Make your equity offer understandable if you cannot win on cash alone.",
+      },
+      {
+        label: "HR",
+        value:
+          "Offer comparison content can reduce candidate confusion and improve acceptance quality.",
+      },
+      {
+        label: "Advisor",
+        value:
+          "Expected value needs assumptions; show the assumptions instead of hiding them.",
+      },
+    ],
+    checklist: [
+      "Separate fixed cash, variable cash and equity.",
+      "Calculate exercise cost for each option offer.",
+      "Compare vesting schedules and cliffs.",
+      "Model dilution and liquidity assumptions.",
+      "Write down the non-financial tradeoffs too.",
+    ],
+    mistakes: [
+      "Comparing CTC numbers without risk adjustment.",
+      "Treating company valuation as employee take-home value.",
+      "Ignoring vesting if you may leave early.",
+    ],
+    faq: [
+      {
+        question: "Can ESOP value be included in CTC?",
+        answer:
+          "It may appear in offer communication, but it should be mentally separated from guaranteed cash because it is uncertain and condition-dependent.",
+      },
+      {
+        question:
+          "Which offer is better if one has more ESOPs?",
+        answer:
+          "More ESOPs are not automatically better. Ownership, strike price, dilution, vesting and liquidity matter.",
+      },
+    ],
+    related: [
+      "startup-offered-25000-esops",
+      "should-i-negotiate-esops",
+      "esop-vs-rsu",
+    ],
+  },
+
+  "what-is-an-esop": {
+    category: "Foundation",
+    stage: "Start here",
+    audience: ["Employees", "Founders", "HR", "CAs"],
+    readTime: "10 min read",
+    videoTime: "3 min video",
+    title:
+      "What is an ESOP? The practical version employees actually need",
+    description:
+      "A decision-oriented explanation of employee stock options, strike price, vesting, ownership, dilution, liquidity and tax context.",
     keywords: [
       "what is ESOP",
       "ESOP meaning",
-      "ESOP for employees",
       "employee stock options",
       "startup ESOP",
-      "ESOP vesting",
-      "ESOP exercise price",
-      "ESOP value",
-      "startup equity",
-      "employee equity India",
+      "ESOP India",
     ],
-    content: (
-      <>
-        <p>
-          An <strong>ESOP</strong> gives an employee an opportunity to
-          participate in the future value of a company through equity. In many
-          startup compensation plans, the employee receives <strong>options</strong>:
-          a right to buy company shares later at a predetermined exercise or
-          strike price, subject to the plan and grant terms.
-        </p>
+    icon: GraduationCap,
+    quickAnswer: [
+      "An ESOP option grant usually gives an employee a right to buy shares later at a defined strike price, subject to plan terms.",
+      "The economic value depends on vesting, exercise price, ownership percentage, dilution, liquidity and taxes.",
+      "An ESOP should not be valued like salary because the outcome is uncertain and conditional.",
+    ],
+    heroStats: [
+      { label: "Grant", value: "right" },
+      { label: "Vesting", value: "time" },
+      { label: "Exercise", value: "cash" },
+      { label: "Value", value: "scenario" },
+    ],
+    modelCards: [
+      {
+        label: "Known terms",
+        value: "grant, strike, vesting",
+      },
+      {
+        label: "Assumptions",
+        value: "value, dilution, exit",
+      },
+      {
+        label: "Outcome",
+        value: "not guaranteed",
+      },
+    ],
+    sections: [
+      {
+        id: "meaning",
+        eyebrow: "Definition that matters",
+        title:
+          "An ESOP is not cash. It is a conditional ownership opportunity.",
+        body: [
+          "In many startup compensation plans, ESOPs are delivered as options: the right to buy company shares later at a predetermined exercise or strike price, after vesting and subject to the plan documents.",
+          "That makes an ESOP different from salary. Salary is paid in cash. Options may become valuable only if the company value exceeds the strike price and liquidity becomes available.",
+        ],
+      },
+      {
+        id: "lifecycle",
+        eyebrow: "Lifecycle",
+        title:
+          "The ESOP journey moves through grant, vesting, exercise and liquidity.",
+        body: [
+          "First the company grants options. Then the options vest over time. After vesting, the employee may be able to exercise by paying the strike price. Eventually, value can be realised only if liquidity becomes possible.",
+        ],
+        cards: [
+          { label: "Grant", value: "Options awarded" },
+          { label: "Vest", value: "Earned over time" },
+          { label: "Exercise", value: "Pay strike price" },
+          { label: "Liquidity", value: "Sell if permitted" },
+        ],
+      },
+      {
+        id: "terms",
+        eyebrow: "Terms to know",
+        title:
+          "The important ESOP terms are the ones that change your decision.",
+        body: [
+          "A useful explanation should not stop at vocabulary. Each term matters because it changes either ownership, cash requirement, timing, risk or eventual take-home value.",
+        ],
+        bullets: [
+          "Option count: the number granted.",
+          "Strike price: cash needed per option to exercise.",
+          "Vesting schedule: when options are earned.",
+          "Ownership percentage: what the grant represents.",
+          "Dilution: how future share issuance can reduce percentage.",
+          "Liquidity: whether shares can actually be sold.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Learn enough to ask better questions before accepting or exercising.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Explain ESOPs as uncertainty with upside, not guaranteed wealth.",
+      },
+      {
+        label: "HR",
+        value:
+          "Use a consistent vocabulary to reduce repeated candidate confusion.",
+      },
+      {
+        label: "CA",
+        value:
+          "The practical discussion begins when exercise and tax events appear.",
+      },
+    ],
+    checklist: [
+      "Identify the number of options.",
+      "Confirm the strike price.",
+      "Understand vesting and cliff.",
+      "Estimate ownership percentage if possible.",
+      "Model dilution and exit scenarios.",
+      "Check tax and liquidity before decisions.",
+    ],
+    mistakes: [
+      "Thinking options are already shares.",
+      "Ignoring exercise price.",
+      "Assuming paper value is cash.",
+    ],
+    faq: [
+      {
+        question: "Is ESOP the same as shares?",
+        answer:
+          "Not necessarily. Options usually provide a right to acquire shares after vesting and exercise, subject to plan terms.",
+      },
+      {
+        question: "Can ESOPs become worthless?",
+        answer:
+          "Yes. If company value does not exceed strike price, liquidity never happens or terms are unfavorable, the economic outcome may be poor.",
+      },
+    ],
+    related: [
+      "startup-offered-25000-esops",
+      "vesting-schedule",
+      "dilution-explained",
+    ],
+  },
 
-        <p>
-          That makes ESOPs very different from salary. Salary is compensation
-          you receive in cash. An option grant is a potential ownership
-          opportunity whose eventual economic value depends on several moving
-          parts: vesting, exercise price, company value, dilution, liquidity,
-          taxes and the terms of the grant.
-        </p>
-
-        <h2 id="how-esops-work">How do ESOPs work?</h2>
-
-        <p>
-          A typical employee equity journey has several stages. First, the
-          company grants a number of options. Those options usually vest over
-          time. Once vested and subject to the applicable plan rules, the
-          employee may be able to exercise the options by paying the exercise
-          price and receiving shares.
-        </p>
-
-        <div className="not-prose my-10 overflow-hidden rounded-[24px] border border-slate-200 bg-[#06101f] p-6 text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-300">
-            ESOP lifecycle
-          </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-4">
-            {[
-              ["01", "Grant", "Options are awarded"],
-              ["02", "Vest", "You earn them over time"],
-              ["03", "Exercise", "You may pay to acquire shares"],
-              ["04", "Liquidity", "Value may eventually be realised"],
-            ].map(([number, label, detail]) => (
-              <div
-                key={number}
-                className="group rounded-2xl border border-white/10 bg-white/[0.045] p-4 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.07]"
-              >
-                <span className="font-mono text-[9px] font-black text-blue-300">
-                  {number}
-                </span>
-                <p className="mt-3 text-sm font-black text-white">{label}</p>
-                <p className="mt-1 text-[11px] leading-5 text-slate-400">
-                  {detail}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <h2 id="important-terms">The ESOP terms employees should understand</h2>
-
-        <p>
-          Option count alone tells you very little. Two employees can receive
-          the same number of options and still have very different economic
-          outcomes because the surrounding terms are different.
-        </p>
-
-        <div className="not-prose my-10 grid gap-4 sm:grid-cols-2">
-          {[
-            {
-              title: "Option grant",
-              text: "The number of options awarded to you under the applicable grant.",
-            },
-            {
-              title: "Exercise / strike price",
-              text: "The price you generally need to pay per option when exercising vested options.",
-            },
-            {
-              title: "Vesting schedule",
-              text: "The timetable that determines when portions of your grant become vested.",
-            },
-            {
-              title: "Current reference value",
-              text: "A company-provided FMV or other reference value can help with analysis, but it is not guaranteed liquidity.",
-            },
-            {
-              title: "Dilution",
-              text: "Future share issuance can reduce the percentage ownership represented by an existing grant.",
-            },
-            {
-              title: "Exercise window",
-              text: "Your plan may limit how long vested options can be exercised after employment ends.",
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-[20px] border border-slate-200 bg-slate-50 p-5"
-            >
-              <p className="font-black text-slate-950">{item.title}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.text}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <h2 id="vesting">What does ESOP vesting mean?</h2>
-
-        <p>
-          Options normally do not become exercisable all at once. A vesting
-          schedule determines when you earn portions of the grant. A common
-          structure is a four-year schedule with a one-year cliff, although
-          actual terms vary by company and grant.
-        </p>
-
-        <p>
-          Under a one-year cliff, an employee may receive no vested options
-          before completing the first year. At the cliff date, a first portion
-          may vest, with the remaining grant vesting periodically afterwards.
-          Your official grant and plan documents determine the actual schedule.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-blue-100 bg-blue-50/60 p-6">
-          <div className="flex items-start gap-4">
-            <Clock3 className="mt-1 h-5 w-5 shrink-0 text-blue-600" />
-            <div>
-              <p className="font-black text-slate-950">Simple vesting example</p>
-              <p className="mt-2 text-sm leading-7 text-slate-600">
-                Suppose you receive 1,000 options on a four-year schedule with a
-                one-year cliff. If the grant vests evenly, approximately 250
-                options may vest after the first year and the remaining 750 may
-                vest gradually over the next three years. The exact schedule
-                depends on your documents.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <h2 id="exercise-price">What is the ESOP exercise price?</h2>
-
-        <p>
-          The exercise price, also called the strike price, is an important
-          economic term because exercising options can require real cash. If
-          5,000 vested options have an exercise price of ₹50 per option, the
-          exercise cost alone would be ₹2,50,000 before considering any
-          applicable taxes or other costs.
-        </p>
-
-        <p>
-          This is one reason a headline statement such as “you have 5,000
-          ESOPs” is incomplete. You also need to understand what it may cost to
-          convert those options into shares and whether the resulting shares
-          are liquid.
-        </p>
-
-        <h2 id="value">How can an ESOP become valuable?</h2>
-
-        <p>
-          At a simplified level, an option may have economic upside when the
-          value of the underlying share exceeds the exercise price. But that
-          simplified spread is not the same as guaranteed take-home value.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-600">
-            Illustrative scenario
-          </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-4">
-            {[
-              ["5,000", "Options"],
-              ["₹50", "Exercise price"],
-              ["₹200", "Illustrative share value"],
-              ["₹7.50L", "Illustrative spread"],
-            ].map(([value, label]) => (
-              <div
-                key={label}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="text-xl font-black text-slate-950">{value}</p>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-5 text-xs leading-6 text-slate-500">
-            This example is deliberately simplified and does not account for
-            vesting, dilution, taxes, liquidity, transaction restrictions or
-            other grant terms. It is not a valuation or prediction.
-          </p>
-        </div>
-
-        <h2 id="dilution">How does dilution affect employee ESOPs?</h2>
-
-        <p>
-          When a company issues additional shares, your number of options may
-          remain unchanged while the percentage of the company represented by
-          those options becomes smaller. This is dilution.
-        </p>
-
-        <p>
-          Dilution is not automatically bad. A smaller percentage of a much
-          more valuable company can be economically better than a larger
-          percentage of a less valuable company. What matters is the
-          interaction between ownership and company value.
-        </p>
-
-        <h2 id="liquidity">Can you sell ESOPs immediately?</h2>
-
-        <p>
-          Often, no. Private-company employee equity can be illiquid. Even
-          after options vest and are exercised, there may be restrictions on
-          transferring or selling the shares. Liquidity may depend on a
-          company-approved secondary sale, acquisition, IPO, buyback or another
-          permitted event.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-          <div className="flex items-start gap-4">
-            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-amber-700" />
-            <div>
-              <p className="font-black text-amber-950">
-                A modelled equity value is not cash.
-              </p>
-              <p className="mt-2 text-sm leading-7 text-amber-950/75">
-                A company valuation, FMV or scenario value does not mean you can
-                currently sell your equity at that value. Liquidity and the
-                actual terms of your securities matter.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <h2 id="why-startups-use-esops">Why do startups offer ESOPs?</h2>
-
-        <ul>
-          <li>To attract employees while managing current cash compensation.</li>
-          <li>To give employees potential participation in future company value.</li>
-          <li>To encourage retention through multi-year vesting.</li>
-          <li>To align part of employee compensation with long-term company outcomes.</li>
-        </ul>
-
-        <p>
-          For employees, the important point is that an ESOP grant should not
-          automatically be valued like salary. The grant can create meaningful
-          upside, but the outcome depends on conditions that salary does not.
-        </p>
-
-        <h2 id="offer-comparison">How should ESOPs be considered in a job offer?</h2>
-
-        <p>
-          When comparing two employment offers, separate guaranteed
-          compensation from uncertain equity opportunity. A larger option count
-          is not automatically a better grant, because strike price, company
-          value, dilution, vesting, exercise windows and liquidity can differ.
-        </p>
-
-        <div className="not-prose my-10 overflow-hidden rounded-[24px] bg-[#06101f] p-6 text-white">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <WalletCards className="h-5 w-5 text-blue-300" />
-              <p className="mt-4 text-[9px] font-black uppercase tracking-[0.14em] text-blue-300">
-                CASH
-              </p>
-              <p className="mt-2 text-sm font-black">What is guaranteed?</p>
-            </div>
-
-            <div>
-              <TrendingUp className="h-5 w-5 text-violet-300" />
-              <p className="mt-4 text-[9px] font-black uppercase tracking-[0.14em] text-violet-300">
-                EQUITY
-              </p>
-              <p className="mt-2 text-sm font-black">What is the opportunity?</p>
-            </div>
-
-            <div>
-              <Gauge className="h-5 w-5 text-amber-300" />
-              <p className="mt-4 text-[9px] font-black uppercase tracking-[0.14em] text-amber-300">
-                RISK
-              </p>
-              <p className="mt-2 text-sm font-black">What could change?</p>
-            </div>
-          </div>
-        </div>
-
-        <h2 id="questions-to-ask">Questions to ask before evaluating an ESOP grant</h2>
-
-        <ul>
-          <li>How many options am I being granted?</li>
-          <li>What is the exercise or strike price?</li>
-          <li>What is the vesting schedule and cliff?</li>
-          <li>What share value or FMV is being referenced?</li>
-          <li>How many fully diluted shares exist, if this information is available?</li>
-          <li>What percentage ownership might the grant represent?</li>
-          <li>What happens to vested options if I leave the company?</li>
-          <li>How long is the post-termination exercise window?</li>
-          <li>Are there transfer or liquidity restrictions?</li>
-          <li>What taxes may apply to exercise or sale?</li>
-        </ul>
-
-        <h2 id="takeaway">The key takeaway</h2>
-
-        <p>
-          ESOPs can be a meaningful part of employee compensation, but their
-          value cannot be understood from option count alone. A useful analysis
-          connects the grant to vesting, exercise cost, ownership, dilution,
-          company outcomes, liquidity and taxes.
-        </p>
-
-        <div className="not-prose my-10 rounded-[26px] border border-emerald-200 bg-emerald-50/60 p-7">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
-            Remember
-          </p>
-          <p className="mt-3 text-xl font-black tracking-tight text-slate-950">
-            Understand the terms first. Model the possibilities second.
-          </p>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            ESOP Value Clarity is designed around that distinction: known
-            information stays separate from assumptions, and scenarios are not
-            presented as guaranteed future outcomes.
-          </p>
-        </div>
-      </>
-    ),
+  "esop-vs-rsu": {
+    category: "Equity types",
+    stage: "Compare equity",
+    audience: ["Employees", "HR", "CAs"],
+    readTime: "11 min read",
+    videoTime: "3 min video",
+    title:
+      "ESOP vs RSU: do not compare unit counts blindly",
+    description:
+      "Compare ESOPs and RSUs across exercise price, vesting, ownership, liquidity, taxation and offer value.",
+    keywords: [
+      "ESOP vs RSU",
+      "RSU vs stock options",
+      "startup ESOP vs RSU",
+      "employee equity comparison",
+    ],
+    icon: Layers3,
+    quickAnswer: [
+      "An ESOP option usually requires exercise at a strike price; an RSU typically does not have an option exercise price.",
+      "Unit counts are not directly comparable because the economics are different.",
+      "Liquidity, tax and company stage can matter more than the label.",
+    ],
+    heroStats: [
+      { label: "ESOP", value: "option" },
+      { label: "RSU", value: "unit/share" },
+      { label: "Compare", value: "economics" },
+      { label: "Avoid", value: "unit count" },
+    ],
+    modelCards: [
+      { label: "ESOP", value: "strike price matters" },
+      { label: "RSU", value: "settlement matters" },
+      { label: "Both", value: "vesting and tax matter" },
+    ],
+    sections: [
+      {
+        id: "core-difference",
+        eyebrow: "Structure",
+        title:
+          "The biggest difference is the exercise requirement.",
+        body: [
+          "An ESOP or stock option generally gives you the right to buy shares at a strike price after vesting. An RSU generally represents a promise to deliver shares or equivalent value according to vesting and settlement terms, without an option strike-price payment.",
+          "That difference changes cash requirement, downside risk and how employees should compare offers.",
+        ],
+        cards: [
+          { label: "ESOP", value: "May require exercise cash" },
+          { label: "RSU", value: "No option strike payment" },
+          { label: "Both", value: "Can vest over time" },
+        ],
+      },
+      {
+        id: "why-counts-fail",
+        eyebrow: "Comparison mistake",
+        title:
+          "10,000 options and 1,000 RSUs cannot be judged by count alone.",
+        body: [
+          "The value of options depends heavily on the spread between share value and strike price. RSUs are more directly tied to underlying share value, but they also depend on vesting, settlement, tax and liquidity.",
+        ],
+      },
+      {
+        id: "offer-context",
+        eyebrow: "Offer context",
+        title:
+          "The company stage changes how each award feels.",
+        body: [
+          "Private-company options may have large upside but limited liquidity and exercise risk. Public-company RSUs may be easier to value but still depend on stock price, vesting and tax. Neither structure is automatically better.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Compare what you pay, when you vest, and whether you can sell.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Use plain comparisons when explaining options against big-company RSUs.",
+      },
+      {
+        label: "HR",
+        value:
+          "Avoid presenting ESOP and RSU unit counts as equivalent.",
+      },
+      {
+        label: "CA",
+        value:
+          "Tax timing may differ meaningfully between award types.",
+      },
+    ],
+    checklist: [
+      "Identify award type.",
+      "Check strike price if options.",
+      "Compare vesting schedules.",
+      "Understand liquidity restrictions.",
+      "Check tax timing.",
+      "Model scenarios separately for each award.",
+    ],
+    mistakes: [
+      "Assuming more units means more value.",
+      "Ignoring strike price for options.",
+      "Ignoring settlement and tax for RSUs.",
+    ],
+    faq: [
+      {
+        question: "Are RSUs better than ESOPs?",
+        answer:
+          "Not universally. RSUs and options have different economics. The better award depends on company, value, terms, tax and personal priorities.",
+      },
+      {
+        question: "Do RSUs need exercise cash?",
+        answer:
+          "RSUs generally do not require an option strike-price exercise, but taxes and settlement rules can still matter.",
+      },
+    ],
+    related: [
+      "compare-startup-offers-equity",
+      "what-is-an-esop",
+      "should-i-negotiate-esops",
+    ],
   },
 
   "dilution-explained": {
     category: "Dilution",
+    stage: "Understand ownership",
+    audience: ["Employees", "Founders", "HR"],
     readTime: "12 min read",
-    title: "ESOP Dilution Explained: How Startup Funding Affects Employee Equity",
+    videoTime: "3 min video",
+    title: "ESOP dilution explained without the panic",
     description:
-      "Learn how ESOP dilution works, why funding rounds reduce ownership percentage, and how company growth can still increase the potential value of employee equity.",
+      "Understand how funding rounds and option pools can reduce ownership percentage while company value may still change the economic outcome.",
     keywords: [
       "ESOP dilution",
       "startup dilution",
       "employee equity dilution",
-      "funding round dilution",
-      "ESOP value after funding",
-      "startup ownership percentage",
       "option pool dilution",
-      "fully diluted shares",
+      "fully diluted ownership",
     ],
-    content: (
-      <>
-        <p>
-          <strong>Dilution</strong> happens when a company increases the number
-          of shares or share-equivalents in its ownership structure. Your option
-          count may remain exactly the same while the percentage of the company
-          represented by those options becomes smaller.
-        </p>
-
-        <p>
-          For employees, this is one of the most important ideas to understand:
-          <strong> option count and ownership percentage are not the same thing.</strong>
-          A grant of 10,000 options can represent very different ownership at
-          two companies—or at the same company before and after fundraising.
-        </p>
-
-        <h2 id="dilution-meaning">What does ESOP dilution mean?</h2>
-
-        <p>
-          Imagine a company has 100,000 fully diluted shares and you hold 1,000
-          shares or equivalent vested ownership. In that simplified structure,
-          you represent 1% of the company. If the company later expands to
-          200,000 shares while your holding stays at 1,000, your percentage
-          becomes 0.5%.
-        </p>
-
-        <div className="not-prose my-10 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-[22px] border border-blue-100 bg-blue-50/60 p-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-600">
-              Before
-            </p>
-            <p className="mt-3 text-3xl font-black text-slate-950">1.00%</p>
-            <p className="mt-2 text-sm text-slate-600">
-              1,000 / 100,000 shares
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-violet-100 bg-violet-50/60 p-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-violet-600">
-              After
-            </p>
-            <p className="mt-3 text-3xl font-black text-slate-950">0.50%</p>
-            <p className="mt-2 text-sm text-slate-600">
-              1,000 / 200,000 shares
-            </p>
-          </div>
-        </div>
-
-        <h2 id="why-dilution-happens">Why do startups dilute existing ownership?</h2>
-
-        <p>
-          Dilution commonly accompanies events intended to help a company grow.
-          New investors may receive shares in exchange for capital, an employee
-          option pool may be expanded, or convertible instruments may become
-          equity.
-        </p>
-
-        <ul>
-          <li>Equity financing and new investment rounds.</li>
-          <li>Expansion or refresh of an employee option pool.</li>
-          <li>Conversion of convertible securities or similar instruments.</li>
-          <li>Acquisitions or other transactions involving new shares.</li>
-        </ul>
-
-        <h2 id="dilution-value">Does dilution always make your ESOP worth less?</h2>
-
-        <p>
-          No. Dilution reduces a percentage, but economic value depends on both
-          <strong> ownership percentage and company value</strong>. A smaller
-          stake in a substantially more valuable business can be worth more than
-          a larger stake in a smaller business.
-        </p>
-
-        <div className="not-prose my-10 overflow-hidden rounded-[24px] bg-[#06101f] p-6 text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
-            Simplified growth example
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {[
-              ["1.00%", "Initial ownership"],
-              ["₹10Cr", "Initial company value"],
-              ["₹10L", "Illustrative stake value"],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-xl font-black">{value}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-slate-500">{label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="my-5 h-px bg-white/10" />
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              ["0.50%", "Diluted ownership"],
-              ["₹100Cr", "Later company value"],
-              ["₹50L", "Illustrative stake value"],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-xl font-black text-emerald-300">{value}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-slate-500">{label}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 text-xs leading-6 text-slate-500">
-            This is an intentionally simplified illustration, not a valuation
-            or prediction. Real employee economics can also involve exercise
-            cost, taxes, security rights and liquidity restrictions.
-          </p>
-        </div>
-
-        <h2 id="fully-diluted">What does fully diluted ownership mean?</h2>
-
-        <p>
-          When evaluating employee equity, the denominator matters. A
-          fully-diluted share count may include outstanding shares plus options,
-          warrants, convertible instruments or other securities that could
-          become shares, depending on the definition being used.
-        </p>
-
-        <p>
-          If you only know your option count but not the relevant company share
-          count, you may not be able to estimate your ownership percentage
-          reliably.
-        </p>
-
-        <h2 id="funding-rounds">How funding rounds can affect employee equity</h2>
-
-        <p>
-          A funding round can create two effects at the same time: your
-          percentage ownership can decline while the company's implied
-          valuation increases. Whether the economic picture improves depends on
-          how those changes interact.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-          <p className="font-black text-amber-950">Do not look at dilution alone.</p>
-          <p className="mt-2 text-sm leading-7 text-amber-950/75">
-            A 20% dilution assumption does not by itself tell you whether your
-            equity position became economically better or worse. You also need
-            to consider the company's value after the financing and the terms
-            attached to your equity.
-          </p>
-        </div>
-
-        <h2 id="option-pool">How option-pool expansion can dilute employees</h2>
-
-        <p>
-          Startups often reserve equity for future employees. If that pool is
-          expanded, the total fully diluted share base can increase. Existing
-          holders may therefore represent a smaller percentage even if they do
-          not sell or transfer any shares.
-        </p>
-
-        <h2 id="model-dilution">How should employees model dilution?</h2>
-
-        <p>
-          Because future financing is uncertain, dilution is better treated as
-          a scenario input than as a guaranteed number. Comparing multiple
-          assumptions can show how sensitive your potential outcome is to
-          future capital raising.
-        </p>
-
-        <div className="not-prose my-10 grid gap-3 sm:grid-cols-3">
-          {[
-            ["10%", "Lower dilution scenario"],
-            ["20%", "Middle scenario"],
-            ["35%", "Higher dilution scenario"],
-          ].map(([value, label]) => (
-            <div key={label} className="rounded-[20px] border border-slate-200 bg-slate-50 p-5">
-              <p className="text-2xl font-black text-slate-950">{value}</p>
-              <p className="mt-2 text-xs font-semibold text-slate-500">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        <h2 id="dilution-questions">Questions to ask about dilution</h2>
-
-        <ul>
-          <li>What percentage ownership does my grant represent today?</li>
-          <li>What share count is being used to calculate that percentage?</li>
-          <li>Is the denominator fully diluted?</li>
-          <li>How large is the current employee option pool?</li>
-          <li>Could the option pool be expanded before a future financing?</li>
-          <li>What dilution assumptions am I using in my own scenario?</li>
-        </ul>
-
-        <h2 id="dilution-takeaway">The key takeaway</h2>
-
-        <p>
-          Dilution is not simply “losing shares.” Your option count may remain
-          unchanged while your percentage ownership decreases. The useful
-          question is how that lower percentage interacts with the company's
-          changing value, your vesting, exercise cost and eventual liquidity.
-        </p>
-
-        <div className="not-prose my-10 rounded-[26px] border border-emerald-200 bg-emerald-50/60 p-7">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
-            Remember
-          </p>
-          <p className="mt-3 text-xl font-black tracking-tight text-slate-950">
-            Ownership can shrink while potential value grows.
-          </p>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Model both sides of the equation instead of treating dilution as a
-            standalone verdict.
-          </p>
-        </div>
-      </>
-    ),
+    icon: Percent,
+    quickAnswer: [
+      "Dilution means your option count may stay the same while the percentage ownership it represents becomes smaller.",
+      "Dilution is not automatically bad; value depends on both ownership percentage and company value.",
+      "Model dilution as a scenario input, not a guaranteed forecast.",
+    ],
+    heroStats: [
+      { label: "Count", value: "same" },
+      { label: "Percentage", value: "smaller" },
+      { label: "Value", value: "depends" },
+      { label: "Model", value: "scenarios" },
+    ],
+    modelCards: [
+      { label: "Before", value: "larger %" },
+      { label: "After", value: "smaller %" },
+      { label: "Decision", value: "compare company value" },
+    ],
+    sections: [
+      {
+        id: "meaning",
+        eyebrow: "Meaning",
+        title: "Dilution changes the denominator.",
+        body: [
+          "If more shares or share-equivalents are created, the total ownership base expands. Your option count may remain unchanged, but the percentage of the company represented by those options can shrink.",
+        ],
+        cards: [
+          { label: "Before", value: "1,000 / 100,000 = 1.00%" },
+          { label: "After", value: "1,000 / 200,000 = 0.50%" },
+        ],
+      },
+      {
+        id: "not-always-bad",
+        eyebrow: "Economics",
+        title:
+          "A smaller percentage can still be worth more.",
+        body: [
+          "If funding helps the company become much more valuable, a diluted stake may still have higher potential value. The key is to model ownership and valuation together.",
+        ],
+      },
+      {
+        id: "causes",
+        eyebrow: "Causes",
+        title:
+          "Funding rounds are not the only source of dilution.",
+        body: [
+          "Dilution can come from new investor shares, option-pool expansion, convertible instruments or other securities becoming equity. Employees should understand which event occurred before drawing conclusions.",
+        ],
+        bullets: [
+          "New financing round",
+          "Option-pool expansion",
+          "Convertible security conversion",
+          "Acquisition-related share issuance",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Ask how much ownership changed and what value assumption changed with it.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Explain dilution before employees discover it emotionally.",
+      },
+      {
+        label: "HR",
+        value:
+          "Use simple before-after examples to reduce panic after funding announcements.",
+      },
+      {
+        label: "Advisor",
+        value:
+          "Dilution is only one part of scenario value.",
+      },
+    ],
+    checklist: [
+      "Estimate current ownership percentage.",
+      "Understand what event caused dilution.",
+      "Compare company value before and after.",
+      "Model future rounds.",
+      "Check whether refresh grants apply.",
+    ],
+    mistakes: [
+      "Panicking at dilution alone.",
+      "Ignoring option pool expansion.",
+      "Using only one future scenario.",
+    ],
+    faq: [
+      {
+        question: "Does dilution reduce my number of options?",
+        answer:
+          "Typically no. It reduces the percentage those options represent if the total share base increases.",
+      },
+      {
+        question: "Should I ask my company about dilution?",
+        answer:
+          "Yes, ask for employee-friendly context such as ownership estimate, option pool changes and whether refresh grants are common.",
+      },
+    ],
+    related: [
+      "startup-raised-funding-dilution",
+      "startup-offered-25000-esops",
+      "what-is-an-esop",
+    ],
   },
 
   "vesting-schedule": {
     category: "Vesting",
-    readTime: "12 min read",
-    title: "ESOP Vesting Explained: 4-Year Vesting, Cliffs & Employee Ownership",
+    stage: "Understand timing",
+    audience: ["Employees", "Founders", "HR"],
+    readTime: "10 min read",
+    videoTime: "3 min video",
+    title:
+      "ESOP vesting schedule: granted is not the same as earned",
     description:
-      "Understand ESOP vesting schedules, one-year cliffs, monthly and quarterly vesting, and what happens to vested and unvested options when employment changes.",
+      "Understand cliffs, monthly vesting, vested options, unvested options and how timing changes the value of a stock-option grant.",
     keywords: [
       "ESOP vesting",
       "vesting schedule",
-      "4 year vesting",
       "one year cliff",
-      "ESOP cliff",
       "vested options",
-      "unvested ESOP",
-      "employee stock option vesting",
+      "unvested options",
     ],
-    content: (
-      <>
-        <p>
-          <strong>Vesting</strong> determines when an employee earns the right
-          associated with an equity grant. Receiving 10,000 options does not
-          necessarily mean that all 10,000 are immediately vested or
-          exercisable.
-        </p>
-
-        <p>
-          For employees evaluating startup equity, the vesting schedule is just
-          as important as the headline grant size because it determines how much
-          of that grant may actually become available over time.
-        </p>
-
-        <h2 id="vesting-meaning">What is an ESOP vesting schedule?</h2>
-
-        <p>
-          A vesting schedule defines how a grant becomes vested over a specified
-          period. A common startup structure is four years with a one-year
-          cliff, followed by monthly or quarterly vesting. Your actual grant can
-          use a different schedule.
-        </p>
-
-        <div className="not-prose my-10 overflow-hidden rounded-[24px] bg-[#06101f] p-6 text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-300">
-            Illustrative 4-year schedule
-          </p>
-          <div className="mt-6 grid grid-cols-4 gap-2">
-            {[
-              ["Year 1", "25%"],
-              ["Year 2", "50%"],
-              ["Year 3", "75%"],
-              ["Year 4", "100%"],
-            ].map(([year, value], index) => (
-              <div key={year} className="relative rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <div
-                  className="absolute bottom-0 left-0 h-1 rounded-full bg-blue-400"
-                  style={{ width: `${(index + 1) * 25}%` }}
-                />
-                <p className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">{year}</p>
-                <p className="mt-2 text-xl font-black">{value}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 text-xs leading-6 text-slate-500">
-            Simplified illustration only. Actual vesting dates and frequencies
-            are controlled by your grant documents.
-          </p>
-        </div>
-
-        <h2 id="cliff">What is a one-year cliff?</h2>
-
-        <p>
-          A cliff delays the first vesting event. Under a one-year cliff, an
-          employee commonly receives no vested portion before completing the
-          first year. At the cliff date, a larger initial portion may vest at
-          once.
-        </p>
-
-        <p>
-          If employment ends before the cliff date, the employee may leave with
-          no vested options from that grant, subject to the actual plan terms.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-blue-100 bg-blue-50/60 p-6">
-          <div className="flex items-start gap-4">
-            <Clock3 className="mt-1 h-5 w-5 shrink-0 text-blue-600" />
-            <div>
-              <p className="font-black text-slate-950">1,000-option example</p>
-              <p className="mt-2 text-sm leading-7 text-slate-600">
-                On a simplified four-year schedule with a one-year cliff,
-                around 250 options could vest at the first anniversary. The
-                remaining 750 might then vest over the next three years.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <h2 id="frequency">Monthly vs quarterly vs annual vesting</h2>
-
-        <p>
-          After a cliff, grants can vest at different frequencies. Monthly
-          vesting creates smaller, more frequent increments. Quarterly or
-          annual schedules create less frequent vesting events. The economic
-          difference can matter if you are considering leaving near a vesting
-          date.
-        </p>
-
-        <div className="not-prose my-10 grid gap-4 sm:grid-cols-3">
-          {[
-            ["Monthly", "Smaller frequent increments"],
-            ["Quarterly", "Four vesting points per year"],
-            ["Annual", "Larger less-frequent increments"],
-          ].map(([label, detail]) => (
-            <div key={label} className="rounded-[20px] border border-slate-200 bg-slate-50 p-5">
-              <p className="font-black text-slate-950">{label}</p>
-              <p className="mt-2 text-xs leading-5 text-slate-500">{detail}</p>
-            </div>
-          ))}
-        </div>
-
-        <h2 id="vested-unvested">Vested options vs unvested options</h2>
-
-        <p>
-          <strong>Vested options</strong> are the portion of the grant for which
-          the vesting condition has been satisfied. <strong>Unvested options</strong>
-          remain subject to future vesting conditions.
-        </p>
-
-        <p>
-          Vested does not necessarily mean “cash” or even “shares.” With an
-          option grant, exercise may still be required before shares are
-          acquired, and liquidity may still be unavailable afterwards.
-        </p>
-
-        <h2 id="leaving">What happens to ESOPs when you leave a company?</h2>
-
-        <p>
-          Unvested options are commonly forfeited when employment ends, subject
-          to the relevant plan and grant terms. Vested options may remain
-          exercisable only for a defined period after termination.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-          <p className="font-black text-amber-950">
-            Check the post-termination exercise window.
-          </p>
-          <p className="mt-2 text-sm leading-7 text-amber-950/75">
-            A short exercise window can force an employee to decide whether to
-            spend cash exercising vested options soon after leaving. Missing
-            this term can materially distort how attractive a grant appears.
-          </p>
-        </div>
-
-        <h2 id="acceleration">Can vesting accelerate?</h2>
-
-        <p>
-          Some grants or plans may include acceleration provisions connected to
-          events such as a change of control or termination under specified
-          circumstances. These provisions are highly document-specific and
-          should not be assumed unless they appear in the applicable terms.
-        </p>
-
-        <h2 id="vesting-offer">Why vesting matters when comparing job offers</h2>
-
-        <p>
-          Two companies can offer the same option count but very different
-          vesting economics. One offer may have a shorter cliff, faster vesting,
-          a different vesting start date or more flexible post-employment
-          exercise terms.
-        </p>
-
-        <p>
-          That is why an offer comparison should look beyond the headline grant
-          and examine how much equity can actually become vested over the time
-          you expect to stay.
-        </p>
-
-        <h2 id="vesting-questions">Questions to ask about a vesting schedule</h2>
-
-        <ul>
-          <li>What is the total vesting duration?</li>
-          <li>Is there a cliff? If yes, how long?</li>
-          <li>What percentage vests at the cliff?</li>
-          <li>Does the remainder vest monthly, quarterly or annually?</li>
-          <li>What is the vesting start date?</li>
-          <li>What happens to unvested options if employment ends?</li>
-          <li>How long can vested options be exercised after leaving?</li>
-          <li>Is any acceleration provision included?</li>
-        </ul>
-
-        <h2 id="vesting-takeaway">The key takeaway</h2>
-
-        <p>
-          A grant is a promise governed by time and conditions. Vesting tells
-          you how that headline number turns into an earned equity position.
-          Before comparing grants, understand what can actually vest and what
-          happens when employment changes.
-        </p>
-
-        <div className="not-prose my-10 rounded-[26px] border border-emerald-200 bg-emerald-50/60 p-7">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
-            Remember
-          </p>
-          <p className="mt-3 text-xl font-black tracking-tight text-slate-950">
-            Granted is not the same as vested.
-          </p>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Model the portion you can actually earn over the period relevant to
-            your decision.
-          </p>
-        </div>
-      </>
-    ),
-  },
-
-  "esop-vs-rsu": {
-    category: "Equity",
-    readTime: "13 min read",
-    title: "ESOP vs RSU: Key Differences in Employee Equity Explained",
-    description:
-      "Compare ESOPs and RSUs across exercise price, vesting, ownership, liquidity, taxation and potential value when evaluating employee compensation.",
-    keywords: [
-      "ESOP vs RSU",
-      "RSU vs ESOP",
-      "stock options vs RSU",
-      "employee equity",
-      "startup ESOP vs RSU",
-      "RSU vesting",
-      "ESOP exercise price",
-      "equity compensation",
+    icon: Clock3,
+    quickAnswer: [
+      "Vesting determines when the employee earns portions of the grant.",
+      "A four-year schedule with a one-year cliff is common, but documents control the actual terms.",
+      "Granted options are not the same as vested options, especially if you may leave early.",
     ],
-    content: (
-      <>
-        <p>
-          <strong>ESOPs and RSUs</strong> are both forms of employee equity, but
-          they do not create the same economics. The most important difference
-          is that an employee stock option generally provides a right to acquire
-          shares at an exercise price, while an RSU generally represents an
-          equity award that is delivered according to its vesting and settlement
-          terms without an option exercise price.
-        </p>
-
-        <p>
-          When comparing compensation offers, the label alone is not enough.
-          Employees should understand what they must pay, when the equity vests,
-          what the underlying shares may be worth and whether those shares can
-          actually be sold.
-        </p>
-
-        <h2 id="comparison">ESOP vs RSU at a glance</h2>
-
-        <div className="not-prose my-10 overflow-x-auto rounded-[24px] border border-slate-200">
-          <table className="w-full min-w-[680px] text-left text-sm">
-            <thead className="bg-[#06101f] text-white">
-              <tr>
-                <th className="p-4 font-black">Feature</th>
-                <th className="p-4 font-black">ESOP / stock option</th>
-                <th className="p-4 font-black">RSU</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-700">
-              {[
-                ["Basic structure", "Right to acquire shares", "Equity units/shares delivered under award terms"],
-                ["Exercise price", "Commonly required", "Typically no option exercise price"],
-                ["Vesting", "Usually applies", "Usually applies"],
-                ["Cash needed to exercise", "Can be significant", "Generally not an option-exercise requirement"],
-                ["Value sensitivity", "Share value relative to strike matters", "Underlying share value matters"],
-                ["Liquidity", "Depends on underlying company/shares", "Depends on underlying company/shares"],
-              ].map((row) => (
-                <tr key={row[0]}>
-                  {row.map((cell, index) => (
-                    <td key={cell} className={`p-4 ${index === 0 ? "font-black text-slate-950" : ""}`}>
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <h2 id="esop">How does an ESOP or stock option work?</h2>
-
-        <p>
-          An option grant generally gives you the right to buy a specified
-          number of shares at a defined exercise or strike price once the
-          relevant options have vested and other conditions are satisfied.
-        </p>
-
-        <p>
-          If the share value rises significantly above the exercise price, the
-          option can have meaningful economic upside. If the share value does
-          not exceed the exercise price—or if liquidity never arrives—the
-          economic outcome can be very different.
-        </p>
-
-        <h2 id="rsu">How does an RSU work?</h2>
-
-        <p>
-          A Restricted Stock Unit generally represents a promise to deliver
-          shares or an equivalent benefit when specified vesting and settlement
-          conditions are met. Unlike an option, an RSU typically does not
-          require paying an option strike price to obtain the underlying equity.
-        </p>
-
-        <p>
-          The exact legal, tax and settlement treatment varies by plan,
-          jurisdiction and company, so the award documents remain authoritative.
-        </p>
-
-        <h2 id="exercise">Exercise cost: a major economic difference</h2>
-
-        <p>
-          Options can require employees to commit cash. For example, 10,000
-          vested options with a ₹50 strike price imply a ₹5,00,000 exercise cost
-          before considering taxes or other costs.
-        </p>
-
-        <div className="not-prose my-10 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-[22px] border border-blue-100 bg-blue-50/60 p-6">
-            <WalletCards className="h-5 w-5 text-blue-600" />
-            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.15em] text-blue-600">ESOP</p>
-            <p className="mt-2 text-xl font-black text-slate-950">Exercise cash may be required</p>
-          </div>
-          <div className="rounded-[22px] border border-violet-100 bg-violet-50/60 p-6">
-            <Layers3 className="h-5 w-5 text-violet-600" />
-            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.15em] text-violet-600">RSU</p>
-            <p className="mt-2 text-xl font-black text-slate-950">No option strike-price decision</p>
-          </div>
-        </div>
-
-        <h2 id="vesting">Do both ESOPs and RSUs vest?</h2>
-
-        <p>
-          Yes, both commonly use vesting schedules. A four-year schedule with a
-          one-year cliff is one familiar structure, but actual schedules vary.
-          Vesting determines when the employee earns the applicable portion of
-          the award.
-        </p>
-
-        <h2 id="value">How should employees think about value?</h2>
-
-        <p>
-          For options, the relationship between share value and exercise price
-          is central. For RSUs, the underlying share value is more directly
-          relevant because there is typically no option exercise price.
-        </p>
-
-        <div className="not-prose my-10 overflow-hidden rounded-[24px] bg-[#06101f] p-6 text-white">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">
-            Do not compare units blindly
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {[
-              ["10,000", "Options"],
-              ["1,000", "RSUs"],
-              ["≠", "Not directly comparable"],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-xl font-black">{value}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-slate-500">{label}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 text-xs leading-6 text-slate-500">
-            Unit counts alone do not establish which award is economically
-            stronger. Share value, strike price, vesting, dilution, liquidity
-            and tax treatment matter.
-          </p>
-        </div>
-
-        <h2 id="private-public">Are ESOPs only for startups and RSUs only for public companies?</h2>
-
-        <p>
-          No. Options are common in startups and private companies, while RSUs
-          are widely used by public and later-stage companies, but neither
-          structure is exclusive to one company type.
-        </p>
-
-        <p>
-          What matters is the actual award and the characteristics of the
-          underlying company and security.
-        </p>
-
-        <h2 id="liquidity">How does liquidity differ?</h2>
-
-        <p>
-          Liquidity depends primarily on the underlying shares and company, not
-          simply on whether the award is called an ESOP or RSU. Private-company
-          equity may have limited transfer opportunities. Public-company shares
-          can be more liquid, although trading windows, lockups or other
-          restrictions may still apply.
-        </p>
-
-        <h2 id="tax">What about tax?</h2>
-
-        <p>
-          Tax treatment can differ materially between options and RSUs and can
-          vary by jurisdiction, security type, exercise or vesting event,
-          holding period and employee circumstances.
-        </p>
-
-        <div className="not-prose my-10 rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-          <p className="font-black text-amber-950">Tax is not a side detail.</p>
-          <p className="mt-2 text-sm leading-7 text-amber-950/75">
-            A headline equity value can differ significantly from eventual
-            after-tax proceeds. Use professional tax advice for decisions that
-            depend on your personal circumstances.
-          </p>
-        </div>
-
-        <h2 id="offer">Which is better in a job offer: ESOP or RSU?</h2>
-
-        <p>
-          There is no universal winner. A strong RSU package at one company can
-          be less attractive than a strong option grant at another, and vice
-          versa. The answer depends on the economics and your priorities.
-        </p>
-
-        <ul>
-          <li>How much guaranteed cash does each offer provide?</li>
-          <li>What is the quantity and type of equity?</li>
-          <li>What is the option strike price, if applicable?</li>
-          <li>What is the relevant share value or company valuation?</li>
-          <li>How does each award vest?</li>
-          <li>What dilution and liquidity risks apply?</li>
-          <li>What exercise or tax obligations could require cash?</li>
-        </ul>
-
-        <h2 id="rsu-esop-takeaway">The key takeaway</h2>
-
-        <p>
-          ESOPs and RSUs are different financial structures. Comparing them
-          requires more than counting units. Separate guaranteed compensation
-          from equity opportunity, understand the mechanics of each award and
-          model the assumptions that can change the outcome.
-        </p>
-
-        <div className="not-prose my-10 rounded-[26px] border border-emerald-200 bg-emerald-50/60 p-7">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
-            Remember
-          </p>
-          <p className="mt-3 text-xl font-black tracking-tight text-slate-950">
-            Compare economics, not unit counts.
-          </p>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Equity type is only the beginning of the comparison.
-          </p>
-        </div>
-      </>
-    ),
+    heroStats: [
+      { label: "Granted", value: "headline" },
+      { label: "Vested", value: "earned" },
+      { label: "Cliff", value: "first gate" },
+      { label: "Leaving", value: "critical" },
+    ],
+    modelCards: [
+      { label: "Year 1", value: "cliff risk" },
+      { label: "Years 2-4", value: "gradual vesting" },
+      { label: "Exit", value: "unvested may lapse" },
+    ],
+    sections: [
+      {
+        id: "meaning",
+        eyebrow: "Meaning",
+        title:
+          "Vesting turns a grant into an earned right over time.",
+        body: [
+          "Receiving 10,000 options does not usually mean all 10,000 are immediately available to exercise. The vesting schedule defines how much becomes vested and when.",
+        ],
+      },
+      {
+        id: "cliff",
+        eyebrow: "Cliff",
+        title:
+          "A one-year cliff can make the first year binary.",
+        body: [
+          "Under a common one-year cliff, no options vest before the first anniversary. At the cliff, a first portion may vest, with the remainder vesting monthly or quarterly afterwards.",
+        ],
+        cards: [
+          { label: "Before cliff", value: "0% may be vested" },
+          { label: "At cliff", value: "25% may vest" },
+          { label: "After cliff", value: "monthly or quarterly" },
+        ],
+      },
+      {
+        id: "leaving",
+        eyebrow: "Leaving risk",
+        title:
+          "Vesting matters most when employment changes.",
+        body: [
+          "If you leave before vesting, unvested options are commonly forfeited. If you leave after options vest, the post-termination exercise window becomes the next important rule.",
+        ],
+      },
+    ],
+    personaViews: [
+      {
+        label: "Employee",
+        value:
+          "Know how much is actually vested before comparing offers or resigning.",
+      },
+      {
+        label: "Founder",
+        value:
+          "Vesting protects the company but must be explained clearly.",
+      },
+      {
+        label: "HR",
+        value:
+          "Candidates need examples, not only plan language.",
+      },
+      {
+        label: "Advisor",
+        value:
+          "Timing determines whether options can be exercised at all.",
+      },
+    ],
+    checklist: [
+      "Check total vesting duration.",
+      "Confirm cliff length and cliff percentage.",
+      "Check monthly, quarterly or annual vesting after cliff.",
+      "Confirm vesting start date.",
+      "Understand what happens when employment ends.",
+    ],
+    mistakes: [
+      "Treating granted as vested.",
+      "Ignoring cliff risk.",
+      "Forgetting exercise window after leaving.",
+    ],
+    faq: [
+      {
+        question: "What is a one-year cliff?",
+        answer:
+          "It means the first vesting event may happen only after completing one year, subject to the grant terms.",
+      },
+      {
+        question:
+          "What happens to unvested options when I leave?",
+        answer:
+          "They are commonly forfeited unless the documents provide special treatment such as acceleration.",
+      },
+    ],
+    related: [
+      "leaving-startup-esop-options",
+      "what-is-an-esop",
+      "startup-offered-25000-esops",
+    ],
   },
-};
+} satisfies Record<string, Article>;
 
 type Slug = keyof typeof articles;
 
-const articleAnchors: Record<Slug, string[][]> = {
-  "what-is-an-esop": [
-    ["how-esops-work", "How ESOPs work"],
-    ["important-terms", "Important terms"],
-    ["vesting", "Vesting"],
-    ["exercise-price", "Exercise price"],
-    ["value", "Potential value"],
-    ["dilution", "Dilution"],
-    ["liquidity", "Liquidity"],
-    ["offer-comparison", "Offer comparison"],
-    ["questions-to-ask", "Questions to ask"],
-  ],
-  "dilution-explained": [
-    ["dilution-meaning", "What dilution means"],
-    ["why-dilution-happens", "Why dilution happens"],
-    ["dilution-value", "Dilution vs value"],
-    ["fully-diluted", "Fully diluted ownership"],
-    ["funding-rounds", "Funding rounds"],
-    ["option-pool", "Option pools"],
-    ["model-dilution", "Model dilution"],
-    ["dilution-questions", "Questions to ask"],
-  ],
-  "vesting-schedule": [
-    ["vesting-meaning", "Vesting schedule"],
-    ["cliff", "One-year cliff"],
-    ["frequency", "Vesting frequency"],
-    ["vested-unvested", "Vested vs unvested"],
-    ["leaving", "Leaving the company"],
-    ["acceleration", "Acceleration"],
-    ["vesting-offer", "Offer comparison"],
-    ["vesting-questions", "Questions to ask"],
-  ],
-  "esop-vs-rsu": [
-    ["comparison", "ESOP vs RSU"],
-    ["esop", "How options work"],
-    ["rsu", "How RSUs work"],
-    ["exercise", "Exercise cost"],
-    ["vesting", "Vesting"],
-    ["value", "Comparing value"],
-    ["liquidity", "Liquidity"],
-    ["tax", "Tax"],
-    ["offer", "Job-offer comparison"],
-  ],
-};
+export async function generateStaticParams() {
+  return Object.keys(articles).map((slug) => ({
+    slug,
+  }));
+}
 
 export async function generateMetadata({
   params,
@@ -1115,31 +1424,59 @@ export async function generateMetadata({
     };
   }
 
+  const canonicalUrl = `${BASE_URL}/blog/${slug}`;
+
   return {
+    metadataBase: new URL(BASE_URL),
+
     title: `${article.title} | ESOP Value Clarity`,
+
     description: article.description,
+
     keywords: article.keywords,
+
     alternates: {
-      canonical: `/blog/${slug}`,
+      canonical: canonicalUrl,
     },
+
     openGraph: {
       title: article.title,
       description: article.description,
       type: "article",
-      url: `/blog/${slug}`,
+      url: canonicalUrl,
       siteName: SITE_NAME,
       publishedTime: PUBLISHED_DATE,
       modifiedTime: UPDATED_DATE,
       authors: [AUTHOR_NAME],
+
+      images: [
+        {
+          url: "/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
     },
+
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description: article.description,
+      images: ["/og-image.png"],
     },
+
     robots: {
       index: true,
       follow: true,
+
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
   };
 }
@@ -1150,119 +1487,275 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
   const article = articles[slug as Slug];
 
-  if (!article) {
-    notFound();
-  }
+  if (!article) notFound();
 
-  const relatedArticles = Object.entries(articles)
-    .filter(([articleSlug]) => articleSlug !== slug)
-    .slice(0, 3);
+  const currentUrl = `${BASE_URL}/blog/${slug}`;
+
+  const relatedArticles = article.related
+    .map(
+      (relatedSlug) =>
+        [
+          relatedSlug,
+          articles[relatedSlug as Slug],
+        ] as const,
+    )
+    .filter(([, relatedArticle]) => Boolean(relatedArticle));
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
+
     headline: article.title,
+
     description: article.description,
+
     datePublished: PUBLISHED_DATE,
     dateModified: UPDATED_DATE,
+
+    inLanguage: "en-IN",
+
     author: {
       "@type": "Person",
+
       name: AUTHOR_NAME,
+
+      url: AUTHOR_LINKEDIN,
+
+      sameAs: [AUTHOR_LINKEDIN],
     },
+
     publisher: {
       "@type": "Organization",
+
       name: SITE_NAME,
+
+      url: BASE_URL,
+
+      logo: {
+        "@type": "ImageObject",
+        url: `${BASE_URL}/og-image.png`,
+      },
     },
+
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `/blog/${slug}`,
+      "@id": currentUrl,
     },
+
+    image: [`${BASE_URL}/og-image.png`],
+
     keywords: article.keywords.join(", "),
+
+    articleSection: article.category,
+
+    isPartOf: {
+      "@type": "CollectionPage",
+      name: "Equity Intelligence Hub",
+      url: `${BASE_URL}/blog`,
+    },
+
+    about: [
+      "Employee stock options",
+      "Startup equity",
+      "Equity compensation",
+      "ESOP decision making",
+    ],
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+
+    mainEntity: article.faq.map((item) => ({
+      "@type": "Question",
+
+      name: item.question,
+
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
+  const videoJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+
+    name: `${article.title} | ESOP Value Clarity`,
+
+    description:
+      "Founder-led explanation of ESOP and startup equity decision making from ESOP Value Clarity.",
+
+    thumbnailUrl: [
+      `https://i.ytimg.com/vi/${YOUTUBE_ID}/maxresdefault.jpg`,
+    ],
+
+    uploadDate: UPDATED_DATE,
+
+    embedUrl: `https://www.youtube.com/embed/${YOUTUBE_ID}`,
+
+    contentUrl: YOUTUBE_URL,
+
+    publisher: {
+      "@type": "Organization",
+
+      name: SITE_NAME,
+
+      url: BASE_URL,
+
+      logo: {
+        "@type": "ImageObject",
+        url: `${BASE_URL}/og-image.png`,
+      },
+    },
+
+    creator: {
+      "@type": "Person",
+
+      name: AUTHOR_NAME,
+
+      url: AUTHOR_LINKEDIN,
+
+      sameAs: [AUTHOR_LINKEDIN],
+    },
   };
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+
     itemListElement: [
       {
         "@type": "ListItem",
+
         position: 1,
+
         name: "Home",
-        item: "/",
+
+        item: BASE_URL,
       },
+
       {
         "@type": "ListItem",
+
         position: 2,
-        name: "Equity Intelligence Journal",
-        item: "/blog",
+
+        name: "Equity Intelligence Hub",
+
+        item: `${BASE_URL}/blog`,
       },
+
       {
         "@type": "ListItem",
+
         position: 3,
+
         name: article.title,
-        item: `/blog/${slug}`,
+
+        item: currentUrl,
       },
     ],
   };
 
+  const Icon = article.icon;
+
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f7f9fc] text-slate-950">
+    <main className="min-h-screen overflow-hidden bg-[#f7f9fc] text-[#0f172a]">
+      {/* ============================================================
+          STRUCTURED DATA
+      ============================================================ */}
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(articleJsonLd).replace(
+            /</g,
+            "\\u003c",
+          ),
         }}
       />
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(faqJsonLd).replace(
+            /</g,
+            "\\u003c",
+          ),
         }}
       />
 
-      {/* =====================================================
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(videoJsonLd).replace(
+            /</g,
+            "\\u003c",
+          ),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd).replace(
+            /</g,
+            "\\u003c",
+          ),
+        }}
+      />
+
+      {/* ============================================================
           ARTICLE HERO
-      ====================================================== */}
+      ============================================================ */}
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#030817] text-white">
+      <section className="relative overflow-hidden border-b border-[#dbe5f0] bg-[#030817] text-white">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.11]"
+          className="pointer-events-none absolute inset-0 opacity-[0.12]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(148,163,184,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.14) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
+              "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
+            backgroundSize: "68px 68px",
           }}
         />
 
-        <div className="pointer-events-none absolute -left-40 -top-40 h-[600px] w-[600px] animate-pulse rounded-full bg-blue-600/10 blur-[150px]" />
-        <div className="pointer-events-none absolute -right-40 top-[-180px] h-[620px] w-[620px] rounded-full bg-violet-600/10 blur-[160px]" />
+        <div className="pointer-events-none absolute -left-40 -top-40 h-[620px] w-[620px] rounded-full bg-[#2563eb]/20 blur-[150px]" />
+
+        <div className="pointer-events-none absolute -right-40 top-[-180px] h-[620px] w-[620px] rounded-full bg-[#94a3b8]/15 blur-[160px]" />
 
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
           <Link
             href="/blog"
-            className="group inline-flex items-center gap-2 text-sm font-bold text-slate-400 transition hover:text-white"
+            className="group inline-flex items-center gap-2 text-sm font-black text-[#94a3b8] transition hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1.5" />
-            Equity Intelligence Journal
+            <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
+
+            Equity Intelligence Hub
           </Link>
 
-          <div className="mt-12 grid gap-12 lg:grid-cols-[1.08fr_.92fr] lg:items-end">
+          <div className="mt-12 grid gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-end">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-blue-300/20 bg-blue-300/[0.08] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-blue-200">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#3b82f6]/25 bg-[#3b82f6]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#bfdbfe]">
+                  <Icon className="h-3.5 w-3.5" />
+
                   {article.category}
                 </span>
 
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#94a3b8]">
                   <Clock3 className="h-3.5 w-3.5" />
+
                   {article.readTime}
                 </span>
 
-                <span className="text-xs font-semibold text-slate-500">
-                  Updated 31 Aug 2026
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#94a3b8]">
+                  <PlayCircle className="h-3.5 w-3.5" />
+
+                  {article.videoTime}
                 </span>
               </div>
 
@@ -1270,289 +1763,246 @@ export default async function ArticlePage({
                 {article.title}
               </h1>
 
-              <p className="mt-7 max-w-3xl text-lg leading-8 text-slate-300">
+              <p className="mt-7 max-w-3xl text-lg leading-8 text-[#dbeafe]">
                 {article.description}
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-5 text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-blue-300" />
-                  Employee-first explanation
+              <div className="mt-8 flex flex-wrap gap-2">
+                {article.audience.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/12 bg-white/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#94a3b8]"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+
+              {/* Author signal */}
+              <div className="mt-8 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-white">
+                  S
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                  Scenarios, not predictions
+                <div>
+                  <p className="text-xs font-black text-white">
+                    {AUTHOR_NAME}
+                  </p>
+
+                  <p className="text-[10px] font-medium text-[#94a3b8]">
+                    Founder, ESOP Value Clarity
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* ARTICLE TERMINAL */}
-
+            {/* Quick answer */}
             <div className="relative">
-              <div className="absolute -inset-8 rounded-full bg-blue-500/[0.05] blur-3xl" />
+              <div className="absolute -inset-8 rounded-full bg-[#2563eb]/10 blur-3xl" />
 
-              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#081120]/90 shadow-[0_40px_100px_-35px_rgba(0,0,0,.85)]">
-                <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-slate-600" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-slate-600" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-slate-600" />
-                  </div>
-
-                  <span className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-500">
-                    Equity concept map
-                  </span>
+              <div className="relative overflow-hidden rounded-[30px] border border-white/12 bg-[#06101f]/85 shadow-[0_45px_120px_-40px_rgba(0,0,0,.9)] backdrop-blur-xl">
+                <div className="border-b border-white/[0.08] px-6 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#60a5fa]">
+                    3-minute answer
+                  </p>
                 </div>
 
-                <div className="p-5">
-                  {[
-                    [Layers3, "GRANT", "What did I receive?"],
-                    [Clock3, "VEST", "What is actually earned?"],
-                    [WalletCards, "EXERCISE", "What could it cost?"],
-                    [Percent, "DILUTION", "What can change ownership?"],
-                    [TrendingUp, "OUTCOME", "What could it become?"],
-                  ].map(([Icon, label, detail], index) => {
-                    const IconComponent = Icon as typeof Layers3;
+                <div className="space-y-3 p-6">
+                  {article.quickAnswer.map((item, index) => (
+                    <div
+                      key={item}
+                      className="flex gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-4"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/10 text-[10px] font-black text-[#60a5fa]">
+                        0{index + 1}
+                      </span>
 
-                    return (
-                      <div
-                        key={String(label)}
-                        className="group relative mb-2 flex items-center gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.035] px-4 py-3 transition duration-300 last:mb-0 hover:translate-x-2 hover:bg-white/[0.065]"
-                      >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.05] text-blue-300 transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
-                          <IconComponent className="h-4 w-4" />
-                        </div>
-
-                        <div className="flex-1">
-                          <p className="text-[8px] font-black uppercase tracking-[0.14em] text-blue-300">
-                            {String(label)}
-                          </p>
-                          <p className="mt-0.5 text-xs font-bold text-slate-300">
-                            {String(detail)}
-                          </p>
-                        </div>
-
-                        <span className="font-mono text-[9px] font-black text-slate-600">
-                          0{index + 1}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      <p className="text-sm leading-6 text-[#dbeafe]">
+                        {item}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Hero metrics */}
+          <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {article.heroStats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.055] p-5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/[0.085]"
+              >
+                <p className="text-xl font-black tracking-tight text-white">
+                  {stat.value}
+                </p>
+
+                <p className="mt-1 text-xs font-semibold text-[#94a3b8]">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* =====================================================
+      {/* ============================================================
           ARTICLE BODY
-      ====================================================== */}
+      ============================================================ */}
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-20 lg:grid-cols-[250px_minmax(0,760px)_220px] lg:justify-center">
-        {/* TABLE OF CONTENTS */}
-
+      <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-20 lg:grid-cols-[250px_minmax(0,780px)_240px] lg:justify-center">
+        {/* LEFT TOC */}
         <aside className="hidden lg:block">
-          <div className="sticky top-8 rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-slate-400">
-              In this guide
+          <div className="sticky top-8 rounded-[24px] border border-[#dbe5f0] bg-white p-5 shadow-sm">
+            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-[#1d4ed8]">
+              In this decision
             </p>
 
             <nav className="mt-4 space-y-1">
-              {articleAnchors[slug as Slug].map(([href, label], index) => (
+              {article.sections.map((section, index) => (
                 <a
-                  key={href}
-                  href={`#${href}`}
-                  className="group flex items-center gap-3 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-500 transition hover:translate-x-1 hover:bg-slate-50 hover:text-slate-950"
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className="group flex items-center gap-3 rounded-xl px-2 py-2.5 text-xs font-bold text-[#64748b] transition hover:translate-x-1 hover:bg-[#f7f9fc] hover:text-[#0f172a]"
                 >
-                  <span className="font-mono text-[9px] font-black text-slate-300 group-hover:text-blue-600">
+                  <span className="font-mono text-[9px] font-black text-[#94a3b8] group-hover:text-[#2563eb]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  {label}
+
+                  {section.title}
                 </a>
               ))}
             </nav>
           </div>
         </aside>
 
-        {/* CONTENT */}
+        {/* MAIN ARTICLE */}
+        <article className="min-w-0">
+          <VideoBlock
+            articleTitle={article.title}
+          />
 
-        <div id="top" className="min-w-0">
-          <article className="prose prose-slate max-w-none text-[17px] leading-8 prose-headings:scroll-mt-8 prose-headings:font-black prose-headings:tracking-[-0.035em] prose-headings:text-slate-950 prose-h2:mt-16 prose-h2:text-[30px] prose-p:mt-6 prose-p:text-slate-700 prose-strong:font-black prose-strong:text-slate-950 prose-ul:mt-6 prose-ul:space-y-3 prose-li:text-slate-700">
-            {article.content}
-          </article>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {article.modelCards.map((card) => (
+              <div
+                key={card.label}
+                className="rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+              >
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#2563eb]">
+                  {card.label}
+                </p>
 
-          {/* EDUCATIONAL NOTICE */}
-
-          <div className="mt-14 rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-            <div className="flex items-start gap-4">
-              <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-amber-700" />
-              <div>
-                <p className="font-black text-amber-950">Educational content</p>
-                <p className="mt-2 text-sm leading-7 text-amber-950/75">
-                  This guide explains general equity concepts and is not
-                  financial, investment, legal, employment or tax advice.
-                  Company plans and individual circumstances differ. Your
-                  official documents and appropriate professional advice should
-                  be used for material decisions.
+                <p className="mt-3 text-lg font-black tracking-[-0.03em] text-[#0f172a]">
+                  {card.value}
                 </p>
               </div>
-            </div>
+            ))}
           </div>
 
-          {/* PRODUCT CTA */}
+          <div className="mt-14 space-y-16">
+            {article.sections.map((section) => (
+              <ArticleSection
+                key={section.id}
+                section={section}
+              />
+            ))}
+          </div>
 
-          <section className="relative mt-16 overflow-hidden rounded-[30px] bg-[#030817] p-8 text-white md:p-10">
-            <div
-              className="absolute inset-0 opacity-[0.1]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(148,163,184,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.14) 1px, transparent 1px)",
-                backgroundSize: "52px 52px",
-              }}
-            />
+          <PersonaViews
+            views={article.personaViews}
+          />
 
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/10 blur-[80px]" />
+          <DecisionChecklist
+            items={article.checklist}
+          />
 
-            <div className="relative">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/10 text-blue-300">
-                <Calculator className="h-5 w-5" />
-              </div>
+          <MistakesBlock
+            items={article.mistakes}
+          />
 
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-blue-300">
-                Knowledge → modelling
-              </p>
+          <FaqBlock
+            items={article.faq}
+          />
 
-              <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-0.045em] md:text-4xl">
-                Now apply the concepts to your own assumptions.
-              </h2>
+          <EducationalNotice />
 
-              <p className="mt-5 max-w-2xl leading-7 text-slate-300">
-                Use the ESOP simulator to connect grant size, vesting,
-                valuation, dilution and exit assumptions instead of relying on
-                option count alone.
-              </p>
+          <ProductCta
+            articleTitle={article.title}
+          />
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/simulator">
-                  <Button
-                    size="lg"
-                    className="group rounded-xl bg-blue-600 px-6 font-black text-white hover:bg-blue-500"
-                  >
-                    Open ESOP Simulator
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
-                </Link>
+          <RelatedArticles
+            articles={relatedArticles}
+          />
+        </article>
 
-                <Link
-                  href="/blog"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-5 text-sm font-black text-white transition hover:bg-white/[0.09]"
-                >
-                  Continue learning
-                  <BookOpen className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* RELATED */}
-
-          <section id="related" className="mt-20">
-            <div className="flex items-end justify-between gap-5">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">
-                  Continue learning
-                </p>
-
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-slate-950">
-                  Related equity guides
-                </h2>
-              </div>
-
-              <Link
-                href="/blog"
-                className="group hidden items-center gap-2 text-sm font-black text-blue-600 md:flex"
-              >
-                View journal
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </div>
-
-            <div className="mt-8 grid gap-5 md:grid-cols-3">
-              {relatedArticles.map(([relatedSlug, relatedArticle], index) => (
-                <Link
-                  key={relatedSlug}
-                  href={`/blog/${relatedSlug}`}
-                  className="group relative overflow-hidden rounded-[22px] border border-slate-200 bg-white p-6 transition duration-400 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_25px_70px_-40px_rgba(37,99,235,.4)]"
-                >
-                  <span className="font-mono text-[9px] font-black text-slate-300">
-                    0{index + 1}
-                  </span>
-
-                  <p className="mt-5 text-[9px] font-black uppercase tracking-[0.14em] text-blue-600">
-                    {relatedArticle.category}
-                  </p>
-
-                  <h3 className="mt-3 text-lg font-black leading-6 text-slate-950">
-                    {relatedArticle.title}
-                  </h3>
-
-                  <p className="mt-3 line-clamp-3 text-xs leading-6 text-slate-500">
-                    {relatedArticle.description}
-                  </p>
-
-                  <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <span className="text-xs font-black text-slate-700">
-                      {relatedArticle.readTime}
-                    </span>
-
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition duration-300 group-hover:translate-x-1 group-hover:border-blue-600 group-hover:bg-blue-600 group-hover:text-white">
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {/* RIGHT RAIL */}
-
+        {/* RIGHT SIDE */}
         <aside className="hidden lg:block">
           <div className="sticky top-8 space-y-4">
-            <div className="rounded-[22px] border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+            <div className="rounded-[24px] border border-[#dbe5f0] bg-white p-5 shadow-sm">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
                 Article principles
               </p>
 
               <div className="mt-5 space-y-4">
                 {[
-                  ["Known terms", "Separate facts"],
-                  ["Assumptions", "Keep visible"],
-                  ["Scenarios", "Not forecasts"],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">
-                      {label}
-                    </p>
-                    <p className="mt-1 text-xs font-black text-slate-950">
-                      {value}
-                    </p>
-                  </div>
-                ))}
+                  [
+                    ShieldCheck,
+                    "Known terms",
+                    "Separate facts",
+                  ],
+                  [
+                    Gauge,
+                    "Assumptions",
+                    "Keep visible",
+                  ],
+                  [
+                    LineChart,
+                    "Scenarios",
+                    "Not forecasts",
+                  ],
+                ].map(
+                  ([IconValue, label, value]) => {
+                    const SmallIcon =
+                      IconValue as LucideIcon;
+
+                    return (
+                      <div
+                        key={String(label)}
+                        className="flex gap-3"
+                      >
+                        <SmallIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
+
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#64748b]">
+                            {String(label)}
+                          </p>
+
+                          <p className="mt-1 text-xs font-black text-[#0f172a]">
+                            {String(value)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
               </div>
             </div>
 
             <Link
               href="/simulator"
-              className="group block rounded-[22px] bg-blue-600 p-5 text-white shadow-lg shadow-blue-100 transition duration-300 hover:-translate-y-1"
+              className="group block rounded-[24px] bg-[#030817] p-5 text-white shadow-lg shadow-[#dbe5f0] transition duration-300 hover:-translate-y-1 hover:bg-[#06101f]"
             >
-              <LineChart className="h-5 w-5 text-blue-100" />
-              <p className="mt-4 text-sm font-black">Model your own ESOP</p>
-              <p className="mt-2 text-[11px] leading-5 text-blue-100">
-                Move from the concept to your own scenario.
+              <Calculator className="h-5 w-5 text-[#60a5fa]" />
+
+              <p className="mt-4 text-sm font-black">
+                Model your own ESOP
               </p>
+
+              <p className="mt-2 text-[11px] leading-5 text-[#94a3b8]">
+                Move from reading to your own scenario.
+              </p>
+
               <ArrowRight className="mt-5 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
           </div>
@@ -1561,5 +2011,436 @@ export default async function ArticlePage({
 
       <Footer />
     </main>
+  );
+}
+
+function VideoBlock({
+  articleTitle,
+}: {
+  articleTitle: string;
+}) {
+  return (
+    <section className="overflow-hidden rounded-[30px] border border-[#dbe5f0] bg-white shadow-[0_28px_90px_-60px_rgba(15,23,42,.35)]">
+      <div className="grid lg:grid-cols-[.82fr_1.18fr]">
+        <div className="border-b border-[#dbe5f0] p-6 md:p-8 lg:border-b-0 lg:border-r">
+          <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+            <PlayCircle className="h-4 w-4" />
+            Watch first
+          </p>
+
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.045em] text-[#0f172a]">
+            Sheshank explains the thinking behind ESOP Value Clarity.
+          </h2>
+
+          <p className="mt-4 text-sm leading-7 text-[#475569]">
+            Start with the founder's explanation, then move through
+            the decision framework below. This keeps the article
+            connected to the product instead of feeling like a
+            generic content page.
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-[#dbe5f0] bg-[#f7f9fc] p-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#2563eb]">
+              Article
+            </p>
+
+            <p className="mt-1 text-sm font-black leading-6 text-[#0f172a]">
+              {articleTitle}
+            </p>
+          </div>
+
+          <a
+            href={YOUTUBE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex items-center gap-2 text-xs font-black text-[#2563eb]"
+          >
+            Open on YouTube
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
+
+        <div className="aspect-video bg-[#030817]">
+          <iframe
+            className="h-full w-full"
+            src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1`}
+            title="ESOP Value Clarity founder explanation"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ArticleSection({
+  section,
+}: {
+  section: Section;
+}) {
+  return (
+    <section
+      id={section.id}
+      className="scroll-mt-10"
+    >
+      {section.eyebrow && (
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+          {section.eyebrow}
+        </p>
+      )}
+
+      <h2 className="mt-3 text-3xl font-black leading-tight tracking-[-0.045em] text-[#0f172a] md:text-4xl">
+        {section.title}
+      </h2>
+
+      <div className="mt-6 space-y-5">
+        {section.body.map((paragraph) => (
+          <p
+            key={paragraph}
+            className="text-[17px] leading-8 text-[#64748b]"
+          >
+            {paragraph}
+          </p>
+        ))}
+      </div>
+
+      {section.cards && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {section.cards.map((card) => (
+            <div
+              key={card.label}
+              className="rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
+                {card.label}
+              </p>
+
+              <p className="mt-3 text-xl font-black tracking-[-0.035em] text-[#0f172a]">
+                {card.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {section.bullets && (
+        <div className="mt-8 rounded-[26px] border border-[#dbe5f0] bg-white p-6 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {section.bullets.map((bullet) => (
+              <div
+                key={bullet}
+                className="flex gap-3 text-sm font-semibold leading-6 text-[#64748b]"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
+
+                {bullet}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {section.warning && (
+        <div className="mt-8 rounded-[24px] border border-[#93c5fd] bg-[#eff6ff] p-6">
+          <div className="flex gap-4">
+            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#2563eb]" />
+
+            <p className="text-sm font-semibold leading-7 text-[#64748b]">
+              {section.warning}
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PersonaViews({
+  views,
+}: {
+  views: {
+    label: string;
+    value: string;
+  }[];
+}) {
+  return (
+    <section className="mt-20 rounded-[30px] border border-[#dbe5f0] bg-white p-6 shadow-sm md:p-8">
+      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+        <UsersRound className="h-4 w-4" />
+        Why this matters to each reader
+      </p>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {views.map((view) => (
+          <div
+            key={view.label}
+            className="rounded-[22px] border border-[#dbe5f0] bg-[#f7f9fc] p-5"
+          >
+            <p className="text-sm font-black text-[#0f172a]">
+              {view.label}
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-[#475569]">
+              {view.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DecisionChecklist({
+  items,
+}: {
+  items: string[];
+}) {
+  return (
+    <section className="mt-16 rounded-[30px] border border-[#dbe5f0] bg-[#ffffff] p-6 md:p-8">
+      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+        <FileSearch className="h-4 w-4" />
+        Decision checklist
+      </p>
+
+      <div className="mt-6 grid gap-3">
+        {items.map((item, index) => (
+          <div
+            key={item}
+            className="flex items-center gap-4 rounded-2xl border border-[#dbe5f0] bg-white p-4"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eff6ff] text-[10px] font-black text-[#1d4ed8]">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+
+            <p className="text-sm font-semibold leading-6 text-[#64748b]">
+              {item}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MistakesBlock({
+  items,
+}: {
+  items: string[];
+}) {
+  return (
+    <section className="mt-16 rounded-[30px] border border-[#fecdd3] bg-[#fff1f2] p-6 md:p-8">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#be123c]">
+        Common mistakes
+      </p>
+
+      <div className="mt-6 grid gap-3">
+        {items.map((item) => (
+          <div
+            key={item}
+            className="rounded-2xl border border-[#fecdd3] bg-white/70 p-4 text-sm font-semibold leading-6 text-[#7f1d1d]"
+          >
+            {item}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FaqBlock({
+  items,
+}: {
+  items: {
+    question: string;
+    answer: string;
+  }[];
+}) {
+  return (
+    <section className="mt-16">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+        FAQ
+      </p>
+
+      <div className="mt-5 space-y-3">
+        {items.map((item) => (
+          <details
+            key={item.question}
+            className="group rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+          >
+            <summary className="cursor-pointer list-none text-base font-black text-[#0f172a] marker:hidden">
+              <span className="flex items-center justify-between gap-5">
+                {item.question}
+
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#2563eb] transition group-open:rotate-90" />
+              </span>
+            </summary>
+
+            <p className="mt-4 text-sm leading-7 text-[#475569]">
+              {item.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EducationalNotice() {
+  return (
+    <div className="mt-16 rounded-[24px] border border-[#93c5fd] bg-[#eff6ff] p-6">
+      <div className="flex items-start gap-4">
+        <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#2563eb]" />
+
+        <div>
+          <p className="font-black text-[#0f172a]">
+            Educational content
+          </p>
+
+          <p className="mt-2 text-sm leading-7 text-[#64748b]">
+            This guide explains general equity concepts and is not
+            financial, investment, legal, employment or tax advice.
+            Company plans and individual circumstances differ. Use
+            official documents and appropriate professional advice
+            for material decisions.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductCta({
+  articleTitle,
+}: {
+  articleTitle: string;
+}) {
+  return (
+    <section className="relative mt-16 overflow-hidden rounded-[32px] bg-[#030817] p-8 text-white md:p-10">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.1]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)",
+          backgroundSize: "52px 52px",
+        }}
+      />
+
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#2563eb]/20 blur-[80px]" />
+
+      <div className="relative">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#3b82f6]/25 bg-[#3b82f6]/10 text-[#60a5fa]">
+          <Calculator className="h-5 w-5" />
+        </div>
+
+        <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#60a5fa]">
+          Knowledge to modelling
+        </p>
+
+        <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-0.045em] md:text-4xl">
+          Apply this guide to your own ESOP assumptions.
+        </h2>
+
+        <p className="mt-5 max-w-2xl leading-7 text-[#dbeafe]">
+          Use ESOP Value Clarity to connect grant size, vesting,
+          exercise cost, dilution and exit scenarios instead of
+          relying on a headline number from "{articleTitle}".
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/simulator"
+            className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-black text-white transition hover:bg-[#3b82f6]"
+          >
+            Open ESOP Simulator
+
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+
+          <Link
+            href="/pro/offers/new"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.07] px-5 text-sm font-black text-white transition hover:bg-white/[0.12]"
+          >
+            Try Offer Intelligence
+
+            <BookOpen className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RelatedArticles({
+  articles: relatedArticles,
+}: {
+  articles: readonly (readonly [string, Article])[];
+}) {
+  if (!relatedArticles.length) return null;
+
+  return (
+    <section className="mt-20">
+      <div className="flex items-end justify-between gap-5">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+            Continue learning
+          </p>
+
+          <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0f172a]">
+            Related equity decisions
+          </h2>
+        </div>
+
+        <Link
+          href="/blog"
+          className="group hidden items-center gap-2 text-sm font-black text-[#2563eb] md:flex"
+        >
+          View hub
+
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </div>
+
+      <div className="mt-8 grid gap-5 md:grid-cols-3">
+        {relatedArticles.map(
+          ([relatedSlug, relatedArticle]) => {
+            const Icon = relatedArticle.icon;
+
+            return (
+              <Link
+                key={relatedSlug}
+                href={`/blog/${relatedSlug}`}
+                className="group relative overflow-hidden rounded-[24px] border border-[#dbe5f0] bg-white p-6 transition duration-500 hover:-translate-y-2 hover:border-[#2563eb] hover:shadow-[0_25px_70px_-45px_rgba(37,99,235,.30)]"
+              >
+                <Icon className="h-5 w-5 text-[#2563eb]" />
+
+                <p className="mt-5 text-[9px] font-black uppercase tracking-[0.14em] text-[#2563eb]">
+                  {relatedArticle.category}
+                </p>
+
+                <h3 className="mt-3 text-lg font-black leading-6 text-[#0f172a]">
+                  {relatedArticle.title}
+                </h3>
+
+                <p className="mt-3 line-clamp-3 text-xs leading-6 text-[#475569]">
+                  {relatedArticle.description}
+                </p>
+
+                <div className="mt-6 flex items-center justify-between border-t border-[#dbe5f0] pt-4">
+                  <span className="text-xs font-black text-[#475569]">
+                    {relatedArticle.readTime}
+                  </span>
+
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#dbe5f0] transition duration-300 group-hover:translate-x-1 group-hover:border-[#2563eb] group-hover:bg-[#2563eb] group-hover:text-white">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            );
+          },
+        )}
+      </div>
+    </section>
   );
 }

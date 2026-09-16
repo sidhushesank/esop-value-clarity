@@ -163,6 +163,11 @@ export default function ProVestingPage() {
       DEFAULT_INPUTS
     );
 
+  const [inputDrafts, setInputDrafts] =
+    useState<
+      Partial<Record<keyof VestingInput, string>>
+    >({});
+
   /* ==========================================================
      PERSISTENCE HYDRATION FLAG
 
@@ -950,12 +955,52 @@ export default function ProVestingPage() {
      This prevents the maximum update depth loop.
   ========================================================== */
 
+  function toEditableNumber(value: string | number) {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (value.trim() === "") {
+      return 0;
+    }
+
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue)
+      ? numericValue
+      : 0;
+  }
+
+  function inputValue(
+    field: keyof VestingInput,
+    value: number
+  ) {
+    return inputDrafts[field] ?? String(value);
+  }
+
+  function commitInput(
+    field: keyof VestingInput
+  ) {
+    setInputDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
   function updateInput(
     field: keyof VestingInput,
     value: string | number
   ) {
+    if (typeof value === "string") {
+      setInputDrafts((previous) => ({
+        ...previous,
+        [field]: value,
+      }));
+    }
+
     const numericValue =
-      normalizeProNumber(value);
+      toEditableNumber(value);
 
     const nextInputs: VestingInput = {
       ...inputs,
@@ -1026,6 +1071,8 @@ export default function ProVestingPage() {
     /*
      * Reset local state.
      */
+
+    setInputDrafts({});
 
     setInputs({
       ...DEFAULT_INPUTS,
@@ -2106,23 +2153,28 @@ export default function ProVestingPage() {
                 <Field
                   label="Total options"
                   description="Total number of options in your grant."
-                  value={
+                  value={inputValue(
+                    "totalOptions",
                     inputs.totalOptions
-                  }
+                  )}
                   onChange={(value) =>
                     updateInput(
                       "totalOptions",
                       value
                     )
                   }
+                  onBlur={() =>
+                    commitInput("totalOptions")
+                  }
                 />
 
                 <Field
                   label="Exercise price"
                   description="Price paid per option when exercising."
-                  value={
+                  value={inputValue(
+                    "exercisePrice",
                     inputs.exercisePrice
-                  }
+                  )}
                   prefix="₹"
                   onChange={(value) =>
                     updateInput(
@@ -2130,14 +2182,18 @@ export default function ProVestingPage() {
                       value
                     )
                   }
+                  onBlur={() =>
+                    commitInput("exercisePrice")
+                  }
                 />
 
                 <Field
                   label="Vesting period"
                   description="Total time until the grant fully vests."
-                  value={
+                  value={inputValue(
+                    "vestingPeriodMonths",
                     inputs.vestingPeriodMonths
-                  }
+                  )}
                   suffix="months"
                   onChange={(value) =>
                     updateInput(
@@ -2145,14 +2201,18 @@ export default function ProVestingPage() {
                       value
                     )
                   }
+                  onBlur={() =>
+                    commitInput("vestingPeriodMonths")
+                  }
                 />
 
                 <Field
                   label="Cliff"
                   description="Initial period before the first vesting event."
-                  value={
+                  value={inputValue(
+                    "cliffMonths",
                     inputs.cliffMonths
-                  }
+                  )}
                   suffix="months"
                   onChange={(value) =>
                     updateInput(
@@ -2160,20 +2220,27 @@ export default function ProVestingPage() {
                       value
                     )
                   }
+                  onBlur={() =>
+                    commitInput("cliffMonths")
+                  }
                 />
 
                 <Field
                   label="Months completed"
                   description="Time already completed in the schedule."
-                  value={
+                  value={inputValue(
+                    "monthsCompleted",
                     inputs.monthsCompleted
-                  }
+                  )}
                   suffix="months"
                   onChange={(value) =>
                     updateInput(
                       "monthsCompleted",
                       value
                     )
+                  }
+                  onBlur={() =>
+                    commitInput("monthsCompleted")
                   }
                 />
 
@@ -2974,13 +3041,15 @@ function Field({
   prefix,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   description: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -3010,6 +3079,7 @@ function Field({
               event.target.value
             )
           }
+          onBlur={onBlur}
           className={`
             h-11 rounded-xl
             border-slate-200

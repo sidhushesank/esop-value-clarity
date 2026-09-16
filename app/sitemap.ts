@@ -1,6 +1,20 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://esop-value-clarity.vercel.app";
+const BASE_URL =
+  "https://esop-value-clarity.vercel.app";
+
+const articles = [
+  "startup-offered-25000-esops",
+  "should-i-negotiate-esops",
+  "esop-exercise-cost",
+  "leaving-startup-esop-options",
+  "startup-raised-funding-dilution",
+  "compare-startup-offers-equity",
+  "what-is-an-esop",
+  "esop-vs-rsu",
+  "dilution-explained",
+  "vesting-schedule",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -10,55 +24,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+
     {
       url: `${BASE_URL}/simulator`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
     },
+
     {
       url: `${BASE_URL}/pricing`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
     },
+
     {
       url: `${BASE_URL}/about`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6,
     },
+
     {
       url: `${BASE_URL}/blog`,
       lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.9,
     },
 
-    // Blog articles
-    {
-      url: `${BASE_URL}/blog/what-is-an-esop`,
+    ...articles.map((slug) => ({
+      url: `${BASE_URL}/blog/${slug}`,
       lastModified: new Date(),
-      changeFrequency: "monthly",
+      changeFrequency: "monthly" as const,
       priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/blog/esop-vs-rsu`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/blog/dilution-explained`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/blog/vesting-schedule`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
+    })),
   ];
 }

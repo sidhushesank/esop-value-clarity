@@ -81,6 +81,11 @@ type AnalysisBasis =
   | "CURRENTLY_VESTED"
   | "EXERCISE_PLAN";
 
+type ExitEditableDraftKey =
+  | "exitValuation"
+  | "exerciseFMV"
+  | "holdingPeriodMonths";
+
 const LOG = "[EVC:EXIT:UI]";
 function devLog(event: string, payload?: Record<string, unknown>) {
   if (process.env.NODE_ENV !== "production") console.info(LOG, event, payload ?? {});
@@ -115,6 +120,11 @@ export default function ProExitPage() {
     grantConnectionLoading,
     setGrantConnectionLoading,
   ] = useState(false);
+
+  const [inputDrafts, setInputDrafts] =
+    useState<
+      Partial<Record<ExitEditableDraftKey, string>>
+    >({});
 
   /* ==========================================================
      CONFIRMED GRANT -> SHARED PRO MODEL
@@ -385,6 +395,56 @@ export default function ProExitPage() {
   );
 
   /* ==========================================================
+     EDITABLE INPUT DRAFTS
+
+     These keep fields blank while the user is typing,
+     while calculations still receive safe numeric values.
+  ========================================================== */
+
+  function toEditableNumber(value: string | number) {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    if (value.trim() === "") {
+      return 0;
+    }
+
+    const numericValue = Number(value);
+
+    return Number.isFinite(numericValue)
+      ? numericValue
+      : 0;
+  }
+
+  function inputValue(
+    field: ExitEditableDraftKey,
+    value: number
+  ) {
+    return inputDrafts[field] ?? String(value);
+  }
+
+  function setInputDraft(
+    field: ExitEditableDraftKey,
+    value: string
+  ) {
+    setInputDrafts((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  }
+
+  function commitInput(
+    field: ExitEditableDraftKey
+  ) {
+    setInputDrafts((previous) => {
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }
+
+  /* ==========================================================
      RESET EXIT
 
      Only reset exit-specific assumption.
@@ -392,6 +452,8 @@ export default function ProExitPage() {
   ========================================================== */
 
   function resetExitAssumption() {
+    setInputDrafts({});
+
     updateProState({
       exitValuation: 500_000_000,
     });
@@ -408,9 +470,14 @@ export default function ProExitPage() {
   function updateExitValuation(
     value: string
   ) {
+    setInputDraft(
+      "exitValuation",
+      value
+    );
+
     updateProState({
       exitValuation:
-        normalizeProNumber(
+        toEditableNumber(
           value
         ),
     });
@@ -1039,15 +1106,19 @@ export default function ProExitPage() {
                       <Input
                         type="number"
                         min={0}
-                        value={
+                        value={inputValue(
+                          "exitValuation",
                           proState.exitValuation
-                        }
+                        )}
                         onChange={(
                           event
                         ) =>
                           updateExitValuation(
                             event.target.value
                           )
+                        }
+                        onBlur={() =>
+                          commitInput("exitValuation")
                         }
                         className="h-11 rounded-xl bg-white pl-8 text-sm font-semibold"
                       />
@@ -1166,9 +1237,27 @@ export default function ProExitPage() {
                       <EditableField
                         label="FMV at exercise"
                         description="Fair market value per share"
-                        value={proState.exerciseFMV}
+                        value={inputValue(
+                          "exerciseFMV",
+                          proState.exerciseFMV
+                        )}
                         prefix="₹"
-                        onChange={(value) => updateProState({ exerciseFMV: normalizeProNumber(value) })}
+                        onChange={(value) => {
+                          setInputDraft(
+                            "exerciseFMV",
+                            value
+                          );
+
+                          updateProState({
+                            exerciseFMV:
+                              toEditableNumber(
+                                value
+                              ),
+                          });
+                        }}
+                        onBlur={() =>
+                          commitInput("exerciseFMV")
+                        }
                       />
                     )}
 
@@ -1177,17 +1266,26 @@ export default function ProExitPage() {
                     <EditableField
                       label="Holding period"
                       description="Months between exercise and sale"
-                      value={
+                      value={inputValue(
+                        "holdingPeriodMonths",
                         proState.holdingPeriodMonths
-                      }
+                      )}
                       suffix="months"
-                      onChange={(value) =>
+                      onChange={(value) => {
+                        setInputDraft(
+                          "holdingPeriodMonths",
+                          value
+                        );
+
                         updateProState({
                           holdingPeriodMonths:
-                            normalizeProNumber(
+                            toEditableNumber(
                               value
                             ),
-                        })
+                        });
+                      }}
+                      onBlur={() =>
+                        commitInput("holdingPeriodMonths")
                       }
                     />
 
@@ -2283,15 +2381,17 @@ function EditableField({
   prefix,
   suffix,
   onChange,
+  onBlur,
 }: {
   label: string;
   description: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
   onChange: (
     value: string
   ) => void;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -2321,6 +2421,7 @@ function EditableField({
               event.target.value
             )
           }
+          onBlur={onBlur}
           className={`h-10 rounded-xl bg-slate-50 text-sm font-semibold ${
             prefix
               ? "pl-8"
