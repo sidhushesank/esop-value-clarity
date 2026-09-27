@@ -5,7 +5,7 @@
 **ESOP Value Clarity is an employee-first fintech SaaS platform built for startup employees navigating ESOP grants, vesting, exercise, dilution, tax, exits and equity-heavy job offers.**
 
 🌐 **Live Product:**  
-https://esop-value-clarity.vercel.app/
+[https://esop-value-clarity.vercel.app/](https://esopvalueclarity.com/)
 
 ---
 
@@ -540,7 +540,7 @@ That creates a strange gap.
 **Founder — ESOP Value Clarity**
 
 🌐 **Product**  
-https://esop-value-clarity.vercel.app/
+https://esopvalueclarity.com/
 
 💼 **LinkedIn**  
 https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/
