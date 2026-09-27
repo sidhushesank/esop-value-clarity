@@ -13,6 +13,10 @@ const inter = Inter({
 });
 
 const siteUrl = "https://esopvalueclarity.com";
+const siteName = "ESOP Value Clarity";
+const logoUrl = `${siteUrl}/favicon.ico`;
+const linkedinUrl =
+  "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -53,12 +57,20 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Sheshank Sidheshwar",
+      url: linkedinUrl,
     },
   ],
 
   creator: "Sheshank Sidheshwar",
+  publisher: siteName,
 
-  publisher: "ESOP Value Clarity",
+  applicationName: siteName,
+
+  category: "Finance",
+
+  generator: "Next.js",
+
+  referrer: "origin-when-cross-origin",
 
   robots: {
     index: true,
@@ -73,6 +85,12 @@ export const metadata: Metadata = {
     },
   },
 
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+
   openGraph: {
     title:
       "ESOP Value Clarity | Employee Equity Decision Platform",
@@ -82,7 +100,7 @@ export const metadata: Metadata = {
 
     url: siteUrl,
 
-    siteName: "ESOP Value Clarity",
+    siteName,
 
     locale: "en_IN",
 
@@ -117,7 +135,7 @@ const jsonLd = {
 
   "@type": "WebApplication",
 
-  name: "ESOP Value Clarity",
+  name: siteName,
 
   url: siteUrl,
 
@@ -131,12 +149,22 @@ const jsonLd = {
   creator: {
     "@type": "Person",
     name: "Sheshank Sidheshwar",
+    url: linkedinUrl,
   },
 
   publisher: {
     "@type": "Organization",
-    name: "ESOP Value Clarity",
+
+    name: siteName,
+
     url: siteUrl,
+
+    logo: {
+      "@type": "ImageObject",
+      url: logoUrl,
+    },
+
+    sameAs: [linkedinUrl],
   },
 
   featureList: [
@@ -167,6 +195,12 @@ export default function RootLayout({
           name="directree-verify"
           content="directree-verify=dd177d69e79c2ab19b7c71f5c9dc7d8c"
         />
+
+        <link
+          rel="icon"
+          href="/favicon.ico"
+          sizes="any"
+        />
       </head>
 
       <body
@@ -175,7 +209,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd),
+            __html: JSON.stringify(jsonLd).replace(
+              /</g,
+              "\\u003c"
+            ),
           }}
         />
 
