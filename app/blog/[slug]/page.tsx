@@ -29,7 +29,7 @@ import {
 
 import Footer from "@/components/sections/Footer";
 
-const BASE_URL = "https://esop-value-clarity.vercel.app";
+const BASE_URL = "https://esopvalueclarity.com";
 const SITE_NAME = "ESOP Value Clarity";
 
 const AUTHOR_NAME = "Sheshank Sidheshwar";

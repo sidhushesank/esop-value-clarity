@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Footer from "@/components/sections/Footer";
 import KnowledgeHubClient from "@/app/blog/KnowledgeHubClient";
 
-const BASE_URL = "https://esop-value-clarity.vercel.app";
+const BASE_URL = "https://esopvalueclarity.com";
 const SITE_NAME = "ESOP Value Clarity";
 const LINKEDIN_URL =
   "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";

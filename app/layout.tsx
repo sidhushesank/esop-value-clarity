@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 
 import NavigationShell from "@/components/ui/NavigationShell";
 
@@ -12,10 +12,14 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://esop-value-clarity.vercel.app";
+const siteUrl = "https://esopvalueclarity.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+
+  alternates: {
+    canonical: "/",
+  },
 
   title: {
     default:

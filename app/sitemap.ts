@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL =
-  "https://esop-value-clarity.vercel.app";
+const BASE_URL = "https://esopvalueclarity.com";
 
 const articles = [
   "startup-offered-25000-esops",
