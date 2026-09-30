@@ -62,6 +62,18 @@ type ReportExportRow = {
   notes?: string;
 };
 
+type ReportSummaryExportRow = {
+  section: string;
+  metric: string;
+  value?: string | number;
+  bear?: string | number;
+  base?: string | number;
+  bull?: string | number;
+  unit?: string;
+  calculation?: string;
+  notes?: string;
+};
+
 export default function ProReportsPage() {
   const { proState, hydrated } = useProEquityState();
   const [exportOpen, setExportOpen] = useState(false);
@@ -756,7 +768,345 @@ export default function ProReportsPage() {
     },
   ];
 
-  const handleCSVExport = () => {
+  const summaryExportRows: ReportSummaryExportRow[] = [
+    {
+      section: "REPORT",
+      metric: "Company",
+      value:
+        proState.sourceCompanyName ||
+        connectedGrant?.companyName ||
+        "Confirmed ESOP grant",
+      notes: "Company associated with the confirmed grant source.",
+    },
+    {
+      section: "REPORT",
+      metric: "Grant",
+      value:
+        proState.sourceGrantName ||
+        connectedGrant?.grantName ||
+        "Not available",
+      notes: "Grant name from the confirmed grant when available.",
+    },
+    {
+      section: "REPORT",
+      metric: "Analysis basis",
+      value:
+        analysisBasis === "FULL_GRANT"
+          ? "Full grant"
+          : "Currently vested",
+      notes:
+        analysisBasis === "FULL_GRANT"
+          ? "All confirmed options are modeled."
+          : "Only currently vested options are modeled.",
+    },
+    {
+      section: "REPORT",
+      metric: "Generated at",
+      value: new Date().toLocaleString("en-IN"),
+      notes: "Local report generation time.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Total granted options",
+      value: fullGrantOptions,
+      unit: "options",
+      calculation: "Confirmed grant quantity",
+      notes: "Source grant quantity.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Currently vested options",
+      value: currentlyVestedOptions,
+      unit: "options",
+      calculation: "Current vesting model",
+      notes: "Current vested position before report basis is applied.",
+    },
+    {
+      section: "GRANT POSITION",
+      metric: "Vested percentage",
+      value: proState.vestedPercentage,
+      unit: "%",
+      calculation: "Currently vested options / total granted options",
+      notes: "Current vesting position.",
+    },
+    {
+      section: "EXERCISE",
+      metric: "Options modeled",
+      value: report.modeledOptions,
+      unit: "options",
+      calculation:
+        analysisBasis === "FULL_GRANT"
+          ? "Full confirmed grant"
+          : "Currently vested options",
+      notes: "Option quantity carried into the connected report model.",
+    },
+    {
+      section: "EXERCISE",
+      metric: "Exercise price per option",
+      value: report.exercisePrice,
+      unit: "INR / option",
+      calculation: "Confirmed strike price",
+      notes: "Strike price used by the model.",
+    },
+    {
+      section: "EXERCISE",
+      metric: "Exercise capital required",
+      value: report.exerciseCost,
+      unit: "INR",
+      calculation: "Options modeled × exercise price",
+      notes: "Modeled capital required to exercise the selected option quantity.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Total company shares",
+      value: report.companyShares,
+      unit: "shares",
+      calculation: "Shared company capitalization assumption",
+      notes: "Used to translate modeled options into ownership percentage.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Ownership before dilution",
+      value: report.currentOwnership,
+      unit: "%",
+      calculation: "Options modeled / total company shares × 100",
+      notes: "Modeled ownership before future dilution.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Future dilution assumption",
+      value: report.dilution,
+      unit: "%",
+      calculation: "Shared Dilution model input",
+      notes: "Relative dilution applied to the modeled stake.",
+    },
+    {
+      section: "OWNERSHIP & DILUTION",
+      metric: "Ownership after dilution",
+      value: report.dilutedOwnership,
+      unit: "%",
+      calculation: "Pre-dilution ownership × (1 - dilution)",
+      notes: "Modeled ownership after future dilution.",
+    },
+    {
+      section: "CURRENT VALUE",
+      metric: "Current company valuation",
+      value: report.currentCompanyValuation,
+      unit: "INR",
+      calculation: "Shared Simulator assumption",
+      notes: "Current valuation used for the present-value snapshot.",
+    },
+    {
+      section: "CURRENT VALUE",
+      metric: "Current modeled equity value",
+      value: report.currentEquityValue,
+      unit: "INR",
+      calculation: "Pre-dilution ownership × current company valuation",
+      notes: "Illustrative modeled value before future exit assumptions.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Exit valuation",
+      bear: report.bear.valuation,
+      base: report.base.valuation,
+      bull: report.bull.valuation,
+      unit: "INR",
+      calculation: "Base valuation × 0.5 / 1.0 / 2.0",
+      notes: "Bear, Base and Bull company outcome assumptions.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Post-dilution sale price per share",
+      bear: report.bear.salePrice,
+      base: report.base.salePrice,
+      bull: report.bull.salePrice,
+      unit: "INR / share",
+      calculation: "Exit valuation / company shares × (1 - dilution)",
+      notes: "Illustrative post-dilution share price under each scenario.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Gross equity value",
+      bear: report.bear.gross,
+      base: report.base.gross,
+      bull: report.bull.gross,
+      unit: "INR",
+      calculation: "Diluted ownership × scenario exit valuation",
+      notes: "Before exercise cost and estimated tax.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Exercise cost",
+      bear: report.exerciseCost,
+      base: report.exerciseCost,
+      bull: report.exerciseCost,
+      unit: "INR",
+      calculation: "Options modeled × exercise price",
+      notes: "Same modeled exercise outlay across scenarios.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Pre-tax proceeds",
+      bear: report.bear.preTaxProceeds,
+      base: report.base.preTaxProceeds,
+      bull: report.bull.preTaxProceeds,
+      unit: "INR",
+      calculation: "Gross equity value - exercise cost",
+      notes: "Before estimated tax.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Estimated tax",
+      bear: report.bear.estimatedTax,
+      base: report.base.estimatedTax,
+      bull: report.bull.estimatedTax,
+      unit: "INR",
+      calculation: "Shared Tax model",
+      notes: "Illustrative tax estimate under the current assumptions.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Estimated take-home",
+      bear: report.bear.proceeds,
+      base: report.base.proceeds,
+      bull: report.bull.proceeds,
+      unit: "INR",
+      calculation: "Pre-tax proceeds - estimated tax",
+      notes: "Modeled amount after exercise cost and estimated tax.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Return multiple",
+      bear: report.bear.multiple,
+      base: report.base.multiple,
+      bull: report.bull.multiple,
+      unit: "x",
+      calculation: "Estimated take-home / exercise cost",
+      notes: "Return multiple on the modeled exercise outlay.",
+    },
+    {
+      section: "SCENARIO ANALYSIS",
+      metric: "Value retained",
+      bear: report.bear.retained,
+      base: report.base.retained,
+      bull: report.bull.retained,
+      unit: "%",
+      calculation: "Estimated take-home / gross equity value × 100",
+      notes: "Share of gross modeled equity value remaining after modeled deductions.",
+    },
+    {
+      section: "SENSITIVITY STATISTICS",
+      metric: "Bear to Base take-home change",
+      value: report.baseVsBear,
+      unit: "INR",
+      calculation: "Base take-home - Bear take-home",
+      notes: "Change in modeled take-home from Bear to Base.",
+    },
+    {
+      section: "SENSITIVITY STATISTICS",
+      metric: "Base to Bull take-home change",
+      value: report.bullVsBase,
+      unit: "INR",
+      calculation: "Bull take-home - Base take-home",
+      notes: "Change in modeled take-home from Base to Bull.",
+    },
+    {
+      section: "SENSITIVITY STATISTICS",
+      metric: "Bear to Bull take-home range",
+      value: report.outcomeRange,
+      unit: "INR",
+      calculation: "Bull take-home - Bear take-home",
+      notes: "Total modeled outcome spread across the three scenarios.",
+    },
+    {
+      section: "SENSITIVITY STATISTICS",
+      metric: "Bull upside vs Base",
+      value: report.bullUpsidePercentage,
+      unit: "%",
+      calculation: "(Bull take-home - Base take-home) / Base take-home × 100",
+      notes: "Relative upside from Base to Bull when Base take-home is positive.",
+    },
+    {
+      section: "SENSITIVITY STATISTICS",
+      metric: "Base downside vs Bear",
+      value: report.bearDownsidePercentage,
+      unit: "%",
+      calculation: "(Base take-home - Bear take-home) / Base take-home × 100",
+      notes: "Relative downside from Base to Bear when Base take-home is positive.",
+    },
+    {
+      section: "MODEL CONTEXT",
+      metric: "Equity type",
+      value: proState.equityType === "UNLISTED" ? "Unlisted" : "Listed",
+      notes: "Equity type carried from the shared PRO model.",
+    },
+    {
+      section: "MODEL CONTEXT",
+      metric: "Tax regime",
+      value: proState.taxRegime === "NEW" ? "New" : "Old",
+      notes: "Tax regime carried from the shared PRO model.",
+    },
+    {
+      section: "MODEL CONTEXT",
+      metric: "Decision model",
+      value: "Bear / Base / Bull scenario analysis",
+      notes: "Connected grant-to-take-home decision model.",
+    },
+    {
+      section: "MODEL CONTEXT",
+      metric: "Important limitation",
+      value: "Modeled outcomes are not guaranteed payouts",
+      notes:
+        "Actual results can differ because of taxes, liquidity events, company terms, preference structures, additional dilution, transaction costs and personal circumstances.",
+    },
+  ];
+
+  const handleCSVSummaryExport = () => {
+    const headers = [
+      "Section",
+      "Metric",
+      "Value",
+      "Bear",
+      "Base",
+      "Bull",
+      "Unit",
+      "Calculation / Basis",
+      "Notes",
+    ];
+
+    const csvRows = [
+      headers,
+      ...summaryExportRows.map((row) => [
+        row.section,
+        row.metric,
+        row.value ?? "",
+        row.bear ?? "",
+        row.base ?? "",
+        row.bull ?? "",
+        row.unit ?? "",
+        row.calculation ?? "",
+        row.notes ?? "",
+      ]),
+    ];
+
+    const csv = csvRows
+      .map((row) => row.map((value) => csvEscape(String(value))).join(","))
+      .join("\r\n");
+
+    downloadFile(
+      "\uFEFF" + csv,
+      `esop-value-clarity-${safeFilename(
+        proState.sourceCompanyName ||
+          connectedGrant?.companyName ||
+          "report"
+      )}-${new Date().toISOString().slice(0, 10)}-executive-summary.csv`,
+      "text/csv;charset=utf-8;"
+    );
+
+    setExportOpen(false);
+  };
+
+  const handleCSVDetailedExport = () => {
     const headers = [
       "Section",
       "Metric",
@@ -779,13 +1129,7 @@ export default function ProReportsPage() {
     ];
 
     const csv = csvRows
-      .map((row) =>
-        row
-          .map((value) =>
-            csvEscape(String(value))
-          )
-          .join(",")
-      )
+      .map((row) => row.map((value) => csvEscape(String(value))).join(","))
       .join("\r\n");
 
     downloadFile(
@@ -794,9 +1138,7 @@ export default function ProReportsPage() {
         proState.sourceCompanyName ||
           connectedGrant?.companyName ||
           "report"
-      )}-${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`,
+      )}-${new Date().toISOString().slice(0, 10)}-detailed-model.csv`,
       "text/csv;charset=utf-8;"
     );
 
@@ -982,14 +1324,20 @@ export default function ProReportsPage() {
                   </p>
                   <ExportMenuButton
                     icon={<FileText size={17} />}
-                    title="CSV"
-                    description="Portable spreadsheet data"
-                    onClick={handleCSVExport}
+                    title="CSV · Executive Summary"
+                    description="Professional scenario and key-statistics summary"
+                    onClick={handleCSVSummaryExport}
+                  />
+                  <ExportMenuButton
+                    icon={<FileText size={17} />}
+                    title="CSV · Detailed Model"
+                    description="Full metric-level export with raw/display values"
+                    onClick={handleCSVDetailedExport}
                   />
                   <ExportMenuButton
                     icon={<FileSpreadsheet size={17} />}
                     title="Excel (.xls)"
-                    description="Open directly in Excel"
+                    description="Formatted detailed model for Excel"
                     onClick={handleExcelExport}
                   />
                 </div>
