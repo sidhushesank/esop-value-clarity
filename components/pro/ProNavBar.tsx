@@ -13,6 +13,7 @@ import {
   Trophy,
   Scale,
   FileText,
+  Presentation,
   Sparkles,
   Menu,
   X,
@@ -79,6 +80,11 @@ const navItems = [
     label: "Reports",
     icon: FileText,
   },
+  {
+  href: "/pro/presentation",
+  label: "Control Room",
+  icon: Presentation,
+},
 ];
 
 export default function ProNavBar() {
