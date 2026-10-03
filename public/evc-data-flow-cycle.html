@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESOP Value Clarity: how data flows through the product</title>
+<style>
+:root{--bg:#0A1530;--ink:#F3F6FB;--muted:#9FB0CC;--blue:#6F94D6;--gold:#C9A24B;--card:#FFFFFF;--navy:#0F1E3F}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+main{max-width:1760px;margin:0 auto;padding:40px 28px 28px}
+h1{font-size:28px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
+.sub{color:var(--muted);font-size:15px;max-width:70ch;line-height:1.5;margin:0 0 24px}
+.scroll{overflow-x:auto;border:1px solid rgba(111,148,214,.25);border-radius:10px;background:rgba(255,255,255,.02)}
+svg{display:block;min-width:1180px;width:100%;height:auto}
+.bar{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;margin:16px 0 0;font-size:13.5px;color:var(--muted)}
+.key{display:inline-flex;align-items:center;gap:8px}
+.key i{width:10px;height:10px;border-radius:50%;display:inline-block}
+button{margin-left:auto;background:transparent;color:var(--ink);border:1px solid rgba(159,176,204,.5);border-radius:6px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
+button:hover{border-color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.note{margin:28px 0 0;padding-top:16px;border-top:1px solid rgba(159,176,204,.25);font-size:12.5px;color:var(--muted);line-height:1.5}
+.hd{fill:#DCE6F7;font-size:17px;font-weight:600}
+.ct{fill:var(--navy);font-size:16px;font-weight:600}
+.cs{fill:#4D5E80;font-size:13px}
+.pl{fill:#DCE6F7;font-size:15px;font-weight:600}
+.chip{fill:#fff}
+.chipt{fill:var(--navy);font-size:13.5px;font-weight:600}
+.flow{fill:none;stroke-width:2.2}
+.flow.b{stroke:rgba(143,176,232,.65)}
+.flow.g{stroke:rgba(224,185,85,.75)}
+.cap{fill:#DCE6F7;font-size:13.5px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid rgba(159,176,204,.2)}
+.brand{font-weight:600;font-size:16px;letter-spacing:.01em;border-left:3px solid var(--gold);padding-left:10px}
+.url{color:var(--muted);font-size:14px}
+#sdots{display:none}
+body.static #dots{display:none}
+body.static #sdots{display:block}
+@media print{
+  html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #dots,button{display:none!important}#sdots{display:block}
+  main{padding:16px;max-width:none}.scroll{overflow:visible}svg{min-width:0}
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="top"><span class="brand">ESOP Value Clarity</span><span class="url">esopvalueclarity.com</span></header>
+  <h1>How data moves through ESOP Value Clarity</h1>
+  <p class="sub">From documents and assumptions to confirmed facts, connected workflows, and outputs a professional can explain and an equity holder can understand.</p>
+  <div class="scroll">
+    <svg id="dia" viewBox="0 0 1880 610" role="img" aria-label="Left-to-right product data flow: source input, EVC trust layer, model inputs, two workflow lanes, outputs, outcome">
+      <g id="paths"></g>
+      <g id="dots"></g>
+      <g id="sdots"></g>
+      <g id="shapes"></g>
+    </svg>
+  </div>
+  <div class="bar">
+    <span class="key"><i style="background:#8FB0E8"></i>Inputs and assumptions</span>
+    <span class="key"><i style="background:#E0B955"></i>Reviewed, confirmed data</span>
+    <button id="pp" type="button" aria-pressed="false">Pause animation</button>
+    <button id="st" type="button" aria-pressed="false" style="margin-left:0">Static view for PDF or screenshot</button>
+  </div>
+  <p class="note">Public-safe diagram. Shows product data flow only; internal APIs, storage, database and implementation details are intentionally not shown.</p>
+</main>
+<script>
+(function(){
+var NS="http://www.w3.org/2000/svg",S=document.getElementById("shapes"),P=document.getElementById("paths"),D=document.getElementById("dots"),SD=document.getElementById("sdots");
+function el(p,n,a,t){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;p.appendChild(e);return e}
+function lines(x,y,txt,cls,lh,anchor){String(txt).split("|").forEach(function(l,i){var a={x:x,y:y+i*lh,"class":cls};if(anchor)a["text-anchor"]=anchor;el(S,"text",a,l)})}
+function head(x,t){el(S,"text",{x:x,y:52,"class":"hd"},t)}
+function card(x,y,w,h,title,sub,bar,stroke){
+  el(S,"rect",{x:x,y:y,width:w,height:h,rx:9,fill:"#fff",stroke:stroke||"none","stroke-width":stroke?2:0});
+  el(S,"rect",{x:x,y:y+12,width:5,height:h-24,rx:2.5,fill:bar||"#6F94D6"});
+  var n=title.split("|").length,bh=n*20+(sub?20:0),ty=y+(h-bh)/2+15;
+  lines(x+20,ty,title,"ct",20);
+  if(sub)el(S,"text",{x:x+20,y:ty+(n-1)*20+21,"class":"cs"},sub);
+}
+function flow(d,c,dur){var p=el(P,"path",{d:d,"class":"flow "+c});p.setAttribute("data-dur",dur||4);p.setAttribute("data-c",c)}
+var GOLD="#C9A24B",BLUE="#6F94D6";
+
+/* column headers */
+head(30,"Source input");head(280,"EVC trust layer");head(590,"Model inputs");head(870,"Workflows");head(1390,"Outputs");head(1650,"Outcome");
+
+/* panels */
+el(S,"rect",{x:280,y:78,width:260,height:460,rx:12,fill:"rgba(201,162,75,.08)",stroke:GOLD,"stroke-width":1.8});
+el(S,"rect",{x:590,y:78,width:230,height:460,rx:12,fill:"rgba(111,148,214,.14)",stroke:BLUE,"stroke-width":2.4});
+el(S,"line",{x1:606,x2:804,y1:436,y2:436,stroke:"rgba(159,176,204,.35)","stroke-width":1});
+["Source facts, assumptions","and scenario changes","stay separate."].forEach(function(t,i){el(S,"text",{x:606,y:462+i*21,"class":"cap"},t)});
+[[78,238,"Lane A: Equity Intelligence"],[346,176,"Lane B: Offer Intelligence"]].forEach(function(l){
+  el(S,"rect",{x:870,y:l[0],width:444,height:l[1],rx:12,fill:"rgba(255,255,255,.06)",stroke:"rgba(111,148,214,.6)","stroke-width":1.4});
+  el(S,"text",{x:886,y:l[0]+30,"class":"pl"},l[2]);
+});
+
+/* source input */
+[["ESOP / equity grant","Grant details",130],["Offer letter","Compensation terms",262],["User assumptions","Your own inputs",394]].forEach(function(c){card(30,c[2],210,96,c[0],c[1])});
+/* trust layer */
+[["Extracted terms","Read from documents",112,0],["Source evidence","Linked to each term",218,0],["Human review","Check and correct",324,1],["Confirmed facts","Approved for modelling",430,1]].forEach(function(c){card(296,c[2],228,84,c[0],c[1],c[3]?GOLD:BLUE,c[3]?GOLD:null)});
+/* model inputs */
+card(606,112,198,88,"Source facts","From confirmed terms",GOLD);
+card(606,220,198,88,"Assumptions","Set by the user",BLUE);
+card(606,328,198,88,"Scenarios","Bear, Base, Bull",BLUE);
+
+/* workflow lanes */
+function chips(y0,items,goldLast){
+  items.forEach(function(t,i){
+    var r=Math.floor(i/3),c=i%3,x=886+c*144,y=y0+46+r*62,two=t.indexOf("|")>-1;
+    el(S,"rect",{x:x,y:y,width:124,height:50,rx:8,"class":"chip",stroke:(goldLast&&i===items.length-1)?GOLD:"none","stroke-width":2.4});
+    lines(x+62,y+(two?21:30),t,"chipt",17,"middle");
+  });
+}
+chips(78,["Confirmed|grant","Vesting","Exercise","Dilution","Tax","Exit","Bear / Base|/ Bull","Report /|Control Room"],true);
+chips(346,["Offer letter","Normalized|offer","Offer A/B|comparison","Break-even","Negotiation|intelligence"],false);
+
+/* outputs and outcome */
+[["Reports","Client-ready summaries",112],["Control Room","Visual explanation layer",218],["Offer comparison","Side by side",324],["Export and reusable|work product","",430]].forEach(function(c){card(1390,c[2],210,84,c[0],c[1])});
+card(1650,150,200,130,"Professional|explains it clearly","Every figure has a source",GOLD,GOLD);
+card(1650,346,200,130,"Equity holder|understands|the decision","Plain-language outcomes",GOLD,GOLD);
+
+/* connectors: source -> trust layer */
+flow("M240 178H262V154H296","b",3.6);flow("M240 310H262V154H296","b",3.6);
+flow("M410 196V218","g",1.6);flow("M410 302V324","g",1.6);flow("M410 408V430","g",1.6);
+/* assumptions are user-provided and join the model inputs directly */
+flow("M240 442H258V580H575V264H606","b",7);
+flow("M705 308V328","b",1.6);
+/* confirmed facts -> source facts */
+flow("M524 472H555V156H606","g",4.4);
+/* model inputs -> both lanes */
+[[156,"g"],[264,"b"],[372,"b"]].forEach(function(m){flow("M804 "+m[0]+"H845V197H870",m[1],3.6);flow("M804 "+m[0]+"H845V434H870",m[1],3.6)});
+/* inside lanes: each row continues into the next */
+flow("M886 149H1306V180H878V211H886","g",6);
+flow("M886 211H1306V242H878V273H886","g",6);
+flow("M886 273H1154","g",3);
+flow("M886 417H1306V448H878V479H886","g",6);
+flow("M886 479H1154","g",3);
+/* lanes -> outputs */
+[154,260,472].forEach(function(y){flow("M1314 197H1352V"+y+"H1390","g",3.4)});
+[366,472].forEach(function(y){flow("M1314 434H1352V"+y+"H1390","g",3.4)});
+/* outputs -> outcome */
+[154,260,366,472].forEach(function(y){flow("M1600 "+y+"H1625V313","g",2.6)});
+flow("M1625 313V215H1650","g",1.8);flow("M1625 313V411H1650","g",1.8);
+
+/* dots: animated (browser) and static (PDF / screenshot) */
+var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+P.querySelectorAll("path").forEach(function(p){
+  var dur=parseFloat(p.getAttribute("data-dur")),fill=p.getAttribute("data-c")==="g"?"#E0B955":"#8FB0E8",n=dur<2.2?1:2,len=p.getTotalLength();
+  for(var i=0;i<n;i++){
+    var c=el(D,"circle",{r:4.8,fill:fill});
+    el(c,"animateMotion",{path:p.getAttribute("d"),dur:dur+"s",begin:(-i*dur/n)+"s",repeatCount:"indefinite"});
+    var pt=p.getPointAtLength(len*(n===1?0.5:(i?0.78:0.3)));
+    el(SD,"circle",{cx:pt.x,cy:pt.y,r:4.8,fill:fill});
+  }
+});
+
+var svg=document.getElementById("dia"),pp=document.getElementById("pp"),st=document.getElementById("st"),paused=false,isStatic=false;
+function setStatic(on){
+  isStatic=on;document.body.classList.toggle("static",on);
+  st.textContent=on?"Animated view":"Static view for PDF or screenshot";
+  st.setAttribute("aria-pressed",on);pp.hidden=on;
+  if(!on&&!paused)svg.unpauseAnimations();
+}
+pp.addEventListener("click",function(){paused=!paused;paused?svg.pauseAnimations():svg.unpauseAnimations();pp.textContent=paused?"Resume animation":"Pause animation";pp.setAttribute("aria-pressed",paused)});
+st.addEventListener("click",function(){setStatic(!isStatic)});
+if(reduce){setStatic(true);pp.hidden=true;st.hidden=true}
+else if(location.hash==="#static"||/[?&]static/.test(location.search)){setStatic(true)}
+})();
+</script>
+</body>
+</html>
