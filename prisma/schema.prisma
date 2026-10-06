@@ -25,6 +25,7 @@ enum BillingCycle {
   MONTHLY
   SIX_MONTHS
   YEARLY
+  TEAM_YEARLY
 }
 
 enum SubscriptionStatus {
@@ -42,6 +43,20 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+// ============================================================
+// B2B TEAM WORKSPACE
+// ============================================================
+
+enum TeamWorkspaceStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum TeamMembershipStatus {
+  ACTIVE
+  REMOVED
 }
 
 enum EsopDocumentStatus {
@@ -147,6 +162,95 @@ enum AdminActionType {
 }
 
 // ============================================================
+// B2B TEAM WORKSPACE
+// ============================================================
+//
+// Separate entitlement from the personal FREE / PRO subscription.
+// Application rules:
+// - One workspace per purchaser.
+// - One annual entitlement per workspace.
+// - Maximum 20 active members.
+// - Members must already have registered EVC accounts.
+// - Active members receive Team-sponsored PRO access.
+// - Members do not receive Team Admin functionality.
+// ============================================================
+
+model TeamWorkspace {
+  id String @id @default(cuid())
+
+  name String
+
+  ownerId String @unique
+  owner   User   @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  status TeamWorkspaceStatus @default(ACTIVE)
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  members  TeamMembership[]
+  payments TeamPayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model TeamMembership {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   TeamWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("TeamMembershipUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  status TeamMembershipStatus @default(ACTIVE)
+
+  addedAt   DateTime  @default(now())
+  removedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId, status])
+  @@index([userId, status])
+}
+
+model TeamPayment {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   TeamWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount   Int
+  currency String @default("INR")
+
+  status PaymentStatus @default(PENDING)
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+// ============================================================
 // PHASE 4 — OFFER INTELLIGENCE
 // ============================================================
 
@@ -186,6 +290,14 @@ model User {
   payments     Payment[]
 
   activities UserActivity[]
+
+  // ============================================================
+  // B2B TEAM WORKSPACE
+  // ============================================================
+
+  ownedTeamWorkspace TeamWorkspace?   @relation("TeamOwner")
+  teamMemberships    TeamMembership[] @relation("TeamMembershipUser")
+  teamPayments       TeamPayment[]
 
   adminActions    AdminAuditLog[] @relation("AdminActor")
   adminTargetLogs AdminAuditLog[] @relation("AdminTarget")

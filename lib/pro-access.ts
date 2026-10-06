@@ -23,6 +23,14 @@ import { getUserSubscription } from "@/lib/subscription";
  * treated as the security boundary for protected API routes.
  *
  * Every sensitive PRO API should call requireProUser().
+ *
+ * Team-sponsored PRO is intentionally resolved here through the same
+ * requireProUser() boundary. Team members therefore receive the normal PRO
+ * experience without automatically receiving Team Workspace administration
+ * privileges.
+ *
+ * Founder access is unconditional and is explicitly allowed to bypass the
+ * normal Team Workspace entitlement expiry checks.
  * ============================================================================
  */
 
@@ -42,19 +50,19 @@ export type ProAccessContext = {
   account: {
     isPro: boolean;
     isFounder: boolean;
+    isTeamSponsored: boolean;
     plan: PlanType;
     status: SubscriptionStatus;
     expiresAt: Date | null;
   };
+
+  team: {
+    workspaceId: string;
+    workspaceName: string;
+    workspaceExpiresAt: Date;
+  } | null;
 };
 
-/**
- * Controlled access error.
- *
- * We intentionally distinguish authorization failures from unexpected
- * application errors so API routes can return the correct HTTP status without
- * exposing internal implementation details.
- */
 export class ProAccessError extends Error {
   status: number;
   code: string;
@@ -73,14 +81,20 @@ export class ProAccessError extends Error {
 }
 
 /**
+ * ============================================================================
+ * AUTHENTICATED USER
+ * ============================================================================
+ *
  * Read and validate the authenticated user from the secure JWT cookie.
  *
  * This performs SERVER-SIDE authentication.
+ * ============================================================================
  */
 export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
   const cookieStore = await cookies();
 
-  const token = cookieStore.get("token")?.value;
+  const token =
+    cookieStore.get("token")?.value;
 
   if (!token) {
     throw new ProAccessError(
@@ -90,7 +104,8 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
     );
   }
 
-  const userId = getUserIdFromToken(token);
+  const userId =
+    getUserIdFromToken(token);
 
   if (!userId) {
     throw new ProAccessError(
@@ -100,21 +115,22 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
     );
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
 
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      emailVerified: true,
-      role: true,
-      accountStatus: true,
-      createdAt: true,
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        role: true,
+        accountStatus: true,
+        createdAt: true,
+      },
+    });
 
   if (!user) {
     throw new ProAccessError(
@@ -124,7 +140,10 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
     );
   }
 
-  if (user.accountStatus === AccountStatus.SUSPENDED) {
+  if (
+    user.accountStatus ===
+    AccountStatus.SUSPENDED
+  ) {
     throw new ProAccessError(
       "This account has been suspended. Please contact support.",
       403,
@@ -136,15 +155,26 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
 }
 
 /**
+ * ============================================================================
+ * REQUIRE PRO USER
+ * ============================================================================
+ *
  * Require an authenticated user with active PRO access.
  *
- * Founder access continues to work through the existing
- * getUserSubscription() implementation.
+ * PRO can come from:
+ * - personal PRO subscription
+ * - founder access
+ * - active Team-sponsored PRO entitlement
+ * ============================================================================
  */
 export async function requireProUser(): Promise<ProAccessContext> {
-  const user = await requireAuthenticatedUser();
+  const user =
+    await requireAuthenticatedUser();
 
-  const subscription = await getUserSubscription(user.id);
+  const subscription =
+    await getUserSubscription(
+      user.id
+    );
 
   if (!subscription.exists) {
     throw new ProAccessError(
@@ -154,7 +184,10 @@ export async function requireProUser(): Promise<ProAccessContext> {
     );
   }
 
-  if (!subscription.isPro && !subscription.isFounder) {
+  if (
+    !subscription.isPro &&
+    !subscription.isFounder
+  ) {
     throw new ProAccessError(
       "An active PRO subscription is required to use this feature.",
       403,
@@ -162,34 +195,187 @@ export async function requireProUser(): Promise<ProAccessContext> {
     );
   }
 
+  /*
+   * Founder access is unconditional.
+   *
+   * The Founder should never inherit an expiry date from a Team Workspace
+   * or personal Subscription record.
+   */
+  const effectiveExpiresAt =
+    subscription.isFounder
+      ? null
+      : subscription.subscription
+          ?.expiresAt ??
+        subscription.teamWorkspace
+          ?.expiresAt ??
+        null;
+
   return {
     user,
 
     account: {
-      isPro: subscription.isPro,
-      isFounder: subscription.isFounder,
-      plan: subscription.plan,
-      status: subscription.status,
+      isPro:
+        subscription.isPro,
+
+      isFounder:
+        subscription.isFounder,
+
+      isTeamSponsored:
+        subscription.isTeamSponsored,
+
+      plan:
+        subscription.plan,
+
+      status:
+        subscription.status,
+
       expiresAt:
-        subscription.subscription?.expiresAt ?? null,
+        effectiveExpiresAt,
     },
+
+    team:
+      subscription.teamWorkspace
+        ? {
+            workspaceId:
+              subscription
+                .teamWorkspace
+                .id,
+
+            workspaceName:
+              subscription
+                .teamWorkspace
+                .name,
+
+            workspaceExpiresAt:
+              subscription
+                .teamWorkspace
+                .expiresAt,
+          }
+        : null,
   };
 }
 
 /**
- * Convert a known access error into a safe response payload.
+ * ============================================================================
+ * REQUIRE TEAM ADMIN
+ * ============================================================================
  *
- * API routes can use this helper inside their catch block.
+ * Require the authenticated user to be the owner of a Team Workspace.
+ *
+ * This is deliberately separate from requireProUser().
+ *
+ * Team-sponsored PRO members must NOT pass this check merely because they
+ * belong to a Team Workspace.
+ *
+ * FOUNDER RULE:
+ * Founder access is unlimited. Therefore Founder accounts bypass the normal
+ * Team Workspace expiry enforcement.
+ * ============================================================================
  */
-export function getProAccessErrorResponse(error: unknown): {
+export async function requireTeamAdmin() {
+  const user =
+    await requireAuthenticatedUser();
+
+  const isFounder =
+    user.email ===
+    process.env.FOUNDER_EMAIL;
+
+  const workspace =
+    await prisma.teamWorkspace.findUnique({
+      where: {
+        ownerId: user.id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startedAt: true,
+        expiresAt: true,
+      },
+    });
+
+  if (!workspace) {
+    throw new ProAccessError(
+      "An active Team Workspace could not be found for this account.",
+      403,
+      "TEAM_WORKSPACE_REQUIRED"
+    );
+  }
+
+  const now =
+    new Date();
+
+  /*
+   * --------------------------------------------------------------------------
+   * FOUNDER
+   * --------------------------------------------------------------------------
+   *
+   * Founder access is unlimited.
+   *
+   * We intentionally do NOT enforce:
+   *
+   *   workspace.expiresAt <= now
+   *
+   * for the Founder.
+   *
+   * The Founder can continue using the Team Workspace regardless of the
+   * annual customer entitlement date stored on the workspace row.
+   *
+   * For regular Team customers, both workspace lifecycle status and expiry
+   * remain enforced.
+   * --------------------------------------------------------------------------
+   */
+
+  if (!isFounder) {
+    if (
+      workspace.status !==
+      "ACTIVE"
+    ) {
+      throw new ProAccessError(
+        "Your Team Workspace is not active.",
+        403,
+        "TEAM_WORKSPACE_EXPIRED"
+      );
+    }
+
+    if (
+      workspace.expiresAt <= now
+    ) {
+      throw new ProAccessError(
+        "Your Team Workspace has expired. Please renew the Team plan to continue.",
+        403,
+        "TEAM_WORKSPACE_EXPIRED"
+      );
+    }
+  }
+
+  return {
+    user,
+    workspace,
+    isFounder,
+  };
+}
+
+/**
+ * ============================================================================
+ * ERROR RESPONSE
+ * ============================================================================
+ */
+export function getProAccessErrorResponse(
+  error: unknown
+): {
   status: number;
+
   body: {
     success: false;
     code: string;
     message: string;
   };
 } | null {
-  if (!(error instanceof ProAccessError)) {
+  if (
+    !(error instanceof ProAccessError)
+  ) {
     return null;
   }
 
@@ -198,7 +384,9 @@ export function getProAccessErrorResponse(error: unknown): {
 
     body: {
       success: false,
+
       code: error.code,
+
       message: error.message,
     },
   };

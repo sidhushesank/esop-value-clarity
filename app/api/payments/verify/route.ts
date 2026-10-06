@@ -9,6 +9,7 @@ import {
 } from "next/server";
 
 import {
+  BillingCycle,
   PaymentStatus,
   PlanType,
   SubscriptionStatus,
@@ -21,13 +22,18 @@ import {
   recordPaymentSuccessActivity,
 } from "@/lib/activity";
 
+const TEAM_PLAN_AMOUNT = 14500000;
+const TEAM_PLAN_CURRENCY = "INR";
+
 export async function POST(
   request: NextRequest
 ) {
   try {
-    // ============================================================
-    // 1. AUTHENTICATE USER
-    // ============================================================
+    /*
+     * ========================================================================
+     * 1. AUTHENTICATE USER
+     * ========================================================================
+     */
 
     const token =
       request.cookies.get("token")?.value;
@@ -59,9 +65,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 2. READ RAZORPAY RESPONSE
-    // ============================================================
+    /*
+     * ========================================================================
+     * 2. READ RAZORPAY RESPONSE
+     * ========================================================================
+     */
 
     const body =
       await request.json();
@@ -95,9 +103,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 3. FIND PAYMENT CREATED BY OUR SERVER
-    // ============================================================
+    /*
+     * ========================================================================
+     * 3. FIND SERVER-SIDE PAYMENT
+     * ========================================================================
+     */
 
     const payment =
       await prisma.payment.findUnique({
@@ -120,13 +130,14 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 4. VERIFY PAYMENT OWNERSHIP
-    // ============================================================
+    /*
+     * ========================================================================
+     * 4. VERIFY PAYMENT OWNERSHIP
+     * ========================================================================
+     */
 
     if (
-      payment.userId !==
-      userId
+      payment.userId !== userId
     ) {
       return NextResponse.json(
         {
@@ -140,24 +151,63 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 5. IDEMPOTENCY
-    // ============================================================
+    /*
+     * ========================================================================
+     * 5. IDEMPOTENCY
+     * ========================================================================
+     *
+     * A previously successful payment should not be processed again.
+     *
+     * For Team payments, also return the existing workspace information.
+     */
 
     if (
       payment.status ===
       PaymentStatus.SUCCESS
     ) {
+      if (
+        payment.billingCycle ===
+        BillingCycle.TEAM_YEARLY
+      ) {
+        const workspace =
+          await prisma.teamWorkspace.findUnique(
+            {
+              where: {
+                ownerId: userId,
+              },
+
+              select: {
+                id: true,
+                name: true,
+                status: true,
+                startedAt: true,
+                expiresAt: true,
+              },
+            }
+          );
+
+        return NextResponse.json({
+          success: true,
+          checkoutType: "TEAM",
+          message:
+            "Team payment was already processed.",
+          workspace,
+        });
+      }
+
       return NextResponse.json({
         success: true,
+        checkoutType: "PRO",
         message:
           "Payment was already processed.",
       });
     }
 
-    // ============================================================
-    // 6. CHECK SERVER PAYMENT ORDER ID
-    // ============================================================
+    /*
+     * ========================================================================
+     * 6. VERIFY SERVER ORDER ID
+     * ========================================================================
+     */
 
     const serverOrderId =
       payment.razorpayOrderId;
@@ -196,9 +246,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 7. VERIFY RAZORPAY SIGNATURE
-    // ============================================================
+    /*
+     * ========================================================================
+     * 7. VERIFY RAZORPAY SIGNATURE
+     * ========================================================================
+     */
 
     const keySecret =
       process.env.RAZORPAY_KEY_SECRET;
@@ -221,13 +273,8 @@ export async function POST(
     }
 
     /*
-     * IMPORTANT:
-     *
-     * Razorpay recommends using the order ID stored on our
-     * server when constructing the signature rather than
-     * trusting the order ID supplied by the browser.
+     * Always build the signature from the order ID stored on our server.
      */
-
     const generatedSignature =
       createHmac(
         "sha256",
@@ -237,10 +284,6 @@ export async function POST(
           `${serverOrderId}|${razorpay_payment_id}`
         )
         .digest("hex");
-
-    // ============================================================
-    // TIMING-SAFE SIGNATURE COMPARISON
-    // ============================================================
 
     const generatedBuffer =
       Buffer.from(
@@ -280,18 +323,22 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 8. FETCH PAYMENT DIRECTLY FROM RAZORPAY
-    // ============================================================
+    /*
+     * ========================================================================
+     * 8. FETCH PAYMENT DIRECTLY FROM RAZORPAY
+     * ========================================================================
+     */
 
     const razorpayPayment =
       await razorpay.payments.fetch(
         razorpay_payment_id
       );
 
-    // ============================================================
-    // 9. VERIFY RAZORPAY ORDER
-    // ============================================================
+    /*
+     * ========================================================================
+     * 9. VERIFY RAZORPAY ORDER
+     * ========================================================================
+     */
 
     if (
       razorpayPayment.order_id !==
@@ -309,9 +356,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 10. VERIFY PAYMENT STATUS
-    // ============================================================
+    /*
+     * ========================================================================
+     * 10. VERIFY CAPTURED STATUS
+     * ========================================================================
+     */
 
     if (
       razorpayPayment.status !==
@@ -329,9 +378,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 11. VERIFY AMOUNT
-    // ============================================================
+    /*
+     * ========================================================================
+     * 11. VERIFY AMOUNT
+     * ========================================================================
+     */
 
     const razorpayAmount =
       Number(
@@ -368,9 +419,11 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 12. VERIFY CURRENCY
-    // ============================================================
+    /*
+     * ========================================================================
+     * 12. VERIFY CURRENCY
+     * ========================================================================
+     */
 
     if (
       razorpayPayment.currency !==
@@ -400,9 +453,235 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 13. CALCULATE SUBSCRIPTION EXPIRY
-    // ============================================================
+    /*
+     * ========================================================================
+     * 13. DETERMINE PURCHASE TYPE
+     * ========================================================================
+     */
+
+    const isTeamPurchase =
+      payment.billingCycle ===
+      BillingCycle.TEAM_YEARLY;
+
+    /*
+     * Extra server-side Team amount validation.
+     *
+     * The order was created by our server, but this gives us another explicit
+     * guard at the final entitlement boundary.
+     */
+
+    if (
+      isTeamPurchase &&
+      payment.amount !==
+        TEAM_PLAN_AMOUNT
+    ) {
+      console.error(
+        "Team payment amount is invalid:",
+        {
+          paymentId:
+            payment.id,
+          amount:
+            payment.amount,
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Team payment amount verification failed.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      isTeamPurchase &&
+      payment.currency !==
+        TEAM_PLAN_CURRENCY
+    ) {
+      console.error(
+        "Team payment currency is invalid:",
+        {
+          paymentId:
+            payment.id,
+          currency:
+            payment.currency,
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Team payment currency verification failed.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * ========================================================================
+     * 14. TEAM PURCHASE
+     * ========================================================================
+     *
+     * Team purchase does NOT create a personal subscription record.
+     *
+     * The buyer receives PRO through the active Team Workspace entitlement.
+     * Team members later receive PRO through their TeamMembership records.
+     */
+
+    if (isTeamPurchase) {
+      const now =
+        new Date();
+
+      const expiresAt =
+        new Date(now);
+
+      expiresAt.setFullYear(
+        expiresAt.getFullYear() +
+          1
+      );
+
+      const result =
+        await prisma.$transaction(
+          async (tx) => {
+            /*
+             * Re-check inside the transaction so a duplicate browser request
+             * cannot create two Team Workspaces for the same owner.
+             */
+            const existingWorkspace =
+              await tx.teamWorkspace.findUnique(
+                {
+                  where: {
+                    ownerId: userId,
+                  },
+
+                  select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                    startedAt: true,
+                    expiresAt: true,
+                  },
+                }
+              );
+
+            if (existingWorkspace) {
+              throw new Error(
+                "TEAM_WORKSPACE_ALREADY_EXISTS"
+              );
+            }
+
+            /*
+             * Mark the Razorpay payment successful.
+             */
+            await tx.payment.update({
+              where: {
+                id: payment.id,
+              },
+
+              data: {
+                status:
+                  PaymentStatus.SUCCESS,
+
+                razorpayPaymentId:
+                  razorpay_payment_id,
+
+                razorpaySignature:
+                  razorpay_signature,
+              },
+            });
+
+            /*
+             * Create exactly ONE Team Workspace.
+             *
+             * The workspace name is deliberately left to the post-payment
+             * setup flow. The customer will name it from /team.
+             */
+            const workspace =
+              await tx.teamWorkspace.create({
+                data: {
+                  ownerId: userId,
+
+                  name:
+                    "Team Intelligence Workspace",
+
+                  status:
+                    "ACTIVE",
+
+                  startedAt:
+                    now,
+
+                  expiresAt,
+                },
+
+                select: {
+                  id: true,
+                  name: true,
+                  status: true,
+                  startedAt: true,
+                  expiresAt: true,
+                },
+              });
+
+            return workspace;
+          }
+        );
+
+      await recordPaymentSuccessActivity(
+        userId,
+        payment.id
+      );
+
+      return NextResponse.json({
+        success: true,
+
+        checkoutType: "TEAM",
+
+        message:
+          "Team payment verified successfully.",
+
+        team: {
+          workspaceId:
+            result.id,
+
+          workspaceName:
+            result.name,
+
+          status:
+            result.status,
+
+          startedAt:
+            result.startedAt,
+
+          expiresAt:
+            result.expiresAt,
+
+          maxMembers: 20,
+
+          durationMonths: 12,
+
+          price:
+            TEAM_PLAN_AMOUNT,
+
+          currency:
+            TEAM_PLAN_CURRENCY,
+        },
+      });
+    }
+
+    /*
+     * ========================================================================
+     * 15. PERSONAL PRO PURCHASE
+     * ========================================================================
+     *
+     * Existing personal PRO behaviour remains intact.
+     */
 
     const now =
       new Date();
@@ -412,7 +691,7 @@ export async function POST(
 
     if (
       payment.billingCycle ===
-      "MONTHLY"
+      BillingCycle.MONTHLY
     ) {
       expiresAt.setMonth(
         expiresAt.getMonth() +
@@ -422,7 +701,7 @@ export async function POST(
 
     if (
       payment.billingCycle ===
-      "SIX_MONTHS"
+      BillingCycle.SIX_MONTHS
     ) {
       expiresAt.setMonth(
         expiresAt.getMonth() +
@@ -432,7 +711,7 @@ export async function POST(
 
     if (
       payment.billingCycle ===
-      "YEARLY"
+      BillingCycle.YEARLY
     ) {
       expiresAt.setFullYear(
         expiresAt.getFullYear() +
@@ -440,9 +719,27 @@ export async function POST(
       );
     }
 
-    // ============================================================
-    // 14. MARK PAYMENT SUCCESSFUL + ACTIVATE PRO
-    // ============================================================
+    if (
+      payment.billingCycle ===
+      BillingCycle.TEAM_YEARLY
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Team payments must be processed as Team checkout.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * ========================================================================
+     * 16. MARK PERSONAL PAYMENT SUCCESSFUL + ACTIVATE PRO
+     * ========================================================================
+     */
 
     await prisma.$transaction(
       async (tx) => {
@@ -508,10 +805,6 @@ export async function POST(
             source:
               "PAYMENT",
 
-            /*
-             * Important if a user previously had
-             * administrator-granted PRO.
-             */
             grantedById:
               null,
 
@@ -527,21 +820,21 @@ export async function POST(
       }
     );
 
-    // ============================================================
-    // 15. RECORD PAYMENT ACTIVITY
-    // ============================================================
-
     await recordPaymentSuccessActivity(
       userId,
       payment.id
     );
 
-    // ============================================================
-    // 16. RETURN SUCCESS
-    // ============================================================
+    /*
+     * ========================================================================
+     * 17. RETURN PERSONAL PRO SUCCESS
+     * ========================================================================
+     */
 
     return NextResponse.json({
       success: true,
+
+      checkoutType: "PRO",
 
       message:
         "Payment verified successfully.",
@@ -556,6 +849,32 @@ export async function POST(
       },
     });
   } catch (error) {
+    /*
+     * Duplicate Team purchase race.
+     *
+     * A unique ownerId constraint should prevent a second workspace from
+     * being created. Return a controlled response instead of a generic 500
+     * where possible.
+     */
+    if (
+      error instanceof Error &&
+      error.message ===
+        "TEAM_WORKSPACE_ALREADY_EXISTS"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          code:
+            "TEAM_WORKSPACE_ALREADY_EXISTS",
+          message:
+            "A Team Workspace already exists for this account.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
     console.error(
       "========== PAYMENT VERIFICATION ERROR =========="
     );
