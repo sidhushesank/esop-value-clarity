@@ -22,6 +22,7 @@ import {
   Mail,
   Clock3,
   RotateCcw,
+  Users,
 } from "lucide-react";
 
 type UserRole = "USER" | "ADMIN";
@@ -66,6 +67,54 @@ interface UserDetailResponse {
       expiresAt: string | null;
       createdAt: string;
       updatedAt: string;
+    } | null;
+
+    isFounder: boolean;
+    isTeamAdmin: boolean;
+    isTeamMember: boolean;
+
+    teamRole:
+      | "TEAM_ADMIN"
+      | "TEAM_MEMBER"
+      | null;
+
+    teamAccessSource:
+      | "FOUNDER"
+      | "TEAM_ADMIN"
+      | "TEAM_SPONSORED"
+      | "PAYMENT"
+      | "ADMIN_GRANT"
+      | null;
+
+    teamWorkspace: {
+      id: string;
+      name: string;
+      status: string;
+      startedAt: string;
+      expiresAt: string;
+      memberCount: number;
+      maxMembers: number;
+
+      members: Array<{
+        id: string;
+        userId: string;
+        name: string;
+        email: string;
+        status: string;
+        addedAt: string;
+      }>;
+
+      payments: Array<{
+        id: string;
+        amount: number;
+        currency: string;
+        status: string;
+        razorpayOrderId: string | null;
+        razorpayPaymentId: string | null;
+        startedAt: string;
+        expiresAt: string;
+        createdAt: string;
+      }>;
     } | null;
 
     stats: {
@@ -452,6 +501,24 @@ export default function AdminUserDetailPage() {
                   }
                 />
 
+                {user.isFounder && (
+                  <TeamBadge variant="founder">
+                    FOUNDER
+                  </TeamBadge>
+                )}
+
+                {user.isTeamAdmin && (
+                  <TeamBadge variant="admin">
+                    TEAM ADMIN
+                  </TeamBadge>
+                )}
+
+                {user.isTeamMember && (
+                  <TeamBadge variant="member">
+                    TEAM-SPONSORED
+                  </TeamBadge>
+                )}
+
                 <StatusBadge
                   status={user.accountStatus}
                 />
@@ -676,6 +743,165 @@ export default function AdminUserDetailPage() {
           )}
         </Panel>
       </section>
+
+      {/* ======================================================= */}
+      {/* TEAM INTELLIGENCE                                       */}
+      {/* ======================================================= */}
+
+      {user.teamWorkspace && (
+        <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+          <Panel
+            title="Team Intelligence"
+            description="B2B workspace entitlement and membership."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <DetailRow
+                icon={<Crown size={16} />}
+                label="Access"
+                value={
+                  user.isFounder
+                    ? "Unlimited Founder Access"
+                    : user.isTeamAdmin
+                      ? "Team Admin"
+                      : "Team-Sponsored PRO"
+                }
+              />
+
+              <DetailRow
+                icon={<ShieldCheck size={16} />}
+                label="Team Role"
+                value={
+                  user.teamRole === "TEAM_ADMIN"
+                    ? "Team Admin"
+                    : "Sponsored Member"
+                }
+              />
+
+              <DetailRow
+                icon={<Users size={16} />}
+                label="Workspace"
+                value={user.teamWorkspace.name}
+              />
+
+              <DetailRow
+                icon={<Activity size={16} />}
+                label="Workspace Status"
+                value={user.teamWorkspace.status}
+              />
+
+              <DetailRow
+                icon={<Users size={16} />}
+                label="Members"
+                value={`${user.teamWorkspace.memberCount}/${user.teamWorkspace.maxMembers}`}
+              />
+
+              <DetailRow
+                icon={<CalendarDays size={16} />}
+                label="Workspace Term"
+                value={
+                  user.isFounder
+                    ? "Unlimited"
+                    : `${formatDate(
+                        user.teamWorkspace.startedAt
+                      )} → ${formatDate(
+                        user.teamWorkspace.expiresAt
+                      )}`
+                }
+              />
+            </div>
+
+            {user.teamWorkspace.payments.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-blue-600">
+                  Team Purchase
+                </p>
+
+                <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-2xl font-black text-slate-950">
+                      {formatCurrency(
+                        user.teamWorkspace.payments[0]
+                          .amount,
+                        user.teamWorkspace.payments[0]
+                          .currency
+                      )}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatDate(
+                        user.teamWorkspace.payments[0]
+                          .createdAt
+                      )}
+                    </p>
+                  </div>
+
+                  <PaymentStatusBadge
+                    status={
+                      user.teamWorkspace.payments[0]
+                        .status as
+                        | "PENDING"
+                        | "SUCCESS"
+                        | "FAILED"
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </Panel>
+
+          <Panel
+            title="Workspace Members"
+            description="People receiving access through this Team Workspace."
+          >
+            {user.teamWorkspace.members.length === 0 ? (
+              <EmptyState text="No active Team members." />
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {user.teamWorkspace.members.map(
+                  (member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between gap-3 py-3"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <UserAvatar
+                          name={member.name}
+                        />
+
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-slate-900">
+                            {member.name}
+                          </p>
+
+                          <p className="truncate text-xs text-slate-500">
+                            {member.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        {member.userId === user.id ? (
+                          <TeamBadge variant="admin">
+                            OWNER
+                          </TeamBadge>
+                        ) : (
+                          <TeamBadge variant="member">
+                            SPONSORED
+                          </TeamBadge>
+                        )}
+
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          {formatDate(member.addedAt)}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </Panel>
+        </section>
+      )}
 
       {/* ======================================================= */}
       {/* ADMIN ACTIONS                                           */}
@@ -1290,6 +1516,34 @@ function StatusBadge({
       }`}
     >
       {status}
+    </span>
+  );
+}
+
+function TeamBadge({
+  children,
+  variant,
+}: {
+  children: React.ReactNode;
+  variant:
+    | "founder"
+    | "admin"
+    | "member";
+}) {
+  const styles = {
+    founder:
+      "bg-amber-50 text-amber-700 ring-amber-100",
+    admin:
+      "bg-blue-50 text-blue-700 ring-blue-100",
+    member:
+      "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  };
+
+  return (
+    <span
+      className={`rounded-full px-2 py-1 text-[9px] font-black tracking-wide ring-1 ring-inset ${styles[variant]}`}
+    >
+      {children}
     </span>
   );
 }

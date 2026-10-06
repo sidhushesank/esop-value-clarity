@@ -19,6 +19,13 @@ type UserRole = "USER" | "ADMIN";
 type AccountStatus = "ACTIVE" | "SUSPENDED";
 type UserPlan = "FREE" | "PRO";
 type SubscriptionSource = "PAYMENT" | "ADMIN_GRANT" | null;
+type TeamAccessSource =
+  | "PAYMENT"
+  | "ADMIN_GRANT"
+  | "FOUNDER"
+  | "TEAM_ADMIN"
+  | "TEAM_SPONSORED"
+  | null;
 
 interface AdminUser {
   id: string;
@@ -48,6 +55,25 @@ interface AdminUser {
     calculations: number;
     payments: number;
   };
+
+  isFounder: boolean;
+  isTeamAdmin: boolean;
+  isTeamMember: boolean;
+
+  teamRole:
+    | "TEAM_ADMIN"
+    | "TEAM_MEMBER"
+    | null;
+
+  accessSource: TeamAccessSource;
+
+  teamWorkspace: {
+    id: string;
+    name: string;
+    status: string;
+    startedAt: string;
+    expiresAt: string;
+  } | null;
 
   lastLoginAt: string | null;
   lastActiveAt: string | null;
@@ -678,7 +704,7 @@ export default function AdminUsersPage() {
             {/* ================================================= */}
 
             <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[1050px]">
+              <table className="w-full min-w-[1180px]">
                 <thead>
                   <tr
                     className="
@@ -701,6 +727,10 @@ export default function AdminUsersPage() {
 
                     <TableHeading>
                       Role
+                    </TableHeading>
+
+                    <TableHeading>
+                      Team
                     </TableHeading>
 
                     <TableHeading>
@@ -786,6 +816,18 @@ export default function AdminUsersPage() {
                         <RoleBadge
                           role={user.role}
                         />
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="min-w-[150px]">
+                          <TeamAccessBadge user={user} />
+
+                          {user.teamWorkspace && (
+                            <p className="mt-1 max-w-[170px] truncate text-[10px] text-slate-400">
+                              {user.teamWorkspace.name}
+                            </p>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-5 py-4">
@@ -937,6 +979,8 @@ export default function AdminUsersPage() {
                         <RoleBadge
                           role={user.role}
                         />
+
+                        <TeamAccessBadge user={user} />
                       </div>
 
                       <div
@@ -964,6 +1008,15 @@ export default function AdminUsersPage() {
                             user.stats
                               .payments
                           )}
+                        />
+
+                        <MobileDetail
+                          label="Team"
+                          value={
+                            user.teamWorkspace
+                              ? user.teamWorkspace.name
+                              : "None"
+                          }
                         />
 
                         <MobileDetail
@@ -1336,6 +1389,49 @@ function RoleBadge({
       "
     >
       USER
+    </span>
+  );
+}
+
+/* ============================================================ */
+/* TEAM ACCESS BADGE                                            */
+/* ============================================================ */
+
+function TeamAccessBadge({
+  user,
+}: {
+  user: AdminUser;
+}) {
+  if (user.isFounder) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[9px] font-black tracking-wide text-amber-700 ring-1 ring-inset ring-amber-100">
+        <Crown size={10} />
+        FOUNDER
+      </span>
+    );
+  }
+
+  if (user.isTeamAdmin) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-[9px] font-black tracking-wide text-blue-700 ring-1 ring-inset ring-blue-100">
+        <ShieldCheck size={10} />
+        TEAM ADMIN
+      </span>
+    );
+  }
+
+  if (user.isTeamMember) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-100">
+        <Users size={10} />
+        TEAM-SPONSORED
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-[10px] font-semibold text-slate-400">
+      —
     </span>
   );
 }

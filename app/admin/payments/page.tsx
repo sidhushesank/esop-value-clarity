@@ -30,7 +30,13 @@ type PaymentStatus =
 type BillingCycle =
   | "MONTHLY"
   | "SIX_MONTHS"
-  | "YEARLY";
+  | "YEARLY"
+  | "TEAM_YEARLY";
+
+type PaymentScope =
+  | "ALL"
+  | "PERSONAL"
+  | "TEAM";
 
 type UserRole =
   | "USER"
@@ -43,13 +49,22 @@ type AccountStatus =
 interface AdminPayment {
   id: string;
 
-  plan: "FREE" | "PRO";
+  paymentType:
+    | "PERSONAL"
+    | "TEAM";
+
+  plan:
+    | "FREE"
+    | "PRO"
+    | "TEAM";
 
   billingCycle:
     BillingCycle;
 
   amount: number;
   currency: string;
+
+  amountPaise?: number;
 
   status:
     PaymentStatus;
@@ -63,7 +78,10 @@ interface AdminPayment {
   createdAt: string;
   updatedAt: string;
 
-  user: {
+  startedAt?: string;
+  expiresAt?: string;
+
+  user?: {
     id: string;
     name: string;
     email: string;
@@ -82,6 +100,30 @@ interface AdminPayment {
       | "ADMIN_GRANT"
       | null;
   };
+
+  purchaser?: {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    accountStatus: AccountStatus;
+    isFounder: boolean;
+  };
+
+  workspace?: {
+    id: string;
+    name: string;
+    status: string;
+    startedAt: string;
+    expiresAt: string;
+    owner: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    activeMemberCount: number;
+    maxMembers: number;
+  };
 }
 
 interface PaginationData {
@@ -96,27 +138,69 @@ interface PaginationData {
 interface PaymentsResponse {
   success: boolean;
 
-  payments:
-    AdminPayment[];
+  payments: AdminPayment[];
+
+  teamPayments: AdminPayment[];
 
   summary: {
-    successful: number;
-    failed: number;
-    pending: number;
+    scope: PaymentScope;
 
-    revenue: {
-      currency: string;
-      total: number;
-      thisMonth: number;
-      today: number;
+    personal: {
+      successful: number;
+      failed: number;
+      pending: number;
+
+      revenue: {
+        currency: string;
+        total: number;
+        thisMonth: number;
+        today: number;
+      };
+    };
+
+    team: {
+      successful: number;
+      failed: number;
+      pending: number;
+
+      revenue: {
+        currency: string;
+        total: number;
+        thisMonth: number;
+        today: number;
+        totalPaise: number;
+        thisMonthPaise: number;
+        todayPaise: number;
+      };
+    };
+
+    combined: {
+      successful: number;
+      failed: number;
+      pending: number;
+
+      revenue: {
+        currency: string;
+        total: number;
+        thisMonth: number;
+        today: number;
+      };
     };
   };
 
-  pagination:
-    PaginationData;
+  pagination: PaginationData;
+  teamPagination: PaginationData;
+
+  filters: {
+    search: string | null;
+    status: PaymentStatus | null;
+    billingCycle: BillingCycle | null;
+    scope: PaymentScope;
+  };
 
   message?: string;
 }
+
 
 function formatCurrency(
   amount: number,
@@ -151,6 +235,13 @@ function formatBillingCycle(
 ) {
   if (
     value ===
+    "TEAM_YEARLY"
+  ) {
+    return "Team — ₹1,45,000 / year";
+  }
+
+  if (
+    value ===
     "SIX_MONTHS"
   ) {
     return "6 Months";
@@ -176,8 +267,22 @@ export default function AdminPaymentsPage() {
     >([]);
 
   const [
+    teamPayments,
+    setTeamPayments,
+  ] =
+    useState<AdminPayment[]>([]);
+
+  const [
     pagination,
     setPagination,
+  ] =
+    useState<
+      PaginationData | null
+    >(null);
+
+  const [
+    teamPagination,
+    setTeamPagination,
   ] =
     useState<
       PaginationData | null
@@ -216,6 +321,12 @@ export default function AdminPaymentsPage() {
     useState<
       "" | BillingCycle
     >("");
+
+  const [
+    scope,
+    setScope,
+  ] =
+    useState<PaymentScope>("ALL");
 
   const [
     page,
@@ -290,6 +401,11 @@ export default function AdminPaymentsPage() {
           }
 
           params.set(
+            "scope",
+            scope
+          );
+
+          params.set(
             "page",
             String(page)
           );
@@ -328,8 +444,16 @@ export default function AdminPaymentsPage() {
             result.payments
           );
 
+          setTeamPayments(
+            result.teamPayments
+          );
+
           setPagination(
             result.pagination
+          );
+
+          setTeamPagination(
+            result.teamPagination
           );
 
           setSummary(
@@ -363,6 +487,7 @@ export default function AdminPaymentsPage() {
         search,
         status,
         billingCycle,
+        scope,
         page,
       ]
     );
@@ -388,6 +513,7 @@ export default function AdminPaymentsPage() {
     setSearch("");
     setStatus("");
     setBillingCycle("");
+    setScope("ALL");
     setPage(1);
   }
 
@@ -395,8 +521,25 @@ export default function AdminPaymentsPage() {
     Boolean(
       search ||
         status ||
-        billingCycle
+        billingCycle ||
+        scope !== "ALL"
     );
+
+  const displayPayments: AdminPayment[] =
+    scope === "TEAM"
+      ? teamPayments
+      : scope === "PERSONAL"
+        ? payments
+        : [...payments, ...teamPayments].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime()
+          );
+
+  const displayPagination =
+    scope === "TEAM"
+      ? teamPagination
+      : pagination;
 
   return (
     <div className="space-y-6">
@@ -462,21 +605,23 @@ export default function AdminPaymentsPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
-          icon={
-            <IndianRupee
-              size={20}
-            />
+          icon={<IndianRupee size={20} />}
+          label={
+            scope === "TEAM"
+              ? "Team Revenue"
+              : scope === "PERSONAL"
+                ? "Personal Revenue"
+                : "Combined Revenue"
           }
-          label="Total Revenue"
           value={
             summary
               ? formatCurrency(
-                  summary
-                    .revenue
-                    .total,
-                  summary
-                    .revenue
-                    .currency
+                  scope === "TEAM"
+                    ? summary.team.revenue.total
+                    : scope === "PERSONAL"
+                      ? summary.personal.revenue.total
+                      : summary.combined.revenue.total,
+                  "INR"
                 )
               : "₹0"
           }
@@ -484,21 +629,17 @@ export default function AdminPaymentsPage() {
         />
 
         <SummaryCard
-          icon={
-            <IndianRupee
-              size={20}
-            />
-          }
+          icon={<IndianRupee size={20} />}
           label="This Month"
           value={
             summary
               ? formatCurrency(
-                  summary
-                    .revenue
-                    .thisMonth,
-                  summary
-                    .revenue
-                    .currency
+                  scope === "TEAM"
+                    ? summary.team.revenue.thisMonth
+                    : scope === "PERSONAL"
+                      ? summary.personal.revenue.thisMonth
+                      : summary.combined.revenue.thisMonth,
+                  "INR"
                 )
               : "₹0"
           }
@@ -506,45 +647,63 @@ export default function AdminPaymentsPage() {
         />
 
         <SummaryCard
-          icon={
-            <CircleCheck
-              size={20}
-            />
-          }
+          icon={<CircleCheck size={20} />}
           label="Successful"
           value={String(
-            summary
-              ?.successful ??
-              0
+            scope === "TEAM"
+              ? summary?.team.successful ?? 0
+              : scope === "PERSONAL"
+                ? summary?.personal.successful ?? 0
+                : summary?.combined.successful ?? 0
           )}
           description="Completed payments"
         />
 
         <SummaryCard
-          icon={
-            <Clock3
-              size={20}
-            />
-          }
+          icon={<Clock3 size={20} />}
           label="Pending / Failed"
-          value={`${summary?.pending ?? 0} / ${summary?.failed ?? 0}`}
+          value={`${
+            scope === "TEAM"
+              ? summary?.team.pending ?? 0
+              : scope === "PERSONAL"
+                ? summary?.personal.pending ?? 0
+                : summary?.combined.pending ?? 0
+          } / ${
+            scope === "TEAM"
+              ? summary?.team.failed ?? 0
+              : scope === "PERSONAL"
+                ? summary?.personal.failed ?? 0
+                : summary?.combined.failed ?? 0
+          }`}
           description="Payment attention"
         />
       </section>
 
       {summary && (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
-          Revenue today:{" "}
-          <span className="font-black text-slate-950">
-            {formatCurrency(
-              summary
-                .revenue
-                .today,
-              summary
-                .revenue
-                .currency
-            )}
-          </span>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            Revenue today:{" "}
+            <span className="font-black text-slate-950">
+              {formatCurrency(
+                scope === "TEAM"
+                  ? summary.team.revenue.today
+                  : scope === "PERSONAL"
+                    ? summary.personal.revenue.today
+                    : summary.combined.revenue.today,
+                "INR"
+              )}
+            </span>
+          </div>
+
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-blue-700 shadow-sm">
+            Team revenue:{" "}
+            <span className="font-black text-slate-950">
+              {formatCurrency(
+                summary.team.revenue.total,
+                summary.team.revenue.currency
+              )}
+            </span>
+          </div>
         </div>
       )}
 
@@ -565,7 +724,7 @@ export default function AdminPaymentsPage() {
           onSubmit={
             handleSearchSubmit
           }
-          className="mt-4 grid gap-3 lg:grid-cols-[1fr_180px_190px_auto]"
+          className="mt-4 grid gap-3 lg:grid-cols-[minmax(240px,1fr)_170px_210px_210px_auto]"
         >
           <div className="relative">
             <Search
@@ -661,6 +820,25 @@ export default function AdminPaymentsPage() {
             <option value="YEARLY">
               Yearly
             </option>
+
+            <option value="TEAM_YEARLY">
+              Team — ₹1,45,000 / year
+            </option>
+          </select>
+
+          <select
+            value={scope}
+            onChange={(event) => {
+              setPage(1);
+              setScope(
+                event.target.value as PaymentScope
+              );
+            }}
+            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none"
+          >
+            <option value="ALL">All payments</option>
+            <option value="PERSONAL">Personal PRO</option>
+            <option value="TEAM">Team Intelligence</option>
           </select>
 
           <button
@@ -709,11 +887,11 @@ export default function AdminPaymentsPage() {
             <p className="mt-1 text-xs text-slate-500">
               {loading
                 ? "Loading payments..."
-                : pagination
-                  ? `${pagination.total.toLocaleString(
-                      "en-IN"
-                    )} payments`
-                  : `${payments.length} payments`}
+                : scope === "TEAM"
+                  ? `${teamPagination?.total?.toLocaleString("en-IN") ?? teamPayments.length} Team payments`
+                  : scope === "PERSONAL"
+                    ? `${pagination?.total?.toLocaleString("en-IN") ?? payments.length} personal payments`
+                    : `${((pagination?.total ?? payments.length) + (teamPagination?.total ?? teamPayments.length)).toLocaleString("en-IN")} transactions` }
             </p>
           </div>
 
@@ -721,11 +899,11 @@ export default function AdminPaymentsPage() {
             <p className="text-xs text-slate-400">
               Page{" "}
               {
-                pagination.page
+                displayPagination?.page
               }{" "}
               of{" "}
               {Math.max(
-                pagination.totalPages,
+                displayPagination?.totalPages ?? 1,
                 1
               )}
             </p>
@@ -790,13 +968,13 @@ export default function AdminPaymentsPage() {
                     </TableHeading>
 
                     <TableHeading>
-                      User
+                      Workspace
                     </TableHeading>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {payments.map(
+                  {displayPayments.map(
                     (
                       payment
                     ) => (
@@ -808,20 +986,18 @@ export default function AdminPaymentsPage() {
                       >
                         <td className="px-5 py-4">
                           <p className="text-sm font-bold text-slate-900">
-                            {
-                              payment
-                                .user
-                                .name
-                            }
+                            {payment.user?.name ?? payment.purchaser?.name ?? "Team purchaser"}
                           </p>
 
                           <p className="mt-1 text-xs text-slate-500">
-                            {
-                              payment
-                                .user
-                                .email
-                            }
+                            {payment.user?.email ?? payment.purchaser?.email ?? "—"}
                           </p>
+
+                          {payment.paymentType === "TEAM" && (
+                            <span className="mt-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-[9px] font-black tracking-wide text-blue-700 ring-1 ring-inset ring-blue-100">
+                              TEAM INTELLIGENCE
+                            </span>
+                          )}
                         </td>
 
                         <td className="px-5 py-4">
@@ -868,8 +1044,23 @@ export default function AdminPaymentsPage() {
                         </td>
 
                         <td className="px-5 py-4">
+                          {payment.paymentType === "TEAM" && payment.workspace ? (
+                            <div>
+                              <p className="max-w-[180px] truncate text-xs font-bold text-slate-800">
+                                {payment.workspace.name}
+                              </p>
+                              <p className="mt-1 text-[10px] text-slate-400">
+                                {payment.workspace.activeMemberCount}/{payment.workspace.maxMembers} members
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
+                        </td>
+
+                        <td className="px-5 py-4">
                           <Link
-                            href={`/admin/users/${payment.user.id}`}
+                            href={`/admin/users/${payment.user?.id ?? payment.purchaser?.id ?? ""}`}
                             className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
                           >
                             View
@@ -889,7 +1080,7 @@ export default function AdminPaymentsPage() {
             {/* MOBILE */}
 
             <div className="divide-y divide-slate-100 lg:hidden">
-              {payments.map(
+              {displayPayments.map(
                 (
                   payment
                 ) => (
@@ -897,25 +1088,17 @@ export default function AdminPaymentsPage() {
                     key={
                       payment.id
                     }
-                    href={`/admin/users/${payment.user.id}`}
+                    href={`/admin/users/${payment.user?.id ?? payment.purchaser?.id ?? ""}`}
                     className="block px-4 py-4 transition hover:bg-slate-50"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-slate-900">
-                          {
-                            payment
-                              .user
-                              .name
-                          }
+                          {payment.user?.name ?? payment.purchaser?.name ?? "Team purchaser"}
                         </p>
 
                         <p className="mt-1 truncate text-xs text-slate-500">
-                          {
-                            payment
-                              .user
-                              .email
-                          }
+                          {payment.user?.email ?? payment.purchaser?.email ?? "—"}
                         </p>
                       </div>
 
@@ -971,21 +1154,21 @@ export default function AdminPaymentsPage() {
         {/* PAGINATION */}
 
         {!loading &&
-          pagination &&
-          pagination.totalPages >
+          displayPagination &&
+          displayPagination.totalPages >
             0 && (
             <div className="flex items-center justify-between border-t border-slate-200 px-4 py-4 sm:px-5">
               <p className="text-xs text-slate-500">
                 Page{" "}
                 <strong>
                   {
-                    pagination.page
+                    displayPagination.page
                   }
                 </strong>{" "}
                 of{" "}
                 <strong>
                   {
-                    pagination.totalPages
+                    displayPagination.totalPages
                   }
                 </strong>
               </p>
@@ -994,7 +1177,7 @@ export default function AdminPaymentsPage() {
                 <button
                   type="button"
                   disabled={
-                    !pagination.hasPreviousPage
+                    !displayPagination.hasPreviousPage
                   }
                   onClick={() =>
                     setPage(
@@ -1018,7 +1201,7 @@ export default function AdminPaymentsPage() {
                 <button
                   type="button"
                   disabled={
-                    !pagination.hasNextPage
+                    !displayPagination.hasNextPage
                   }
                   onClick={() =>
                     setPage(

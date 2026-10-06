@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Users,
+  Building2,
   Crown,
   UserRound,
   UserPlus,
@@ -26,6 +27,16 @@ interface RecentUser {
   accountStatus: "ACTIVE" | "SUSPENDED";
   plan: "FREE" | "PRO";
   source: "PAYMENT" | "ADMIN_GRANT" | null;
+  isFounder?: boolean;
+  isTeamAdmin?: boolean;
+  isTeamMember?: boolean;
+  teamRole?: "TEAM_ADMIN" | "TEAM_MEMBER" | null;
+  teamWorkspace?: {
+    id: string;
+    name: string;
+    status: string;
+    expiresAt: string;
+  } | null;
   createdAt: string;
   lastLoginAt: string | null;
 }
@@ -101,6 +112,16 @@ interface AdminStatsResponse {
       calculations: number;
       calculationsToday: number;
       activities: number;
+    };
+
+    team: {
+      customers: number;
+      workspaces:{total:number;active:number;expired:number;};
+      sponsoredMembers:number;
+      totalMembershipRecords:number;
+      capacity:{maxPerWorkspace:number;used:number;total:number;remaining:number;utilizationPercent:number;};
+      payments:{successful:number;failed:number;pending:number;total:number;};
+      revenue:{currency:string;total:number;thisMonth:number;totalPaise:number;thisMonthPaise:number;};
     };
   };
 
@@ -489,6 +510,32 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* ======================================================= */}
+      {/* TEAM INTELLIGENCE */}
+      <section className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
+              <Building2 size={14}/> Team Intelligence
+            </div>
+            <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">B2B Team Control</h2>
+            <p className="mt-1 text-sm text-slate-500">Monitor Team customers, workspaces, sponsored members, capacity and Team revenue.</p>
+          </div>
+          <div className="text-xs font-semibold text-slate-400">Separate from personal PRO billing</div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={<Building2 size={21}/>} label="Team Customers" value={stats.team.customers.toLocaleString("en-IN")} secondary={`${stats.team.workspaces.active} active workspaces`} />
+          <StatCard icon={<Users size={21}/>} label="Sponsored Members" value={stats.team.sponsoredMembers.toLocaleString("en-IN")} secondary={`${stats.team.capacity.remaining} member slots remaining`} />
+          <StatCard icon={<IndianRupee size={21}/>} label="Team Revenue" value={formatCurrency(stats.team.revenue.total,stats.team.revenue.currency)} secondary={`${formatCurrency(stats.team.revenue.thisMonth,stats.team.revenue.currency)} this month`} />
+          <StatCard icon={<Activity size={21}/>} label="Team Capacity" value={`${stats.team.capacity.used}/${stats.team.capacity.total}`} secondary={`${stats.team.capacity.utilizationPercent}% utilized`} />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <MiniStat icon={<ShieldCheck size={17}/>} label="Active Workspaces" value={stats.team.workspaces.active}/>
+          <MiniStat icon={<Ban size={17}/>} label="Expired Workspaces" value={stats.team.workspaces.expired}/>
+          <MiniStat icon={<CreditCard size={17}/>} label="Successful Team Payments" value={stats.team.payments.successful}/>
+        </div>
+      </section>
+
+      {/* ======================================================= */}
       {/* SECONDARY STATS                                         */}
       {/* ======================================================= */}
 
@@ -680,6 +727,10 @@ export default function AdminDashboardPage() {
                       >
                         {user.plan}
                       </Badge>
+
+                      {user.isFounder && <Badge variant="admin">FOUNDER</Badge>}
+                      {user.isTeamAdmin && <Badge variant="admin">TEAM ADMIN</Badge>}
+                      {user.isTeamMember && <Badge variant="success">TEAM-SPONSORED</Badge>}
 
                       {user.accountStatus ===
                         "SUSPENDED" && (

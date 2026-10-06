@@ -62,6 +62,95 @@ export async function GET(
           },
         },
 
+        ownedTeamWorkspace: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            startedAt: true,
+            expiresAt: true,
+            createdAt: true,
+
+            members: {
+              where: {
+                status: "ACTIVE",
+              },
+              orderBy: {
+                addedAt: "asc",
+              },
+              select: {
+                id: true,
+                userId: true,
+                addedAt: true,
+                status: true,
+
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+
+            payments: {
+              where: {
+                status: "SUCCESS",
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: 5,
+              select: {
+                id: true,
+                amount: true,
+                currency: true,
+                status: true,
+                razorpayOrderId: true,
+                razorpayPaymentId: true,
+                startedAt: true,
+                expiresAt: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+
+        teamMemberships: {
+          where: {
+            status: "ACTIVE",
+          },
+          orderBy: {
+            addedAt: "desc",
+          },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            addedAt: true,
+
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+                startedAt: true,
+                expiresAt: true,
+                ownerId: true,
+
+                owner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+
         payments: {
           orderBy: {
             createdAt: "desc",
@@ -153,9 +242,76 @@ export async function GET(
       (!user.subscription.expiresAt ||
         user.subscription.expiresAt > now);
 
-    const currentPlan = subscriptionIsActive
-      ? "PRO"
-      : "FREE";
+    const isFounder =
+      user.email ===
+      process.env.FOUNDER_EMAIL;
+
+    const ownedTeamWorkspace =
+      user.ownedTeamWorkspace;
+
+    const activeTeamMembership =
+      user.teamMemberships[0] ?? null;
+
+    const isTeamAdmin =
+      Boolean(
+        ownedTeamWorkspace &&
+        (
+          isFounder ||
+          (
+            ownedTeamWorkspace.status ===
+              "ACTIVE" &&
+            ownedTeamWorkspace.expiresAt >
+              now
+          )
+        )
+      );
+
+    const isTeamMember =
+      Boolean(
+        activeTeamMembership?.workspace &&
+        activeTeamMembership.workspace.status ===
+          "ACTIVE" &&
+        activeTeamMembership.workspace.ownerId !==
+          user.id &&
+        activeTeamMembership.workspace.expiresAt >
+          now
+      );
+
+    const hasEffectivePro =
+      isFounder ||
+      subscriptionIsActive ||
+      isTeamAdmin ||
+      isTeamMember;
+
+    const currentPlan =
+      hasEffectivePro
+        ? "PRO"
+        : "FREE";
+
+    const teamWorkspace =
+      isTeamAdmin
+        ? ownedTeamWorkspace
+        : activeTeamMembership?.workspace ??
+          null;
+
+    const teamRole =
+      isTeamAdmin
+        ? "TEAM_ADMIN"
+        : isTeamMember
+          ? "TEAM_MEMBER"
+          : null;
+
+    const teamAccessSource =
+      isFounder
+        ? "FOUNDER"
+        : isTeamAdmin
+          ? "TEAM_ADMIN"
+          : isTeamMember
+            ? "TEAM_SPONSORED"
+            : subscriptionIsActive &&
+                user.subscription
+              ? user.subscription.source
+              : null;
 
     // ============================================================
     // PAYMENT SUMMARY
@@ -210,6 +366,66 @@ export async function GET(
         updatedAt: user.updatedAt,
 
         subscription: user.subscription,
+
+        isFounder,
+
+        isTeamAdmin,
+
+        isTeamMember,
+
+        teamRole,
+
+        teamAccessSource,
+
+        teamWorkspace: teamWorkspace
+          ? {
+              id: teamWorkspace.id,
+              name: teamWorkspace.name,
+              status: teamWorkspace.status,
+              startedAt: teamWorkspace.startedAt,
+              expiresAt: teamWorkspace.expiresAt,
+
+              memberCount:
+                "members" in teamWorkspace
+                  ? teamWorkspace.members.length
+                  : 0,
+
+              maxMembers: 20,
+
+              members:
+                "members" in teamWorkspace
+                  ? teamWorkspace.members.map(
+                      (member) => ({
+                        id: member.id,
+                        userId: member.userId,
+                        name: member.user.name,
+                        email: member.user.email,
+                        status: member.status,
+                        addedAt: member.addedAt,
+                      })
+                    )
+                  : [],
+
+              payments:
+                "payments" in teamWorkspace
+                  ? teamWorkspace.payments.map(
+                      (payment) => ({
+                        id: payment.id,
+                        amount: payment.amount,
+                        currency: payment.currency,
+                        status: payment.status,
+                        razorpayOrderId:
+                          payment.razorpayOrderId,
+                        razorpayPaymentId:
+                          payment.razorpayPaymentId,
+                        startedAt: payment.startedAt,
+                        expiresAt: payment.expiresAt,
+                        createdAt: payment.createdAt,
+                      })
+                    )
+                  : [],
+            }
+          : null,
 
         stats: {
           calculations: user._count.calculations,

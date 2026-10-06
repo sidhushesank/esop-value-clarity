@@ -133,6 +133,40 @@ export async function GET(request: NextRequest) {
             },
           },
 
+          ownedTeamWorkspace: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              startedAt: true,
+              expiresAt: true,
+            },
+          },
+
+          teamMemberships: {
+            where: {
+              status: "ACTIVE",
+            },
+            orderBy: {
+              addedAt: "desc",
+            },
+            take: 1,
+            select: {
+              id: true,
+              addedAt: true,
+              workspace: {
+                select: {
+                  id: true,
+                  name: true,
+                  status: true,
+                  startedAt: true,
+                  expiresAt: true,
+                  ownerId: true,
+                },
+              },
+            },
+          },
+
           _count: {
             select: {
               calculations: true,
@@ -154,11 +188,70 @@ export async function GET(request: NextRequest) {
     const formattedUsers = users.map((user) => {
       const now = new Date();
 
+      const isFounder =
+        user.email === process.env.FOUNDER_EMAIL;
+
       const subscriptionIsActive =
         user.subscription?.plan === "PRO" &&
-        user.subscription.status === "ACTIVE" &&
+        (user.subscription.status === "ACTIVE" ||
+          user.subscription.status === "CANCELLED") &&
         (!user.subscription.expiresAt ||
           user.subscription.expiresAt > now);
+
+      const isTeamAdmin = Boolean(
+        user.ownedTeamWorkspace &&
+        (
+          isFounder ||
+          (
+            user.ownedTeamWorkspace.status === "ACTIVE" &&
+            user.ownedTeamWorkspace.expiresAt > now
+          )
+        )
+      );
+
+      const activeMembership =
+        user.teamMemberships[0] ?? null;
+
+      const isTeamMember = Boolean(
+        activeMembership?.workspace &&
+        activeMembership.workspace.status === "ACTIVE" &&
+        (
+          activeMembership.workspace.ownerId !== user.id &&
+          (isFounder || activeMembership.workspace.expiresAt > now)
+        )
+      );
+
+      const hasEffectivePro =
+        isFounder ||
+        subscriptionIsActive ||
+        isTeamAdmin ||
+        isTeamMember;
+
+      let accessSource:
+        | "PAYMENT"
+        | "ADMIN_GRANT"
+        | "FOUNDER"
+        | "TEAM_ADMIN"
+        | "TEAM_SPONSORED"
+        | null = null;
+
+      if (isFounder) {
+        accessSource = "FOUNDER";
+      } else if (isTeamAdmin) {
+        accessSource = "TEAM_ADMIN";
+      } else if (isTeamMember) {
+        accessSource = "TEAM_SPONSORED";
+      } else if (subscriptionIsActive && user.subscription) {
+        accessSource =
+          user.subscription.source === "ADMIN_GRANT"
+            ? "ADMIN_GRANT"
+            : "PAYMENT";
+      }
+
+      const teamWorkspace =
+        isTeamAdmin
+          ? user.ownedTeamWorkspace
+          : activeMembership?.workspace ?? null;
 
       return {
         id: user.id,
@@ -169,7 +262,7 @@ export async function GET(request: NextRequest) {
         role: user.role,
         accountStatus: user.accountStatus,
 
-        plan: subscriptionIsActive
+        plan: hasEffectivePro
           ? "PRO"
           : "FREE",
 
@@ -185,6 +278,28 @@ export async function GET(request: NextRequest) {
               expiresAt: user.subscription.expiresAt,
               grantReason:
                 user.subscription.grantReason,
+            }
+          : null,
+
+        isFounder,
+        isTeamAdmin,
+        isTeamMember,
+
+        teamRole: isTeamAdmin
+          ? "TEAM_ADMIN"
+          : isTeamMember
+            ? "TEAM_MEMBER"
+            : null,
+
+        accessSource,
+
+        teamWorkspace: teamWorkspace
+          ? {
+              id: teamWorkspace.id,
+              name: teamWorkspace.name,
+              status: teamWorkspace.status,
+              startedAt: teamWorkspace.startedAt,
+              expiresAt: teamWorkspace.expiresAt,
             }
           : null,
 

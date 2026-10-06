@@ -81,6 +81,30 @@ export default function AdminLayout({
                 Users
               </Link>
 
+              {/* ================================================= */}
+              {/* TEAM INTELLIGENCE                                 */}
+              {/* ================================================= */}
+
+              <Link
+                href="/admin/teams"
+                className="
+                  rounded-xl
+                  border
+                  border-blue-100
+                  bg-blue-50
+                  px-4
+                  py-3
+                  text-sm
+                  font-bold
+                  text-blue-700
+                  transition
+                  hover:bg-blue-100
+                  hover:text-blue-800
+                "
+              >
+                Teams
+              </Link>
+
               <Link
                 href="/admin/activity"
                 className="
@@ -198,6 +222,32 @@ export default function AdminLayout({
                 "
               >
                 Users
+              </Link>
+
+              {/* ================================================= */}
+              {/* MOBILE TEAM LINK                                  */}
+              {/* ================================================= */}
+
+              <Link
+                href="/admin/teams"
+                className="
+                  rounded-xl
+                  border
+                  border-blue-200
+                  bg-blue-50
+                  px-3
+                  py-2
+                  text-xs
+                  font-bold
+                  text-blue-700
+                  shadow-sm
+                  transition
+                  hover:bg-blue-100
+
+                  lg:hidden
+                "
+              >
+                Teams
               </Link>
 
               <Link
