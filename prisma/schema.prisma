@@ -159,6 +159,7 @@ enum AdminActionType {
   USER_REACTIVATED
   USER_DELETED
   ROLE_CHANGED
+  TEAM_TERM_EXTENDED
 }
 
 // ============================================================

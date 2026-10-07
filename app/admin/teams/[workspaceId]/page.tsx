@@ -22,6 +22,7 @@ import {
   Crown,
   ExternalLink,
   IndianRupee,
+  Loader2,
   Mail,
   RefreshCw,
   ShieldCheck,
@@ -34,6 +35,13 @@ type PaymentStatus =
   | "PENDING"
   | "SUCCESS"
   | "FAILED";
+
+type ExtendMode =
+  | "1_MONTH"
+  | "3_MONTHS"
+  | "6_MONTHS"
+  | "12_MONTHS"
+  | "CUSTOM";
 
 type TeamWorkspaceResponse = {
   success: boolean;
@@ -419,6 +427,38 @@ export default function AdminTeamWorkspacePage() {
       Record<string, boolean>
     >({});
 
+  const [
+    extendOpen,
+    setExtendOpen,
+  ] = useState(false);
+
+  const [
+    extendMode,
+    setExtendMode,
+  ] = useState<ExtendMode>(
+    "3_MONTHS"
+  );
+
+  const [
+    customExpiresAt,
+    setCustomExpiresAt,
+  ] = useState("");
+
+  const [
+    extendReason,
+    setExtendReason,
+  ] = useState("");
+
+  const [
+    extendLoading,
+    setExtendLoading,
+  ] = useState(false);
+
+  const [
+    extendMessage,
+    setExtendMessage,
+  ] = useState("");
+
   const loadWorkspace =
     useCallback(
       async (
@@ -516,6 +556,95 @@ export default function AdminTeamWorkspacePage() {
           !current[memberId],
       })
     );
+  }
+
+  function closeExtendDialog() {
+    if (extendLoading) {
+      return;
+    }
+
+    setExtendOpen(false);
+    setExtendMessage("");
+  }
+
+  async function handleExtendTerm() {
+    if (workspace?.isFounder) {
+      return;
+    }
+
+    if (extendMode === "CUSTOM" && !customExpiresAt) {
+      setExtendMessage("Please select a custom expiry date.");
+      return;
+    }
+
+    try {
+      setExtendLoading(true);
+      setExtendMessage("");
+      setError("");
+
+      let customDateIso: string | undefined;
+
+      if (extendMode === "CUSTOM") {
+        const customDate = new Date(
+          `${customExpiresAt}T23:59:59.999`
+        );
+
+        if (Number.isNaN(customDate.getTime())) {
+          setExtendMessage("The custom expiry date is invalid.");
+          return;
+        }
+
+        customDateIso = customDate.toISOString();
+      }
+
+      const response = await fetch(
+        `/api/admin/teams/${encodeURIComponent(
+          workspaceId
+        )}/extend`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode: extendMode,
+            customExpiresAt: customDateIso,
+            reason: extendReason.trim() || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message ??
+            "Unable to extend the Team entitlement."
+        );
+      }
+
+      setExtendOpen(false);
+      setExtendMode("3_MONTHS");
+      setCustomExpiresAt("");
+      setExtendReason("");
+      setExtendMessage("");
+
+      await loadWorkspace(true);
+    } catch (error) {
+      console.error(
+        "Failed to extend Team Workspace:",
+        error
+      );
+
+      setExtendMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to extend the Team entitlement."
+      );
+    } finally {
+      setExtendLoading(false);
+    }
   }
 
   if (loading) {
@@ -1298,6 +1427,33 @@ export default function AdminTeamWorkspacePage() {
               )}
             </div>
 
+            {!workspace.isFounder && (
+              <div className="mt-5 rounded-2xl border border-blue-200 bg-white/80 p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-slate-950">
+                      Founder control
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Extend this customer&apos;s Team entitlement without changing their original payment record or personal subscription.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExtendMessage("");
+                      setExtendOpen(true);
+                    }}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <CalendarDays size={15} />
+                    Extend Term
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <DetailTile
                 icon={
@@ -1494,17 +1650,159 @@ export default function AdminTeamWorkspacePage() {
             </p>
 
             <p className="mt-1 max-w-4xl text-xs leading-6 text-slate-500">
-              This workspace view is currently
-              read-only. It gives you visibility into
-              the purchaser, sponsored members,
-              entitlement, workspace capacity and
-              Team payments without introducing
-              destructive controls into the first
-              monitoring layer.
+              This workspace view gives you visibility into the purchaser, sponsored members, entitlement, workspace capacity and Team payments. Founder-only term extension is available above without changing the original payment history.
             </p>
           </div>
         </div>
       </section>
+
+      {extendOpen && !workspace.isFounder && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-blue-600">
+                  Founder control
+                </p>
+                <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">
+                  Extend Team entitlement
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  Extend access for {workspace.name} without changing the historical Team purchase.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeExtendDialog}
+                disabled={extendLoading}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                aria-label="Close extend term dialog"
+              >
+                <XCircle size={18} />
+              </button>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-blue-600">
+                Current entitlement
+              </p>
+              <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+                <p className="text-lg font-black text-slate-950">
+                  {formatDate(workspace.expiresAt)}
+                </p>
+                <span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black text-blue-700 ring-1 ring-inset ring-blue-100">
+                  {workspace.status}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <label className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                Extend by
+              </label>
+
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {([
+                  ["1_MONTH", "+1 month"],
+                  ["3_MONTHS", "+3 months"],
+                  ["6_MONTHS", "+6 months"],
+                  ["12_MONTHS", "+12 months"],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setExtendMode(value)}
+                    disabled={extendLoading}
+                    className={`min-h-11 rounded-xl border px-3 text-xs font-black transition ${
+                      extendMode === value
+                        ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setExtendMode("CUSTOM")}
+                disabled={extendLoading}
+                className={`mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-xs font-black transition ${
+                  extendMode === "CUSTOM"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <CalendarDays size={14} />
+                Custom expiry date
+              </button>
+
+              {extendMode === "CUSTOM" && (
+                <div className="mt-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                    New expiry date
+                  </label>
+                  <input
+                    type="date"
+                    value={customExpiresAt}
+                    onChange={(event) => setCustomExpiresAt(event.target.value)}
+                    min={new Date(workspace.expiresAt).toISOString().slice(0, 10)}
+                    disabled={extendLoading}
+                    className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5">
+              <label className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                Founder reason (optional)
+              </label>
+              <textarea
+                value={extendReason}
+                onChange={(event) => setExtendReason(event.target.value)}
+                disabled={extendLoading}
+                rows={3}
+                placeholder="Strategic extension, pilot, renewal accommodation, support recovery..."
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50"
+              />
+            </div>
+
+            {extendMessage && (
+              <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold leading-5 text-red-700">
+                {extendMessage}
+              </div>
+            )}
+
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={closeExtendDialog}
+                disabled={extendLoading}
+                className="min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExtendTerm}
+                disabled={extendLoading || (extendMode === "CUSTOM" && !customExpiresAt)}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {extendLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <CalendarDays size={16} />
+                )}
+                {extendLoading ? "Extending..." : "Confirm Extension"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
