@@ -1449,7 +1449,13 @@ function ConnectedField({
 
         <Input
           type="number"
-          value={value}
+          value={
+  /* Display only: round read-only connected values
+     to 2 decimals. Calculations still use the full value. */
+  Number.isFinite(value)
+    ? Math.round(value * 100) / 100
+    : 0
+}
           readOnly
           className={`h-11 rounded-xl border-blue-100 bg-blue-50/50 text-sm font-semibold text-slate-900 ${
             prefix ? "pl-8" : ""

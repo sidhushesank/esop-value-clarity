@@ -44,6 +44,13 @@ export type AdvancedTaxResult = {
 
   holdingPeriodThresholdMonths: number;
 
+  /*
+   * NEW (optional): surcharge rate applied, as a
+   * percentage (0, 10, 15, 25 or 37).
+   * Existing callers can ignore it.
+   */
+  surchargeRatePercent?: number;
+
   status:
     | "high-value"
     | "positive"
@@ -114,9 +121,12 @@ function calculateNewRegimeTax(income: number) {
 
   /*
    * Health & Education Cess = 4%
+   *
+   * CHANGED: cess is now applied in calculateIncomeTax,
+   * after surcharge, so this returns tax before cess.
    */
 
-  return tax * 1.04;
+  return tax;
 }
 
 /* ============================================================
@@ -150,14 +160,64 @@ function calculateOldRegimeTax(income: number) {
     tax = Math.max(tax - 12_500, 0);
   }
 
-  return tax * 1.04;
+  /*
+   * CHANGED: cess is now applied in calculateIncomeTax,
+   * after surcharge, so this returns tax before cess.
+   */
+
+  return tax;
 }
 
 /* ============================================================
    NORMAL INCOME TAX
 ============================================================ */
 
-function calculateIncomeTax(
+/* ============================================================
+   NEW: SURCHARGE
+   Applied on total income above ₹50 lakh.
+   New regime is capped at 25%.
+============================================================ */
+
+type SurchargeBand = {
+  above: number;
+  rate: number;
+};
+
+function surchargeBands(
+  regime: TaxRegime
+): SurchargeBand[] {
+  const bands: SurchargeBand[] = [
+    { above: 5_000_000, rate: 0.10 },
+    { above: 10_000_000, rate: 0.15 },
+    { above: 20_000_000, rate: 0.25 },
+  ];
+
+  if (regime === "OLD") {
+    bands.push({
+      above: 50_000_000,
+      rate: 0.37,
+    });
+  }
+
+  return bands;
+}
+
+export function surchargeRateFor(
+  totalIncome: number,
+  regime: TaxRegime
+) {
+  let rate = 0;
+
+  for (const band of surchargeBands(regime)) {
+    if (totalIncome > band.above) {
+      rate = band.rate;
+    }
+  }
+
+  return rate;
+}
+
+function calculateSlabTax(
   income: number,
   regime: TaxRegime
 ) {
@@ -168,6 +228,76 @@ function calculateIncomeTax(
   return calculateNewRegimeTax(income);
 }
 
+/*
+ * Slab tax + surcharge, with marginal relief:
+ * crossing a surcharge threshold cannot raise
+ * (tax + surcharge) by more than the income
+ * above that threshold.
+ */
+
+function calculateTaxWithSurcharge(
+  income: number,
+  regime: TaxRegime
+) {
+  const taxableIncome = positiveNumber(income);
+
+  const baseTax = calculateSlabTax(
+    taxableIncome,
+    regime
+  );
+
+  const rate = surchargeRateFor(
+    taxableIncome,
+    regime
+  );
+
+  if (rate === 0) {
+    return baseTax;
+  }
+
+  const crossedBands = surchargeBands(
+    regime
+  ).filter(
+    (band) => taxableIncome > band.above
+  );
+
+  const threshold =
+    crossedBands.at(-1)?.above ?? 0;
+
+  const taxWithSurcharge =
+    baseTax * (1 + rate);
+
+  const taxAtThreshold =
+    calculateSlabTax(threshold, regime) *
+    (1 + surchargeRateFor(threshold, regime));
+
+  const marginalReliefCap =
+    taxAtThreshold +
+    (taxableIncome - threshold);
+
+  return Math.min(
+    taxWithSurcharge,
+    marginalReliefCap
+  );
+}
+
+/*
+ * CHANGED: slab tax -> surcharge -> 4% cess.
+ * Below ₹50 lakh the result is identical to before.
+ */
+
+function calculateIncomeTax(
+  income: number,
+  regime: TaxRegime
+) {
+  return (
+    calculateTaxWithSurcharge(
+      income,
+      regime
+    ) * 1.04
+  );
+}
+
 /* ============================================================
    CAPITAL GAINS
 ============================================================ */
@@ -175,7 +305,9 @@ function calculateIncomeTax(
 function calculateCapitalGainsTax(
   capitalGain: number,
   equityType: EquityType,
-  isLongTerm: boolean
+  isLongTerm: boolean,
+  totalIncome: number,
+  regime: TaxRegime
 ) {
   const gain = positiveNumber(capitalGain);
 
@@ -200,7 +332,22 @@ function calculateCapitalGainsTax(
    */
 
   if (isLongTerm) {
-    return gain * 0.125 * 1.04;
+    /*
+     * CHANGED: surcharge on long-term gains is
+     * capped at 15%; its band depends on total income.
+     */
+
+    const ltcgSurchargeRate = Math.min(
+      surchargeRateFor(totalIncome, regime),
+      0.15
+    );
+
+    return (
+      gain *
+      0.125 *
+      (1 + ltcgSurchargeRate) *
+      1.04
+    );
   }
 
   /*
@@ -300,7 +447,15 @@ export function calculateAdvancedTax(
 
   /*
    * Approximate marginal rate for display.
+   *
+   * CHANGED: cap raised from 30 to the highest
+   * possible marginal rate, so surcharge is not hidden.
    */
+
+  const maxMarginalRate =
+    taxRegime === "OLD"
+      ? 42.744
+      : 39;
 
   const incomeTaxRate =
     taxablePerquisite > 0
@@ -308,7 +463,7 @@ export function calculateAdvancedTax(
           (estimatedIncomeTax /
             taxablePerquisite) *
             100,
-          30
+          maxMarginalRate
         )
       : 0;
 
@@ -355,7 +510,11 @@ export function calculateAdvancedTax(
       calculateCapitalGainsTax(
         capitalGain,
         equityType,
-        true
+        true,
+        otherAnnualIncome +
+          taxablePerquisite +
+          capitalGain,
+        taxRegime
       );
   } else {
     /*
@@ -420,6 +579,18 @@ export function calculateAdvancedTax(
         100
       : 0;
 
+  /*
+   * NEW: surcharge rate shown to the user.
+   */
+
+  const surchargeRatePercent =
+    surchargeRateFor(
+      otherAnnualIncome +
+        taxablePerquisite +
+        (isLongTerm ? 0 : capitalGain),
+      taxRegime
+    ) * 100;
+
   /* ==========================================================
      STATUS
   ========================================================== */
@@ -458,8 +629,11 @@ export function calculateAdvancedTax(
     "Exercise taxation is modeled as incremental normal income tax.",
     "Capital gains use exercise FMV as the simplified cost basis.",
     "Unlisted shares use a 24-month long-term holding threshold.",
-    "Long-term capital gains are modeled at 12.5% plus 4% cess.",
-    "This estimator does not model surcharge, exemptions, losses, DTAA or special ESOP deferral rules.",
+    "Long-term capital gains are modeled at 12.5% plus surcharge (capped at 15%) and 4% cess.",
+    "Surcharge is applied above ₹50 lakh total income (10% / 15% / 25%, and 37% above ₹5 crore in the old regime), with marginal relief, before 4% cess.",
+    "Exercise and sale are assumed to fall in the same financial year.",
+    "Company buybacks of exercised shares (taxed as deemed dividend from 1 Oct 2024) are not modeled separately.",
+    "This estimator does not model exemptions, losses, DTAA or special ESOP deferral rules.",
     "Actual tax liability depends on your personal circumstances and transaction documents.",
   ];
 
@@ -488,6 +662,8 @@ export function calculateAdvancedTax(
     isLongTerm,
 
     holdingPeriodThresholdMonths,
+
+    surchargeRatePercent,
 
     status,
 
