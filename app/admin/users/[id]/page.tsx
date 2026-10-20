@@ -23,6 +23,7 @@ import {
   Clock3,
   RotateCcw,
   Users,
+  Building2,
 } from "lucide-react";
 
 type UserRole = "USER" | "ADMIN";
@@ -169,6 +170,18 @@ type GrantDuration =
   | "1_YEAR"
   | "LIFETIME";
 
+/*
+ * Today's date in IST as "YYYY-MM-DD" (for the Team grant start date).
+ */
+function todayInIST() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 function formatDate(value: string | null) {
   if (!value) {
     return "Never";
@@ -236,6 +249,23 @@ export default function AdminUserDetailPage() {
     useState("");
 
   const [deleteReason, setDeleteReason] =
+    useState("");
+
+  /* ===== Team Intelligence manual grant ===== */
+
+  const [teamAmount, setTeamAmount] =
+    useState("145000");
+
+  const [teamReference, setTeamReference] =
+    useState("");
+
+  const [teamStartDate, setTeamStartDate] =
+    useState(todayInIST());
+
+  const [teamReason, setTeamReason] =
+    useState("");
+
+  const [teamSuccess, setTeamSuccess] =
     useState("");
 
   const loadUser = useCallback(
@@ -354,6 +384,53 @@ export default function AdminUserDetailPage() {
     );
 
     setGrantReason("");
+  }
+
+  async function handleGrantTeam() {
+    if (!data) {
+      return;
+    }
+
+    setTeamSuccess("");
+
+    const amountLabel = Number(
+      teamAmount || 0
+    ).toLocaleString("en-IN");
+
+    const confirmed = window.confirm(
+      `Activate a 1-year Team Intelligence plan for ${data.user.name} (${data.user.email})?\n\n` +
+        `Amount: ₹${amountLabel}\n` +
+        `Reference: ${teamReference.trim() || "—"}\n` +
+        `Start date: ${teamStartDate}\n\n` +
+        `This creates their Team workspace and records the payment.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const result = await runAction(
+        "grant-team",
+        `/api/admin/users/${userId}/grant-team`,
+        {
+          amountRupees: teamAmount,
+          reference: teamReference.trim(),
+          startDate: teamStartDate,
+          reason:
+            teamReason.trim() || undefined,
+        }
+      );
+
+      setTeamReference("");
+      setTeamReason("");
+      setTeamSuccess(
+        result?.message ||
+          "Team plan activated."
+      );
+    } catch {
+      /* error already shown by runAction */
+    }
   }
 
   async function handleRevokePro() {
@@ -1106,6 +1183,142 @@ export default function AdminUserDetailPage() {
             </button>
           </Panel>
         </section>
+      )}
+
+      {/* ======================================================= */}
+      {/* TEAM INTELLIGENCE — MANUAL GRANT (OFFLINE PAYMENT)      */}
+      {/* ======================================================= */}
+
+      {user.role !== "ADMIN" && !user.isFounder && (
+        <Panel
+          title="Team Intelligence Plan"
+          description="Activate a 1-year Team plan after an offline payment (bank transfer / invoice)."
+        >
+          {teamSuccess && (
+            <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+              {teamSuccess}
+            </div>
+          )}
+
+          {user.teamWorkspace ? (
+            <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+              <p className="text-sm font-bold text-blue-900">
+                {user.isTeamAdmin
+                  ? "This user already owns a Team workspace."
+                  : "This user is linked to a Team workspace."}
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-blue-800">
+                {user.teamWorkspace.name} ·{" "}
+                {user.teamWorkspace.status} · until{" "}
+                {formatDate(
+                  user.teamWorkspace.expiresAt
+                )}
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                  Amount received (₹)
+                </span>
+
+                <input
+                  type="number"
+                  min={1}
+                  value={teamAmount}
+                  onChange={(event) =>
+                    setTeamAmount(
+                      event.target.value
+                    )
+                  }
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                  Start date
+                </span>
+
+                <input
+                  type="date"
+                  value={teamStartDate}
+                  onChange={(event) =>
+                    setTeamStartDate(
+                      event.target.value
+                    )
+                  }
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                  Payment reference (required)
+                </span>
+
+                <input
+                  value={teamReference}
+                  onChange={(event) =>
+                    setTeamReference(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Bank UTR / invoice no. / Razorpay payment ID"
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none"
+                />
+              </label>
+
+              <label className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                  Note (optional)
+                </span>
+
+                <input
+                  value={teamReason}
+                  onChange={(event) =>
+                    setTeamReason(
+                      event.target.value
+                    )
+                  }
+                  placeholder="e.g. CRED pilot, invoice EVC-001"
+                  className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={handleGrantTeam}
+                disabled={
+                  actionLoading !== null ||
+                  teamReference.trim().length < 3
+                }
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50 md:col-span-2"
+              >
+                {actionLoading ===
+                "grant-team" ? (
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
+                ) : (
+                  <Building2 size={16} />
+                )}
+
+                Grant Team plan (1 year)
+              </button>
+
+              <p className="text-[11px] leading-5 text-slate-500 md:col-span-2">
+                Creates this user's Team workspace
+                (up to 20 members), records the
+                payment in Team revenue and logs the
+                reference in Admin History. Only use
+                after the money has reached your bank.
+              </p>
+            </div>
+          )}
+        </Panel>
       )}
 
       {/* ======================================================= */}
