@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import Footer from "@/components/sections/Footer";
+import { ADVISOR_PLAN } from "@/lib/advisor-pricing";
 
 declare global {
   interface Window {
@@ -280,6 +281,12 @@ export default function PricingPage() {
     useState("");
 
   const [teamError, setTeamError] =
+    useState("");
+
+  const [advisorLoading, setAdvisorLoading] =
+    useState(false);
+
+  const [advisorError, setAdvisorError] =
     useState("");
 
   const selectedPlan = PRO_PLANS.find(
@@ -746,6 +753,144 @@ export default function PricingPage() {
     }
   }
 
+  async function handleAdvisorPurchase() {
+    if (advisorLoading) return;
+
+    setAdvisorError("");
+    setAdvisorLoading(true);
+
+    try {
+      const razorpayLoaded = await loadRazorpayScript();
+
+      if (!razorpayLoaded) {
+        throw new Error("Unable to load Razorpay Checkout.");
+      }
+
+      const orderResponse = await fetch(
+        "/api/advisor/billing/create-order",
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+
+      if (orderResponse.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const orderData = await orderResponse.json();
+
+      if (!orderResponse.ok || !orderData.success) {
+        throw new Error(
+          orderData.message ||
+            "Unable to start Advisor plan payment.",
+        );
+      }
+
+      const options = {
+        key: orderData.key,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
+        name: "ESOP Value Clarity",
+        description: "Advisor plan · Annual",
+        order_id: orderData.order.id,
+
+        handler: async function (response: any) {
+          try {
+            setAdvisorLoading(true);
+            setAdvisorError("");
+
+            const verifyResponse = await fetch(
+              "/api/advisor/billing/verify",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              },
+            );
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok || !verifyData.success) {
+              throw new Error(
+                verifyData.message ||
+                  "Payment was completed but verification failed.",
+              );
+            }
+
+            window.location.href = "/advisor";
+          } catch (verificationError: any) {
+            console.error(
+              "Advisor payment verification error:",
+              verificationError,
+            );
+
+            setAdvisorError(
+              verificationError?.message ||
+                "Payment was completed but verification failed. Please contact us with your payment reference.",
+            );
+          } finally {
+            setAdvisorLoading(false);
+          }
+        },
+
+        theme: { color: "#2563eb" },
+
+        modal: {
+          ondismiss: function () {
+            setAdvisorLoading(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.on("payment.failed", function (response: any) {
+        console.error("Razorpay Advisor payment failed:", response);
+
+        setAdvisorError(
+          response?.error?.description ||
+            "Payment failed. Please try again.",
+        );
+
+        setAdvisorLoading(false);
+      });
+
+      razorpay.open();
+    } catch (error: any) {
+      console.error("Advisor payment error:", error);
+
+      setAdvisorError(
+        error?.message || "Unable to start Advisor plan payment.",
+      );
+
+      setAdvisorLoading(false);
+    }
+  }
+
+  function openContactWithTopic(
+    topic: "CUSTOM_BILLING" | "FREE_TRIAL",
+  ) {
+    const message =
+      topic === "FREE_TRIAL"
+        ? "Hello, I run a CA/CS practice and would like a free trial of the Advisor plan. My firm: \nNumber of client companies: "
+        : "Hello, I would like a custom billing cycle / more than 25 client companies on the Advisor plan. My firm: \nWhat I need: ";
+
+    window.dispatchEvent(
+      new CustomEvent("evc:contact-prefill", {
+        detail: { topic, message },
+      }),
+    );
+
+    openWalkthrough();
+  }
+
   function openWalkthrough() {
     const contactSection =
       document.getElementById(
@@ -759,6 +904,14 @@ export default function PricingPage() {
       });
     }
   }
+
+  useEffect(() => {
+    if (!checkingAccount && window.location.hash === "#advisor") {
+      document
+        .getElementById("advisor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [checkingAccount]);
 
   if (checkingAccount) {
     return (
@@ -1674,6 +1827,122 @@ export default function PricingPage() {
                 Discuss your workflow
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================
+            ADVISOR PLAN (CA / CS firms)
+        ====================================================== */}
+
+        <section
+          id="advisor"
+          className="mt-8 scroll-mt-6 overflow-hidden rounded-[28px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_30px_80px_-50px_rgba(15,23,42,.9)] md:p-9"
+        >
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
+                  FOR CA &amp; CS FIRMS
+                </p>
+                <span className="rounded-full border border-blue-300/20 bg-blue-300/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-blue-200">
+                  ANNUAL
+                </span>
+              </div>
+
+              <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
+                Advisor plan
+              </h2>
+
+              <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                Run ESOP compliance for your client companies from one
+                console: the ESOP Diligence Pack and the Tax-Event Ledger
+                with deadline reminders, for every client you manage.
+              </p>
+
+              <div className="mt-6 space-y-3">
+                {[
+                  `Up to ${ADVISOR_PLAN.includedClients} client companies included`,
+                  "ESOP Diligence Pack: register checks, board/shareholder resolutions, exports",
+                  "Tax-Event Ledger: perquisite and TDS estimates, deadlines, e-mail reminders",
+                  "Annual plan, activated immediately after payment",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 text-xs leading-6 text-slate-300"
+                  >
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-400" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
+                ONE PLAN · ONE YEAR
+              </p>
+
+              <div className="mt-3 flex items-end gap-2">
+                <span className="text-4xl font-black tracking-[-0.04em]">
+                  ₹{ADVISOR_PLAN.priceRupees.toLocaleString("en-IN")}
+                </span>
+                <span className="pb-1 text-xs font-bold text-slate-500">
+                  / year
+                </span>
+              </div>
+
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                Includes {ADVISOR_PLAN.includedClients} client companies.
+              </p>
+
+              {advisorError && (
+                <div className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2.5 text-xs font-semibold text-red-200">
+                  {advisorError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleAdvisorPurchase}
+                disabled={advisorLoading}
+                className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-black text-white shadow-[0_18px_40px_-18px_rgba(37,99,235,.9)] transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60"
+              >
+                {advisorLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Preparing secure checkout...
+                  </>
+                ) : (
+                  <>
+                    Subscribe to Advisor plan
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
+              </button>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => openContactWithTopic("FREE_TRIAL")}
+                  className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black text-white transition hover:border-blue-400/30 hover:bg-blue-500/10"
+                >
+                  Request a free trial
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openContactWithTopic("CUSTOM_BILLING")}
+                  className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black text-white transition hover:border-blue-400/30 hover:bg-blue-500/10"
+                >
+                  Custom billing / more clients
+                </button>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-500">
+                <LockKeyhole className="h-3.5 w-3.5" />
+                Secure checkout via Razorpay. Taxes, if applicable, as per your invoice.
+              </div>
             </div>
           </div>
         </section>

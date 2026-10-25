@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -31,7 +31,34 @@ const productLinks = [
   { label: "Reports", href: "/pro/reports" },
 ];
 
+const TOPIC_LABELS: Record<string, string> = {
+  CUSTOM_BILLING: "Custom billing cycle / more client companies",
+  FREE_TRIAL: "Advisor free trial request",
+};
+
 export default function Footer() {
+  // Optional enquiry topic, set by buttons elsewhere on the site
+  // (e.g. the Advisor plan on /pricing) via a "evc:contact-prefill" event.
+  const [topic, setTopic] = useState<string>("");
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  useEffect(() => {
+    function onPrefill(event: Event) {
+      const detail = (event as CustomEvent<{ topic?: string; message?: string }>)
+        .detail;
+      if (!detail) return;
+      setTopic(
+        detail.topic && TOPIC_LABELS[detail.topic] ? detail.topic : ""
+      );
+      const box = formRef.current?.elements.namedItem("message");
+      if (box instanceof HTMLTextAreaElement && detail.message) {
+        box.value = detail.message;
+      }
+    }
+    window.addEventListener("evc:contact-prefill", onPrefill);
+    return () => window.removeEventListener("evc:contact-prefill", onPrefill);
+  }, []);
+
   const [status, setStatus] =
     useState<
       "idle" | "sending" | "sent" | "error"
@@ -96,6 +123,7 @@ export default function Footer() {
               email,
               message,
               website,
+              topic,
             }),
           }
         );
@@ -117,6 +145,7 @@ export default function Footer() {
       }
 
       formElement.reset();
+      setTopic("");
 
       setStatus("sent");
 
@@ -344,7 +373,19 @@ export default function Footer() {
               </span>
             </div>
 
-            <form onSubmit={handleContact} className="relative mt-6">
+            <form ref={formRef} onSubmit={handleContact} className="relative mt-6">
+              {topic && TOPIC_LABELS[topic] && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-blue-400/20 bg-blue-500/10 px-4 py-2.5 text-xs font-bold text-blue-200">
+                  <span>Topic: {TOPIC_LABELS[topic]}</span>
+                  <button
+                    type="button"
+                    onClick={() => setTopic("")}
+                    className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-300/80 hover:text-white"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">

@@ -106,6 +106,23 @@ export default function AdminLayout({
               </Link>
 
               <Link
+                href="/admin/advisors"
+                className="
+                  rounded-xl
+                  px-4
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-slate-700
+                  transition
+                  hover:bg-slate-100
+                  hover:text-slate-950
+                "
+              >
+                Advisors
+              </Link>
+
+              <Link
                 href="/admin/activity"
                 className="
                   rounded-xl
@@ -248,6 +265,28 @@ export default function AdminLayout({
                 "
               >
                 Teams
+              </Link>
+
+              <Link
+                href="/admin/advisors"
+                className="
+                  rounded-xl
+                  border
+                  border-slate-200
+                  bg-white
+                  px-3
+                  py-2
+                  text-xs
+                  font-bold
+                  text-slate-700
+                  shadow-sm
+                  transition
+                  hover:bg-slate-50
+
+                  lg:hidden
+                "
+              >
+                Advisors
               </Link>
 
               <Link

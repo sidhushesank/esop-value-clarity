@@ -8,6 +8,12 @@ const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_MESSAGE_LENGTH = 5000;
 
+// Allow-listed enquiry topics (anything else is ignored).
+const TOPIC_LABELS: Record<string, string> = {
+  CUSTOM_BILLING: "Custom billing cycle / more client companies",
+  FREE_TRIAL: "Advisor free trial request",
+};
+
 /* ============================================================
    HELPERS
 ============================================================ */
@@ -153,6 +159,9 @@ export async function POST(request: NextRequest) {
 
     const message =
       cleanText(payload.message);
+
+    const topicKey = cleanText(payload.topic);
+    const topicLabel = TOPIC_LABELS[topicKey] ?? "";
 
     /*
      * Honeypot field.
@@ -321,13 +330,16 @@ export async function POST(request: NextRequest) {
         },
 
         subject:
-          `ESOP Value Clarity — New enquiry from ${name}`,
+          topicLabel
+          ? `ESOP Value Clarity — ${topicLabel}: ${name}`
+          : `ESOP Value Clarity — New enquiry from ${name}`,
 
         text: [
           "NEW ESOP VALUE CLARITY ENQUIRY",
           "",
           `Name: ${name}`,
           `Email: ${email}`,
+          ...(topicLabel ? [`Topic: ${topicLabel}`] : []),
           "",
           "Message:",
           message,
@@ -444,6 +456,11 @@ export async function POST(request: NextRequest) {
                     >
                       ${safeEmail}
                     </div>
+                    ${
+                      topicLabel
+                        ? `<div style="margin-top:10px;display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;">Topic: ${escapeHtml(topicLabel)}</div>`
+                        : ""
+                    }
                   </div>
 
                   <!-- MESSAGE -->

@@ -7,6 +7,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Briefcase,
   Building2,
   Calculator,
   ChevronDown,
@@ -195,6 +196,12 @@ export default function UserMenu() {
       true ||
     user.account?.isTeamAdmin ===
       true;
+
+  // Founder only for now. Paying advisor firms get this entry once the
+  // Advisor Console pricing and billing step is built.
+  const canAccessAdvisorConsole =
+    user.account?.isFounder ===
+    true;
 
   const teamWorkspaceName =
     user.account?.teamWorkspace
@@ -485,6 +492,25 @@ export default function UserMenu() {
                     setOpen(false);
                     router.push(
                       "/team"
+                    );
+                  }}
+                />
+              )}
+
+              {canAccessAdvisorConsole && (
+                <MenuItem
+                  icon={
+                    <Briefcase
+                      size={18}
+                    />
+                  }
+                  text="Advisor Console"
+                  subtext="CA & CS firms"
+                  highlighted
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(
+                      "/advisor"
                     );
                   }}
                 />

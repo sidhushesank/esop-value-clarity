@@ -160,6 +160,81 @@ enum AdminActionType {
   USER_DELETED
   ROLE_CHANGED
   TEAM_TERM_EXTENDED
+  ADVISOR_FIRM_GRANTED
+  ADVISOR_FIRM_EXTENDED
+  ADVISOR_FIRM_UPDATED
+  ADVISOR_FIRM_REVOKED
+}
+
+// ============================================================
+// ADVISOR CONSOLE ENUMS
+// ============================================================
+
+enum AdvisorFirmStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum ClientCompanyType {
+  PRIVATE_LIMITED
+  UNLISTED_PUBLIC
+}
+
+enum ResolutionKind {
+  BOARD_SCHEME_APPROVAL
+  SHAREHOLDER_SCHEME_APPROVAL
+}
+
+enum ResolutionVote {
+  ORDINARY
+  SPECIAL
+}
+
+enum HolderType {
+  FOUNDER
+  INVESTOR
+  ESOP_POOL
+  OTHER
+}
+
+enum RegisterGrantStatus {
+  ACTIVE
+  LAPSED
+  LEFT
+  FULLY_EXERCISED
+}
+
+enum ImportKind {
+  REGISTER
+  CAP_TABLE
+}
+
+enum FindingSeverity {
+  RED
+  AMBER
+  GREEN
+  INFO
+}
+
+// ============================================================
+// TAX-EVENT LEDGER ENUMS
+// ============================================================
+
+enum TaxEventType {
+  EXERCISE
+  SALE
+  LEAVE
+  BUYBACK
+}
+
+enum TaxRegime {
+  NEW
+  OLD
+}
+
+enum ReminderStatus {
+  SENT
+  FAILED
 }
 
 // ============================================================
@@ -299,6 +374,13 @@ model User {
   ownedTeamWorkspace TeamWorkspace?   @relation("TeamOwner")
   teamMemberships    TeamMembership[] @relation("TeamMembershipUser")
   teamPayments       TeamPayment[]
+
+  // ============================================================
+  // ADVISOR CONSOLE
+  // ============================================================
+
+  ownedAdvisorFirm AdvisorFirm?     @relation("AdvisorOwner")
+  advisorPayments  AdvisorPayment[] @relation("AdvisorPaymentUser")
 
   adminActions    AdminAuditLog[] @relation("AdminActor")
   adminTargetLogs AdminAuditLog[] @relation("AdminTarget")
@@ -744,19 +826,6 @@ model OfferIntelligence {
 
   // ============================================================
   // REVIEW / AUDIT SNAPSHOTS
-  //
-  // rawScanSnapshot
-  //   What the deterministic scanner originally extracted.
-  //
-  // confirmedScanSnapshot
-  //   What the employee confirmed / corrected.
-  //
-  // normalizedSnapshot
-  //   Clean Offer Intelligence engine input.
-  //
-  // validationSnapshot
-  //   Remaining warnings / informational limitations after
-  //   server-side revalidation.
   // ============================================================
 
   rawScanSnapshot       Json?
@@ -786,4 +855,500 @@ model OfferIntelligence {
   @@index([status])
   @@index([companyName])
   @@index([createdAt])
+}
+
+// ============================================================
+// ADVISOR CONSOLE
+// ============================================================
+
+model AdvisorFirm {
+  id String @id @default(cuid())
+
+  name String
+
+  ownerId String @unique
+  owner   User   @relation("AdvisorOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  status      AdvisorFirmStatus @default(ACTIVE)
+  clientLimit Int               @default(10)
+
+  source      SubscriptionSource @default(PAYMENT)
+  grantedById String?
+  grantReason String?
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  brandName   String?
+  brandFooter String?
+
+  // Tax-Event Ledger: where deadline reminders go (defaults to the owner's email)
+  reminderEmail String?
+
+  clients  ClientCompany[]
+  payments AdvisorPayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([expiresAt])
+
+  paymentReference String?
+  expiryReminderFor DateTime?
+}
+
+model AdvisorPayment {
+  id String @id @default(cuid())
+
+  firmId String
+  firm   AdvisorFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("AdvisorPaymentUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  amount   Int
+  currency String @default("INR")
+
+  status PaymentStatus @default(PENDING)
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firmId])
+  @@index([userId])
+  @@index([status])
+}
+
+model ClientCompany {
+  id String @id @default(cuid())
+
+  firmId String
+  firm   AdvisorFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+
+  name        String
+  cin         String?
+  companyType ClientCompanyType @default(PRIVATE_LIMITED)
+
+  incorporationDate DateTime?
+  approvedPoolSize  Int?
+
+  dpiitRecognised Boolean?
+  imbCertificate  Boolean?
+  overseasParent  Boolean?
+
+  archivedAt DateTime?
+
+  resolutions ClientResolution[]
+  valuations  ClientValuation[]
+  batches     ImportBatch[]
+  grants      RegisterGrant[]
+  exercises   RegisterExercise[]
+  capTable    CapTableRow[]
+  runs        DiligenceRun[]
+  shareLinks  ShareLink[]
+
+  taxEmployees    TaxEmployee[]
+  taxEvents       TaxEvent[]
+  taxComputations TaxComputation[]
+  reminderLogs    TaxReminderLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firmId])
+  @@index([archivedAt])
+}
+
+model ClientResolution {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  kind ResolutionKind
+  vote ResolutionVote
+
+  passedOn   DateTime
+  mgt14Filed DateTime?
+
+  explanatoryStatementOnFile Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+}
+
+model ClientValuation {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  valuationDate DateTime
+  fmvPerShare   Float
+  valuerName    String?
+
+  signedBySebiCat1MerchantBanker Boolean @default(false)
+
+  reference String?
+
+  exercises RegisterExercise[]
+  taxEvents TaxEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+}
+
+model ImportBatch {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  kind     ImportKind
+  fileName String
+  rowCount Int
+
+  mapping Json?
+
+  grants   RegisterGrant[]
+  capTable CapTableRow[]
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model RegisterGrant {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  batchId String?
+  batch   ImportBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  sourceRow Int?
+
+  employeeName String
+  employeeRef  String?
+
+  grantDate      DateTime
+  optionsGranted Int
+  exercisePrice  Float
+
+  vestingStartDate DateTime?
+  vestingMonths    Int?
+  cliffMonths      Int?
+  expiryDate       DateTime?
+
+  postExitExerciseDays  Int?
+  forfeitureTermsOnFile Boolean?
+
+  optionsLapsed Int @default(0)
+
+  status RegisterGrantStatus @default(ACTIVE)
+  leftOn DateTime?
+
+  letterOptions       Int?
+  letterExercisePrice Float?
+  letterGrantDate     DateTime?
+
+  exercises RegisterExercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([batchId])
+}
+
+model RegisterExercise {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  grantId String
+  grant   RegisterGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  valuationId String?
+  valuation   ClientValuation? @relation(fields: [valuationId], references: [id], onDelete: SetNull)
+
+  exerciseDate     DateTime
+  optionsExercised Int
+
+  allotmentDate DateTime?
+  pas3FiledOn   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([grantId])
+}
+
+model CapTableRow {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  batchId String?
+  batch   ImportBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  holderName String
+  holderType HolderType @default(OTHER)
+  shares     Int
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model RuleDefinition {
+  id String @id @default(cuid())
+
+  code   String @unique
+  title  String
+  source String
+
+  taxYear  String?
+  verified Boolean @default(false)
+
+  severityVerified   FindingSeverity @default(RED)
+  severityUnverified FindingSeverity @default(AMBER)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DiligenceRun {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  score Int
+
+  rulesSnapshot Json?
+
+  findings   DiligenceFinding[]
+  shareLinks ShareLink[]
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+model DiligenceFinding {
+  id String @id @default(cuid())
+
+  runId String
+  run   DiligenceRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  ruleCode String
+  severity FindingSeverity
+
+  title  String
+  detail String
+
+  sourceRef      Json?
+  suggestedOwner String?
+  dueDate        DateTime?
+
+  ruleVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([runId])
+  @@index([severity])
+}
+
+model ShareLink {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  runId String?
+  run   DiligenceRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  tokenHash    String  @unique
+  label        String?
+  passcodeHash String?
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+
+  createdById String
+
+  views ShareLinkView[]
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+model ShareLinkView {
+  id String @id @default(cuid())
+
+  linkId String
+  link   ShareLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  ipHash    String?
+  userAgent String?
+
+  viewedAt DateTime @default(now())
+
+  @@index([linkId])
+}
+
+// ============================================================
+// TAX-EVENT LEDGER
+// ============================================================
+
+model TaxEmployee {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  name        String
+  employeeRef String?
+  pan         String?
+
+  regime TaxRegime @default(NEW)
+
+  // Estimated annual taxable income for the year, excluding the ESOP perquisite
+  estimatedIncomeExclPerq Float @default(0)
+
+  // Net pay in the month TDS would be deducted from (null = not entered)
+  monthlyNetPay Float?
+
+  isPromoter Boolean @default(false)
+
+  archivedAt DateTime?
+
+  events TaxEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([archivedAt])
+}
+
+model TaxEvent {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  employeeId String
+  employee   TaxEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  type      TaxEventType
+  eventDate DateTime     @db.Date
+
+  // Ignored for LEAVE
+  shares Int @default(0)
+
+  // EXERCISE
+  exercisePrice Float?
+  valuationId   String?
+  valuation     ClientValuation? @relation(fields: [valuationId], references: [id], onDelete: SetNull)
+
+  // SALE and BUYBACK
+  pricePerShare Float?
+  // Optionally pin a sale/buyback to one exercise (TaxEvent id); otherwise oldest lots first
+  lotEventId String?
+
+  note String?
+
+  computations TaxComputation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([employeeId])
+  @@index([eventDate])
+}
+
+// Append-only audit trail: every recompute stores the full result,
+// its inputs and the rule-set version used.
+model TaxComputation {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  eventId String
+  event   TaxEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  ruleSetVersion String
+  result         Json
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([eventId, createdAt])
+}
+
+// Founder-controlled verification flag for each tax rule code.
+// Kept apart from RuleDefinition so Feature 1 report counts are unaffected.
+model TaxRule {
+  code String @id
+
+  title  String
+  source String
+  notes  String?
+
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// One row per reminder actually sent, so a deadline is never emailed twice.
+model TaxReminderLog {
+  id String @id @default(cuid())
+
+  clientId String
+  client   ClientCompany @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  deadlineKey String
+  offsetDays  Int
+  sentTo      String
+
+  status ReminderStatus @default(SENT)
+  error  String?
+
+  sentAt DateTime @default(now())
+
+  @@unique([deadlineKey, offsetDays])
+  @@index([clientId])
 }

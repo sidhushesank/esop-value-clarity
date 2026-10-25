@@ -83,3 +83,17 @@ export async function sendVerificationEmail(
     throw error;
   }
 }
+export async function sendAdvisorReminderEmail(
+  to: string,
+  subject: string,
+  html: string,
+  text: string
+) {
+  return transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to,
+    subject,
+    html,
+    text,
+  });
+}
