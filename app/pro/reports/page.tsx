@@ -32,6 +32,8 @@ import {
   Zap,
 } from "lucide-react";
 
+import { toast } from "sonner";
+
 import { normalizeProNumber, useProEquityState } from "@/lib/esop/pro-state";
 import { calculateAdvancedTax } from "@/lib/esop/tax";
 
@@ -77,6 +79,7 @@ type ReportSummaryExportRow = {
 export default function ProReportsPage() {
   const { proState, hydrated } = useProEquityState();
   const [exportOpen, setExportOpen] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [selectedScenarioKey, setSelectedScenarioKey] =
     useState<ScenarioKey>("base");
   const [ownershipStage, setOwnershipStage] =
@@ -1061,6 +1064,112 @@ export default function ProReportsPage() {
     },
   ];
 
+  const handlePdfExport = async () => {
+    setExportOpen(false);
+
+    if (report.modeledOptions <= 0) {
+      toast.error(
+        "There are no options in the current model to report on."
+      );
+      return;
+    }
+
+    setPdfBusy(true);
+
+    try {
+      const { buildEmployeeReportPdf } = await import(
+        "@/lib/esop/report-pdf"
+      );
+
+      const toPdfScenario = (
+        scenario: (typeof report.scenarios)[number]
+      ) => ({
+        label:
+          scenario.key.charAt(0).toUpperCase() +
+          scenario.key.slice(1),
+        valuation: scenario.valuation,
+        salePrice: scenario.salePrice,
+        gross: scenario.gross,
+        estimatedTax: scenario.estimatedTax,
+        proceeds: scenario.proceeds,
+        multiple: scenario.multiple,
+        retained: scenario.retained,
+      });
+
+      const companyName =
+        proState.sourceCompanyName ||
+        connectedGrant?.companyName ||
+        "Your equity model";
+
+      const bytes = await buildEmployeeReportPdf({
+        companyName,
+        grantName:
+          proState.sourceGrantName ||
+          connectedGrant?.grantName ||
+          null,
+        confirmedGrant: confirmedGrantConnected,
+        basisLabel:
+          analysisBasis === "FULL_GRANT"
+            ? "Full grant"
+            : "Currently vested options",
+
+        optionsGranted: fullGrantOptions,
+        modeledOptions: report.modeledOptions,
+        modeledPercent: effectiveVestedPercentage,
+        exercisePrice: report.exercisePrice,
+        exerciseCost: report.exerciseCost,
+
+        companyShares: report.companyShares,
+        currentOwnershipPct: report.currentOwnership,
+        dilutedOwnershipPct: report.dilutedOwnership,
+        dilutionPct: report.dilution,
+        currentCompanyValuation:
+          report.currentCompanyValuation,
+        currentStakeValue: report.currentEquityValue,
+
+        scenarios: [
+          toPdfScenario(report.bear),
+          toPdfScenario(report.base),
+          toPdfScenario(report.bull),
+        ],
+
+        equityType: proState.equityType,
+        taxRegime: proState.taxRegime,
+        exerciseFMV: report.exerciseFMV,
+        holdingPeriodMonths: Math.max(
+          0,
+          normalizeProNumber(proState.holdingPeriodMonths)
+        ),
+        otherAnnualIncome: Math.max(
+          0,
+          normalizeProNumber(proState.otherAnnualIncome)
+        ),
+
+        generatedAt: new Date(),
+      });
+
+      downloadFile(
+        bytes,
+        `esop-value-clarity-${safeFilename(
+          companyName
+        )}-${new Date()
+          .toISOString()
+          .slice(0, 10)}-employee-report.pdf`,
+        "application/pdf"
+      );
+
+      toast.success("PDF report downloaded.");
+    } catch (error) {
+      console.error("[EVC_PDF_EXPORT_ERROR]", error);
+
+      toast.error(
+        "We could not generate the PDF report. Please try again."
+      );
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
   const handleCSVSummaryExport = () => {
     const headers = [
       "Section",
@@ -1322,6 +1431,16 @@ export default function ProReportsPage() {
                   <p className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
                     Download current model
                   </p>
+                  <ExportMenuButton
+                    icon={<FileText size={17} />}
+                    title={
+                      pdfBusy
+                        ? "Preparing PDF…"
+                        : "PDF · Employee Report"
+                    }
+                    description="One-page, client-ready summary of this model"
+                    onClick={handlePdfExport}
+                  />
                   <ExportMenuButton
                     icon={<FileText size={17} />}
                     title="CSV · Executive Summary"
@@ -3325,8 +3444,12 @@ function safeFilename(value: string) {
     .slice(0, 80) || "report";
 }
 
-function downloadFile(content: string, filename: string, type: string) {
-  const blob = new Blob([content], { type });
+function downloadFile(
+  content: string | Uint8Array,
+  filename: string,
+  type: string
+) {
+  const blob = new Blob([content as BlobPart], { type });
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
