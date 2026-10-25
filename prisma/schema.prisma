@@ -640,13 +640,38 @@ model EsopGrant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  fields EsopGrantField[]
+  fields  EsopGrantField[]
+  journey GrantJourney?
 
   @@index([userId])
   @@index([documentId])
   @@index([status])
   @@index([companyName])
   @@index([createdAt])
+}
+
+// ============================================================
+// GRANT JOURNEY
+//
+// One saved working model per confirmed grant: exercise plan,
+// dilution, tax, exit and valuation assumptions. Source facts
+// stay on EsopGrant; this row only holds the user's assumptions
+// and modeled outputs so every grant keeps its own history.
+// ============================================================
+model GrantJourney {
+  id String @id @default(cuid())
+
+  userId String
+
+  grantId String     @unique
+  grant   EsopGrant  @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  state Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model EsopGrantField {

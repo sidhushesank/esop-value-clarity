@@ -74,6 +74,13 @@ export async function GET() {
           },
         },
 
+        journey: {
+          select: {
+            updatedAt: true,
+            state: true,
+          },
+        },
+
         fields: {
           select: {
             id: true,
@@ -92,6 +99,54 @@ export async function GET() {
         },
       },
     });
+
+    /*
+     * Journey summary per grant. The full saved state is deliberately
+     * not sent to the browser here; only a small, honest summary of
+     * what has been saved for that grant.
+     */
+    const grantsWithJourney = grants.map(
+      ({ journey, ...grant }) => {
+        const state =
+          journey?.state &&
+          typeof journey.state === "object" &&
+          !Array.isArray(journey.state)
+            ? (journey.state as Record<
+                string,
+                unknown
+              >)
+            : null;
+
+        const num = (key: string) => {
+          const value = state?.[key];
+
+          return typeof value ===
+            "number" &&
+            Number.isFinite(value)
+            ? value
+            : null;
+        };
+
+        return {
+          ...grant,
+          journey:
+            journey && state
+              ? {
+                  updatedAt:
+                    journey.updatedAt.toISOString(),
+                  vestedOptions:
+                    num("vestedOptions"),
+                  vestedPercentage:
+                    num("vestedPercentage"),
+                  exercisePlanOptions:
+                    num(
+                      "exercisePlanOptions"
+                    ),
+                }
+              : null,
+        };
+      }
+    );
 
     const totalOptions = grants.reduce(
       (sum, grant) => sum + (grant.optionCount ?? 0),
@@ -144,7 +199,7 @@ export async function GET() {
         expiringWithin365Days,
       },
 
-      grants,
+      grants: grantsWithJourney,
     });
   } catch (error) {
     const accessError =

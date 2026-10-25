@@ -257,11 +257,29 @@ export async function POST(
       }
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       grant: result.grant,
       document: result.document,
     });
+
+    /*
+     * A newly confirmed grant becomes the working grant, so the
+     * analysis pages follow the grant the user just confirmed.
+     * Older grants keep their saved journeys and can be reopened
+     * from the Grant Vault.
+     */
+    response.cookies.set(
+      "evc-active-grant-id",
+      result.grant.id,
+      {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      }
+    );
+
+    return response;
   } catch (error) {
     const accessError = getProAccessErrorResponse(error);
 

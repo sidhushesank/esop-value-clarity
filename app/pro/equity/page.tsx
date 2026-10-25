@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   CalendarDays,
@@ -22,6 +23,11 @@ import {
   useMemo,
   useState,
 } from "react";
+
+import {
+  getActiveGrantId,
+  switchActiveGrant,
+} from "@/lib/esop/pro-state";
 
 type FieldStatus =
   | "VERIFIED"
@@ -54,6 +60,13 @@ type GrantField = {
   sourceText: string | null;
   sourcePage: number | null;
   reviewedAt: string | null;
+};
+
+type JourneySummary = {
+  updatedAt: string;
+  vestedOptions: number | null;
+  vestedPercentage: number | null;
+  exercisePlanOptions: number | null;
 };
 
 type Grant = {
@@ -94,6 +107,8 @@ type Grant = {
   } | null;
 
   fields: GrantField[];
+
+  journey: JourneySummary | null;
 };
 
 type EquityResponse = {
@@ -114,6 +129,14 @@ type EquityResponse = {
 };
 
 export default function EquityProfilePage() {
+  const router = useRouter();
+
+  const [activeGrantId, setActiveGrantId] =
+    useState<string | null>(null);
+
+  const [openingGrantId, setOpeningGrantId] =
+    useState<string | null>(null);
+
   const [grants, setGrants] =
     useState<Grant[]>([]);
 
@@ -169,6 +192,27 @@ export default function EquityProfilePage() {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    setActiveGrantId(getActiveGrantId());
+  }, [grants]);
+
+  const openJourney = useCallback(
+    async (grantId: string) => {
+      setOpeningGrantId(grantId);
+
+      try {
+        // Saves the grant being left, then loads this grant's own
+        // saved journey before any analysis page opens.
+        await switchActiveGrant(grantId);
+        setActiveGrantId(grantId);
+        router.push("/pro/vesting");
+      } finally {
+        setOpeningGrantId(null);
+      }
+    },
+    [router]
+  );
 
   const latestGrant =
     useMemo(
@@ -342,6 +386,18 @@ export default function EquityProfilePage() {
                   <GrantVaultCard
                     key={grant.id}
                     grant={grant}
+                    isActive={
+                      grant.id ===
+                      (activeGrantId ??
+                        latestGrant?.id)
+                    }
+                    opening={
+                      openingGrantId ===
+                      grant.id
+                    }
+                    onOpenJourney={() =>
+                      openJourney(grant.id)
+                    }
                   />
                 ))}
               </div>
@@ -395,8 +451,14 @@ export default function EquityProfilePage() {
 
 function GrantVaultCard({
   grant,
+  isActive,
+  opening,
+  onOpenJourney,
 }: {
   grant: Grant;
+  isActive: boolean;
+  opening: boolean;
+  onOpenJourney: () => void;
 }) {
   const clauses =
     grant.document?.clauses ?? [];
@@ -571,6 +633,67 @@ function GrantVaultCard({
                 ],
               ]}
             />
+          </div>
+
+          <div className="mt-5 flex flex-col justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:flex-row sm:items-center">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-600">
+                  Analysis journey
+                </p>
+
+                {isActive && (
+                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-white">
+                    Working on this
+                  </span>
+                )}
+              </div>
+
+              {grant.journey ? (
+                <p className="mt-1.5 text-xs leading-5 text-slate-600">
+                  Saved{" "}
+                  {formatDateTime(
+                    grant.journey.updatedAt
+                  )}
+                  {grant.journey
+                    .vestedOptions !== null &&
+                    ` · ${formatNumber(
+                      grant.journey
+                        .vestedOptions
+                    )} vested`}
+                  {grant.journey
+                    .exercisePlanOptions
+                    ? ` · exercise plan ${formatNumber(
+                        grant.journey
+                          .exercisePlanOptions
+                      )} options`
+                    : ""}
+                </p>
+              ) : (
+                <p className="mt-1.5 text-xs leading-5 text-slate-600">
+                  No analysis saved for this grant yet.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onOpenJourney}
+              disabled={opening}
+              className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
+            >
+              {opening ? (
+                <Loader2
+                  size={14}
+                  className="animate-spin"
+                />
+              ) : (
+                <ArrowRight size={14} />
+              )}
+              {grant.journey
+                ? "Open journey"
+                : "Start journey"}
+            </button>
           </div>
         </div>
 
