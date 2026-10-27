@@ -841,6 +841,9 @@ export default function HomePage() {
         </Reveal>
       </section>
 
+      {/* ======================= PARTNER PROGRAMME ======================= */}
+      <PartnerProgram />
+
       {/* ======================= TALK TO US ======================= */}
       <TalkToUs slots={slots} loading={slotsLoading} />
 
@@ -2866,6 +2869,277 @@ function StickyCta() {
 /* ============================================================
    SMALL PIECES
 ============================================================ */
+
+/* ============================================================
+   PARTNER PROGRAMME (refer a firm, earn 10% of what they pay)
+   - Rate and plan prices must match lib/pricing.ts,
+     lib/advisor-pricing.ts and the Team plan price (Rs 1,45,000).
+   - Calculator is plain arithmetic: customers x price x rate.
+   - Payout is tracked manually until referral codes are built.
+============================================================ */
+
+const PARTNER_RATE = 0.1;
+
+type PartnerPlan = {
+  key: string;
+  group: "pro" | "org";
+  label: string;
+  price: number;
+  cadence: string;
+  maxCustomers: number;
+};
+
+const PARTNER_PLANS: PartnerPlan[] = [
+  { key: "monthly", group: "pro", label: "PRO Monthly", price: 2999, cadence: "per month", maxCustomers: 50 },
+  { key: "sixmonth", group: "pro", label: "PRO 6 months", price: 14999, cadence: "one payment", maxCustomers: 50 },
+  { key: "annual", group: "pro", label: "PRO Annual", price: 24999, cadence: "per year", maxCustomers: 50 },
+  { key: "team", group: "org", label: "Team Intelligence", price: 145000, cadence: "per year · up to 20 members", maxCustomers: 10 },
+  { key: "advisor", group: "org", label: "Advisor Console", price: 60000, cadence: "per year · 25 client companies", maxCustomers: 10 },
+];
+
+function planPayout(key: string) {
+  const plan = PARTNER_PLANS.find((item) => item.key === key);
+  return plan ? plan.price * PARTNER_RATE : 0;
+}
+
+const inrFmt = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+const inrExact = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const PARTNER_WHO = [
+  {
+    icon: Landmark,
+    title: "CA and CS firms",
+    text: "Their clients ask about ESOPs every filing season. Refer the firm itself to the Advisor Console, or its clients to PRO.",
+    planKey: "advisor",
+  },
+  {
+    icon: Building2,
+    title: "HR and finance teams",
+    text: "Stop answering the same grant and tax questions one email at a time. Refer the company to Team Intelligence.",
+    planKey: "team",
+  },
+  {
+    icon: Users,
+    title: "Consultants and communities",
+    text: "Startup communities, founders’ groups and advisors whose people hold equity. Refer them to PRO.",
+    planKey: "annual",
+  },
+];
+
+const PARTNER_STEPS = [
+  { n: "01", title: "Apply", text: "Email us who you are and who you work with. We reply with written partner terms." },
+  { n: "02", title: "Introduce", text: "Tell your people about EVC. We note your name against every customer you bring." },
+  { n: "03", title: "They subscribe", text: "A customer new to EVC buys a plan: PRO, Team Intelligence or the Advisor Console." },
+  { n: "04", title: "You earn 10%", text: "We pay you 10% of the amount they paid, once the payment has cleared." },
+];
+
+const PARTNER_TERMS = [
+  "10% of the plan amount a referred customer actually pays: PRO, Team Intelligence or Advisor Console. Refunded payments do not earn commission.",
+  "The customer must be new to EVC. No self-referrals.",
+  "Partners tell their audience they are an EVC partner when they recommend it.",
+  "Custom or negotiated plans: commission is on the amount actually paid.",
+  "Payout timing and any tax on the payout are set out in your written partner terms.",
+];
+
+function PartnerPlanButton({
+  item,
+  active,
+  onSelect,
+}: {
+  item: PartnerPlan;
+  active: boolean;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      onClick={() => onSelect(item.key)}
+      className={`rounded-xl border px-2 py-3 text-center transition ${
+        active
+          ? "border-[#F2B421] bg-[#F2B421]/10 text-white"
+          : "border-white/10 text-slate-400 hover:border-white/30 hover:text-white"
+      }`}
+    >
+      <span className="block text-[11px] font-medium leading-4">{item.label}</span>
+      <span className="mt-1 block text-sm font-semibold">₹{inrFmt.format(item.price)}</span>
+      <span className="mt-0.5 block text-[10px] leading-4 text-slate-500">{item.cadence}</span>
+    </button>
+  );
+}
+
+function PartnerProgram() {
+  const [planKey, setPlanKey] = useState<string>("annual");
+  const [customers, setCustomers] = useState(5);
+
+  const plan = PARTNER_PLANS.find((item) => item.key === planKey) ?? PARTNER_PLANS[2];
+  const safeCustomers = Math.min(customers, plan.maxCustomers);
+  const perCustomer = plan.price * PARTNER_RATE;
+  const total = perCustomer * safeCustomers;
+  const animatedTotal = useAnimatedNumber(total, 600);
+
+  function choosePlan(key: string) {
+    const next = PARTNER_PLANS.find((item) => item.key === key);
+    setPlanKey(key);
+    if (next) setCustomers((current) => Math.min(current, next.maxCustomers));
+  }
+
+  return (
+    <section id="partners" className="mx-auto max-w-[1200px] px-4 pb-24 sm:px-6 md:pb-32">
+      <Reveal>
+        <div className="relative overflow-hidden rounded-[28px] bg-[#042653] p-6 text-white sm:p-10 md:p-14">
+          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#F2B421]/15 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-[#5B9BFF]/15 blur-3xl" />
+
+          <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:items-start">
+            {/* LEFT: pitch */}
+            <div>
+              <EyebrowDark>Partner programme</EyebrowDark>
+              <h2 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                Know a firm that needs EVC?{" "}
+                <span className="evc-gold-text">Earn 10%.</span>
+              </h2>
+              <p className="mt-5 max-w-xl text-lg leading-8 text-slate-300">
+                If you introduce a person, firm or company to EVC, you get 10%
+                of what they pay for their plan: PRO for individuals, Team
+                Intelligence for companies, or the Advisor Console for CA, CS
+                and advisory firms. No quota, no joining fee, no lock-in.
+              </p>
+
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                {PARTNER_WHO.map((item, index) => (
+                  <Reveal key={item.title} delay={index * 80}>
+                    <button
+                      type="button"
+                      onClick={() => choosePlan(item.planKey)}
+                      className="h-full w-full rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-[#F2B421]/50 hover:bg-white/[0.07]"
+                    >
+                      <item.icon className="h-5 w-5 text-[#F2B421]" />
+                      <h3 className="mt-3 text-sm font-semibold">{item.title}</h3>
+                      <p className="mt-1 text-xs leading-5 text-slate-400">{item.text}</p>
+                      <p className="mt-3 text-xs font-semibold text-[#F2B421]">
+                        You earn ₹{inrExact.format(planPayout(item.planKey))}
+                      </p>
+                    </button>
+                  </Reveal>
+                ))}
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href="mailto:sheshank@esopvalueclarity.com?subject=EVC%20partner%20programme&body=Hi%20Sheshank%2C%0A%0AI%20would%20like%20to%20become%20an%20EVC%20partner.%0A%0AName%3A%0AFirm%20%2F%20company%3A%0AWho%20I%20work%20with%3A%0A"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-6 text-sm font-semibold text-[#020d1f] transition hover:brightness-105"
+                >
+                  <Mail className="h-4 w-4" />
+                  Become a partner
+                </a>
+                <a
+                  href="#contact-form"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Ask a question first
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            {/* RIGHT: earnings calculator */}
+            <div className="rounded-3xl border border-white/10 bg-[#020d1f]/70 p-5 sm:p-7">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">What you would earn</p>
+                <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
+                  Illustration
+                </span>
+              </div>
+
+              <div role="radiogroup" aria-label="Plan you refer">
+                <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">EVC PRO · individuals</p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {PARTNER_PLANS.filter((item) => item.group === "pro").map((item) => (
+                    <PartnerPlanButton key={item.key} item={item} active={item.key === planKey} onSelect={choosePlan} />
+                  ))}
+                </div>
+
+                <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">For organisations · annual</p>
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {PARTNER_PLANS.filter((item) => item.group === "org").map((item) => (
+                    <PartnerPlanButton key={item.key} item={item} active={item.key === planKey} onSelect={choosePlan} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-baseline justify-between">
+                  <label htmlFor="partner-customers" className="text-sm text-slate-300">
+                    {plan.group === "org" ? "Organisations you introduce" : "Customers you introduce"}
+                  </label>
+                  <span className="text-2xl font-semibold tabular-nums">{safeCustomers}</span>
+                </div>
+                <input
+                  id="partner-customers"
+                  type="range"
+                  min={1}
+                  max={plan.maxCustomers}
+                  step={1}
+                  value={safeCustomers}
+                  onChange={(event) => setCustomers(Number(event.target.value))}
+                  className="mt-3 w-full cursor-pointer accent-[#F2B421]"
+                />
+                <div className="mt-1 flex justify-between text-[10px] text-slate-500">
+                  <span>1</span>
+                  <span>{plan.maxCustomers}</span>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-[#F2B421]/30 bg-[#F2B421]/[0.07] p-5">
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-400">You would receive</p>
+                <p className="mt-2 text-4xl font-semibold tabular-nums tracking-tight text-[#F2B421] sm:text-5xl">
+                  ₹{inrExact.format(animatedTotal)}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  {safeCustomers} × ₹{inrFmt.format(plan.price)} × 10% = ₹{inrExact.format(total)}. That is ₹
+                  {inrExact.format(perCustomer)} for each customer who buys {plan.label}.
+                </p>
+              </div>
+
+              <p className="mt-4 text-[11px] leading-5 text-slate-500">
+                Simple arithmetic on our published plan prices, not a promise
+                of how many customers you will bring.
+              </p>
+            </div>
+          </div>
+
+          {/* steps */}
+          <div className="relative mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {PARTNER_STEPS.map((step, index) => (
+              <Reveal key={step.n} delay={index * 90}>
+                <div className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                  <span className="text-xs font-semibold tracking-[0.18em] text-[#F2B421]">{step.n}</span>
+                  <h3 className="mt-2 font-semibold">{step.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-400">{step.text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* fine print */}
+          <div className="relative mt-8 rounded-2xl border border-white/10 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">The fine print, up front</p>
+            <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">
+              {PARTNER_TERMS.map((term) => (
+                <li key={term} className="flex gap-2 text-xs leading-5 text-slate-400">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F2B421]" />
+                  <span>{term}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
 
 function Eyebrow({ children }: { children: ReactNode }) {
   return (
