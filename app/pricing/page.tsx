@@ -1,29 +1,38 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import {
   ArrowRight,
-  BarChart3,
+  BadgeCheck,
+  Briefcase,
+  Building2,
   Check,
-  CheckCircle2,
-  Clock3,
+  ChevronDown,
   Crown,
-  FileText,
-  Layers3,
-  LineChart,
   Loader2,
   LockKeyhole,
-  Receipt,
-  Scale,
-  ShieldCheck,
+  Minus,
+  Sparkles,
+  User,
   Users,
-  Wallet,
 } from "lucide-react";
 
 import Footer from "@/components/sections/Footer";
 import { ADVISOR_PLAN } from "@/lib/advisor-pricing";
+import { STARTUP_PLAN } from "@/lib/company-pricing";
 
 declare global {
   interface Window {
@@ -31,748 +40,443 @@ declare global {
   }
 }
 
-type BillingCycle =
-  | "MONTHLY"
-  | "SIX_MONTHS"
-  | "YEARLY";
+/* ============================================================
+   PLANS AND PRICES
+   Checkout amounts are decided on the server; these are display
+   values and must match the server's prices.
+============================================================ */
 
-type CheckoutType =
-  | "PRO"
-  | "TEAM";
+type BillingCycle = "MONTHLY" | "SIX_MONTHS" | "YEARLY";
+type Audience = "individuals" | "organisations";
+type PlanKey = "PRO" | "STARTUP" | "ADVISOR" | "TEAM";
 
-type ProPlan = {
-  cycle: BillingCycle;
-  name: string;
-  label: string;
-  price: number;
-  period: string;
-  description: string;
-  badge?: string;
-  popular?: boolean;
+const PRO_PRICES: Record<BillingCycle, { label: string; short: string; price: number; months: number; period: string }> = {
+  MONTHLY: { label: "Monthly", short: "Monthly", price: 2999, months: 1, period: "month" },
+  SIX_MONTHS: { label: "6 months", short: "6 months", price: 14999, months: 6, period: "6 months" },
+  YEARLY: { label: "Yearly", short: "Yearly", price: 24999, months: 12, period: "year" },
 };
 
-const PRO_PLANS: ProPlan[] = [
-  {
-    cycle: "MONTHLY",
-    name: "Professional",
-    label: "Monthly",
-    price: 2999,
-    period: "/ month",
-    description:
-      "Flexible PRO access for professionals who need deeper equity and offer analysis.",
-  },
-  {
-    cycle: "SIX_MONTHS",
-    name: "Professional",
-    label: "6 Months",
-    price: 14999,
-    period: "/ 6 months",
-    description:
-      "Extended PRO access at a lower effective monthly cost for recurring use.",
-    badge: "6-MONTH ACCESS",
-    popular: true,
-  },
-  {
-    cycle: "YEARLY",
-    name: "Professional",
-    label: "Yearly",
-    price: 24999,
-    period: "/ year",
-    description:
-      "Best value for professionals making ESOP and compensation analysis part of their workflow.",
-    badge: "BEST VALUE",
-  },
-];
+const CYCLES = Object.keys(PRO_PRICES) as BillingCycle[];
 
 const TEAM_PRICE = 145000;
-const TEAM_PRICE_PAISA = 14500000;
+const TEAM_MEMBERS = 20;
 
-const FREE_FEATURES = [
-  {
-    title: "ESOP Simulator",
-    description:
-      "Model grants, vesting, valuation, dilution and an illustrative exit scenario.",
-    icon: BarChart3,
-  },
-  {
-    title: "Saved Calculations",
-    description:
-      "Keep your scenarios available in your private workspace for later review.",
-    icon: FileText,
-  },
-  {
-    title: "Dashboard",
-    description:
-      "See your recent calculations and core equity metrics in one place.",
-    icon: LineChart,
-  },
-  {
-    title: "History & Search",
-    description:
-      "Review, filter, sort and revisit previously saved equity scenarios.",
-    icon: Clock3,
-  },
-  {
-    title: "CSV Export",
-    description:
-      "Export your scenario history with useful human-readable and numeric fields.",
-    icon: Receipt,
-  },
-  {
-    title: "Indian INR Formatting",
-    description:
-      "Work naturally with Indian number grouping, lakhs and crores.",
-    icon: Scale,
-  },
-];
+const CUSTOMERS = ["Ather Energy", "Revolt Motors"];
 
-const PRO_FEATURES = [
-  {
-    title: "Offer Intelligence",
-    question: "What is this offer really worth?",
-    description:
-      "Review compensation and equity terms from an offer letter and turn them into structured decision context.",
-    icon: Crown,
-  },
-  {
-    title: "Vesting Intelligence",
-    question: "What is actually earned?",
-    description:
-      "Track vested and unvested equity, cliffs and time-based ownership.",
-    icon: Clock3,
-  },
-  {
-    title: "Dilution Intelligence",
-    question: "What can change after funding?",
-    description:
-      "Model how future financing and share expansion can affect ownership.",
-    icon: BarChart3,
-  },
-  {
-    title: "Exercise Decision",
-    question: "What cash may be required?",
-    description:
-      "Understand strike price, exercise cost and the economics of exercising options.",
-    icon: Wallet,
-  },
-  {
-    title: "Tax Estimation",
-    question: "What may remain after tax?",
-    description:
-      "Bring estimated tax impact into the analysis instead of stopping at gross value.",
-    icon: Receipt,
-  },
-  {
-    title: "Exit Scenarios",
-    question: "What could different outcomes mean?",
-    description:
-      "Explore illustrative exit-value scenarios without presenting them as forecasts.",
-    icon: LineChart,
-  },
-  {
-    title: "Scenario Comparison",
-    question: "Which assumption changes the result?",
-    description:
-      "Compare scenarios side by side and identify the variables driving the difference.",
-    icon: Scale,
-  },
-  {
-    title: "Reports & History",
-    question: "What did I model before?",
-    description:
-      "Save analyses, revisit previous decisions and create clearer equity reports.",
-    icon: FileText,
-  },
-];
-
-const TEAM_FEATURES = [
-  {
-    title: "One Team Workspace",
-    description:
-      "One annual workspace owned and administered by the paying Team Admin.",
-    icon: LayoutGridIcon,
-  },
-  {
-    title: "Up to 20 Members",
-    description:
-      "Add up to 20 existing EVC users to the workspace.",
-    icon: Users,
-  },
-  {
-    title: "Sponsored PRO",
-    description:
-      "Every member added to the workspace automatically receives Team-sponsored PRO access.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Member Preview",
-    description:
-      "Open a member's real persisted EVC work in a dedicated visual view.",
-    icon: FileText,
-  },
-  {
-    title: "Member Compare",
-    description:
-      "Compare one active member against another inside the Team workspace.",
-    icon: Scale,
-  },
-  {
-    title: "Member Analysis",
-    description:
-      "Explore real EVC data through interactive ECharts analytics.",
-    icon: BarChart3,
-  },
-  {
-    title: "Team Analytical View",
-    description:
-      "Use the complete workspace-level analytical canvas with real Team data.",
-    icon: LineChart,
-  },
-  {
-    title: "12-Month Entitlement",
-    description:
-      "The Team workspace remains active for one year and must be renewed after expiry.",
-    icon: Clock3,
-  },
-];
-
-function LayoutGridIcon(props: {
-  className?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={props.className}
-      aria-hidden="true"
-    >
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  );
+function inr(value: number) {
+  return `₹${Math.round(value).toLocaleString("en-IN")}`;
 }
 
+function savingPct(cycle: BillingCycle) {
+  const p = PRO_PRICES[cycle];
+  const full = PRO_PRICES.MONTHLY.price * p.months;
+  return Math.round(((full - p.price) / full) * 100);
+}
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/* ---------- comparison tables ---------- */
+
+type Cell = boolean | string;
+
+const INDIVIDUAL_ROWS: { group: string; rows: { label: string; free: Cell; pro: Cell }[] }[] = [
+  {
+    group: "Core workspace",
+    rows: [
+      { label: "ESOP simulator: grant, vesting, valuation, dilution, exit", free: true, pro: true },
+      { label: "Cap table builder and round modelling", free: true, pro: true },
+      { label: "Saved calculations and dashboard", free: true, pro: true },
+      { label: "History, search and CSV export", free: true, pro: true },
+      { label: "Indian number formatting (lakhs, crores)", free: true, pro: true },
+    ],
+  },
+  {
+    group: "PRO intelligence",
+    rows: [
+      { label: "Offer Intelligence: what an offer is really worth", free: false, pro: true },
+      { label: "Vesting intelligence: cliffs, vested and unvested", free: false, pro: true },
+      { label: "Dilution after future funding rounds", free: false, pro: true },
+      { label: "Exercise decision: cash needed to exercise", free: false, pro: true },
+      { label: "Tax estimation: what remains after tax", free: false, pro: true },
+      { label: "Exit scenarios and side-by-side comparison", free: false, pro: true },
+      { label: "Reports", free: false, pro: true },
+    ],
+  },
+];
+
+const ORG_ROWS: { group: string; rows: { label: string; startup: Cell; advisor: Cell; team: Cell }[] }[] = [
+  {
+    group: "Plan",
+    rows: [
+      { label: "Built for", startup: "Startups and founders", advisor: "CA and CS firms", team: "HR and people teams" },
+      { label: "Price", startup: `${inr(STARTUP_PLAN.priceRupees)} / year`, advisor: `${inr(ADVISOR_PLAN.priceRupees)} / year`, team: `${inr(TEAM_PRICE)} / year` },
+      {
+        label: "Included",
+        startup: `${STARTUP_PLAN.includedOptionHolders} employees with options`,
+        advisor: `${ADVISOR_PLAN.includedClients} client companies`,
+        team: `${TEAM_MEMBERS} members`,
+      },
+      { label: "Free trial", startup: "On request", advisor: "On request", team: false },
+    ],
+  },
+  {
+    group: "Cap table and ESOPs",
+    rows: [
+      { label: "Cap table as of any date, fully diluted", startup: true, advisor: false, team: false },
+      { label: "ESOP pool, grants and options register", startup: true, advisor: false, team: false },
+      { label: "Private grant page for each employee, with Accept", startup: true, advisor: false, team: false },
+      { label: "Signed grant letters, downloadable by employees", startup: true, advisor: false, team: false },
+      { label: "Import cap table and grants from Excel", startup: true, advisor: false, team: false },
+    ],
+  },
+  {
+    group: "Compliance for clients",
+    rows: [
+      { label: "ESOP Diligence Pack: register checks, resolutions, exports", startup: false, advisor: true, team: false },
+      { label: "Tax-Event Ledger: perquisite and TDS estimates", startup: false, advisor: true, team: false },
+      { label: "Deadline e-mail reminders", startup: false, advisor: true, team: false },
+    ],
+  },
+  {
+    group: "Team",
+    rows: [
+      { label: "PRO access for every member", startup: false, advisor: false, team: true },
+      { label: "Member preview, compare and analysis", startup: false, advisor: false, team: true },
+      { label: "Workspace-level analytics", startup: false, advisor: false, team: true },
+    ],
+  },
+];
+
+/* ---------- FAQ ---------- */
+
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "Is the simulator really free?",
+    a: "Yes. The ESOP simulator, saved calculations, dashboard, history and CSV export are free, with no card needed. You only pay for PRO or an organisation plan.",
+  },
+  {
+    q: "Do plans renew automatically?",
+    a: "No. Every plan is a one-time payment for the period you choose. When it ends you can renew from this page, and nothing is charged without you paying again.",
+  },
+  {
+    q: "How do I pay?",
+    a: "Checkout is handled securely by Razorpay. Prices are in Indian rupees, and the plan is activated as soon as the payment is confirmed.",
+  },
+  {
+    q: "Which plan is right for my company?",
+    a: "If you want to run your own cap table and ESOP grants, and show employees what their options are worth, choose the Startup plan. If you are a CA or CS firm handling ESOP work for clients, choose the Advisor plan. If you want PRO access and analytics for a group of people, choose Team Intelligence.",
+  },
+  {
+    q: "Can I try the Startup or Advisor plan first?",
+    a: "Yes. Click “Request a free trial” on the plan and tell us about your company or firm. We set the trial up for you.",
+  },
+  {
+    q: "We need more employees, more clients or a different billing cycle.",
+    a: "Tell us what you need using the form below and we will arrange a plan that fits.",
+  },
+  {
+    q: "Is this financial or tax advice?",
+    a: "No. EVC gives calculations and scenarios to help you decide. Tax figures are estimates. For material decisions, check your company documents and speak to a qualified professional.",
+  },
+];
+
+/* ============================================================
+   RAZORPAY HELPERS
+============================================================ */
+
+function loadRazorpayScript() {
+  return new Promise<boolean>((resolve) => {
+    if (window.Razorpay) return resolve(true);
+
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+    );
+    if (existing) {
+      existing.addEventListener("load", () => resolve(true));
+      existing.addEventListener("error", () => resolve(false));
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
+type CheckoutConfig = {
+  createUrl: string;
+  createBody?: Record<string, unknown>;
+  verifyUrl: string;
+  description: string;
+  successUrl: string;
+};
+
+const CHECKOUTS: Record<PlanKey, (cycle: BillingCycle) => CheckoutConfig> = {
+  PRO: (cycle) => ({
+    createUrl: "/api/payments/create-order",
+    createBody: { checkoutType: "PRO", billingCycle: cycle },
+    verifyUrl: "/api/payments/verify",
+    description: `Professional PRO · ${PRO_PRICES[cycle].label}`,
+    successUrl: "/pro",
+  }),
+  TEAM: () => ({
+    createUrl: "/api/payments/create-order",
+    createBody: { checkoutType: "TEAM" },
+    verifyUrl: "/api/payments/verify",
+    description: "Team Intelligence · Annual Workspace",
+    successUrl: "/team",
+  }),
+  ADVISOR: () => ({
+    createUrl: "/api/advisor/billing/create-order",
+    verifyUrl: "/api/advisor/billing/verify",
+    description: "Advisor plan · Annual",
+    successUrl: "/advisor",
+  }),
+  STARTUP: () => ({
+    createUrl: "/api/company/billing/create-order",
+    verifyUrl: "/api/company/billing/verify",
+    description: "Startup plan · Annual",
+    successUrl: "/company",
+  }),
+};
+
+const CONTACT_MESSAGES: Record<"STARTUP" | "ADVISOR" | "TEAM", { trial: string; custom: string }> = {
+  STARTUP: {
+    trial:
+      "Hello, I am a startup founder and would like a free trial of the Startup plan (cap table and ESOP grants). Company: \nNumber of employees with ESOPs: ",
+    custom: `Hello, I would like a custom billing cycle / more than ${STARTUP_PLAN.includedOptionHolders} option holders on the Startup plan. Company: \nWhat I need: `,
+  },
+  ADVISOR: {
+    trial:
+      "Hello, I run a CA/CS practice and would like a free trial of the Advisor plan. My firm: \nNumber of client companies: ",
+    custom: `Hello, I would like a custom billing cycle / more than ${ADVISOR_PLAN.includedClients} client companies on the Advisor plan. My firm: \nWhat I need: `,
+  },
+  TEAM: {
+    trial: "Hello, I would like to discuss Team Intelligence for our team. Company: \nNumber of people: ",
+    custom: `Hello, I would like Team Intelligence for more than ${TEAM_MEMBERS} members or a different billing cycle. Company: \nWhat I need: `,
+  },
+};
+
+/* ============================================================
+   INTERACTION HOOKS
+============================================================ */
+
+/** Adds `is-in` to every [data-reveal] inside the root once it scrolls into view.
+ *  Re-scans when `rescanKey` changes (e.g. after switching tabs). */
+function useReveal(root: RefObject<HTMLElement | null>, rescanKey: unknown) {
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const targets = Array.from(el.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in)"));
+    if (typeof IntersectionObserver === "undefined" || prefersReducedMotion()) {
+      targets.forEach((t) => t.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, [root, rescanKey]);
+}
+
+/** Ripple on any element with the `pr-ripple` class. */
+function useRipple(root: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    function onDown(event: PointerEvent) {
+      const target = (event.target as HTMLElement | null)?.closest<HTMLElement>(".pr-ripple");
+      if (!target || prefersReducedMotion() || target.hasAttribute("disabled")) return;
+      const rect = target.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2.2;
+      const dot = document.createElement("span");
+      dot.className = "pr-ripple-dot";
+      dot.style.width = dot.style.height = `${size}px`;
+      dot.style.left = `${event.clientX - rect.left - size / 2}px`;
+      dot.style.top = `${event.clientY - rect.top - size / 2}px`;
+      target.appendChild(dot);
+      window.setTimeout(() => dot.remove(), 700);
+    }
+    el.addEventListener("pointerdown", onDown);
+    return () => el.removeEventListener("pointerdown", onDown);
+  }, [root]);
+}
+
+/** Tracks the cursor inside an element as CSS variables --mx / --my. */
+function spotlight(event: ReactMouseEvent<HTMLElement>) {
+  const el = event.currentTarget;
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+  el.style.setProperty("--my", `${event.clientY - rect.top}px`);
+}
+
+/** Smoothly counts a number from its previous value to the new one. */
+function AnimatedNumber({ value, format }: { value: number; format: (n: number) => string }) {
+  const [shown, setShown] = useState(value);
+  const from = useRef(0);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      setShown(value);
+      return;
+    }
+    const start = mounted.current ? from.current : value * 0.6;
+    mounted.current = true;
+    const t0 = performance.now();
+    const duration = 750;
+    let raf = 0;
+    const step = (t: number) => {
+      const p = Math.min(1, (t - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const n = start + (value - start) * eased;
+      from.current = n;
+      setShown(n);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+
+  return <span className="tabular-nums">{format(shown)}</span>;
+}
+
+/** A pill that slides under the active option of a segmented control. */
+function useSlidingPill<T extends string>(active: T) {
+  const container = useRef<HTMLDivElement | null>(null);
+  const items = useRef<Partial<Record<T, HTMLButtonElement | null>>>({});
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
+
+  const measure = useCallback(() => {
+    const btn = items.current[active];
+    const box = container.current;
+    if (!btn || !box) return;
+    setPill({ left: btn.offsetLeft, width: btn.offsetWidth });
+  }, [active]);
+
+  useLayoutEffect(() => {
+    measure();
+  }, [measure]);
+
+  useEffect(() => {
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
+
+  const register = (key: T) => (node: HTMLButtonElement | null) => {
+    items.current[key] = node;
+  };
+
+  return { container, register, pill, measure };
+}
+
+/* ============================================================
+   PAGE
+============================================================ */
+
 export default function PricingPage() {
-  const [selectedCycle, setSelectedCycle] =
-    useState<BillingCycle>("YEARLY");
+  const [audience, setAudience] = useState<Audience>("individuals");
+  const [cycle, setCycle] = useState<BillingCycle>("YEARLY");
 
-  const [loading, setLoading] =
-    useState(false);
+  const [checkingAccount, setCheckingAccount] = useState(true);
+  const [isPro, setIsPro] = useState(false);
+  const [isFounder, setIsFounder] = useState(false);
 
-  const [teamLoading, setTeamLoading] =
-    useState(false);
+  const [busy, setBusy] = useState<PlanKey | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<PlanKey, string>>>({});
 
-  const [checkingAccount, setCheckingAccount] =
-    useState(true);
+  const pageRef = useRef<HTMLElement | null>(null);
+  const plansRef = useRef<HTMLDivElement | null>(null);
 
-  const [isPro, setIsPro] =
-    useState(false);
+  const audiencePill = useSlidingPill<Audience>(audience);
+  const cyclePill = useSlidingPill<BillingCycle>(cycle);
 
-  const [isFounder, setIsFounder] =
-    useState(false);
+  useReveal(pageRef, audience);
+  useRipple(pageRef);
 
-  const [error, setError] =
-    useState("");
+  // The billing switch is re-mounted when returning to the Individuals tab.
+  useLayoutEffect(() => {
+    if (audience === "individuals") cyclePill.measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audience]);
 
-  const [teamError, setTeamError] =
-    useState("");
-
-  const [advisorLoading, setAdvisorLoading] =
-    useState(false);
-
-  const [advisorError, setAdvisorError] =
-    useState("");
-
-  const selectedPlan = PRO_PLANS.find(
-    (plan) =>
-      plan.cycle === selectedCycle,
-  )!;
-
+  /* ---------- account ---------- */
   useEffect(() => {
     async function loadAccount() {
       try {
-        const response = await fetch(
-          "/api/auth/me",
-          {
-            credentials: "include",
-            cache: "no-store",
-          },
-        );
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data =
-          await response.json();
-
+        const response = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
         if (data.success) {
-          setIsPro(
-            data.user.account.plan ===
-              "PRO",
-          );
-
-          setIsFounder(
-            Boolean(
-              data.user.account
-                .isFounder,
-            ),
-          );
+          setIsPro(data.user.account.plan === "PRO");
+          setIsFounder(Boolean(data.user.account.isFounder));
         }
       } catch (error) {
-        console.error(
-          "Unable to load account:",
-          error,
-        );
+        console.error("Unable to load account:", error);
       } finally {
         setCheckingAccount(false);
       }
     }
-
-    loadAccount();
+    void loadAccount();
   }, []);
 
-  function loadRazorpayScript() {
-    return new Promise<boolean>(
-      (resolve) => {
-        if (window.Razorpay) {
-          resolve(true);
-          return;
-        }
+  /* ---------- deep links: /pricing#startup, #advisor, #team, #pro ---------- */
+  useEffect(() => {
+    function applyHash() {
+      const hash = window.location.hash.replace("#", "");
+      if (!hash) return;
+      if (["startup", "advisor", "team"].includes(hash)) setAudience("organisations");
+      if (hash === "pro") setAudience("individuals");
+      window.setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
 
-        const existingScript =
-          document.querySelector(
-            'script[src="https://checkout.razorpay.com/v1/checkout.js"]',
-          );
-
-        if (existingScript) {
-          existingScript.addEventListener(
-            "load",
-            () => resolve(true),
-          );
-
-          existingScript.addEventListener(
-            "error",
-            () => resolve(false),
-          );
-
-          return;
-        }
-
-        const script =
-          document.createElement(
-            "script",
-          );
-
-        script.src =
-          "https://checkout.razorpay.com/v1/checkout.js";
-
-        script.async = true;
-
-        script.onload = () =>
-          resolve(true);
-
-        script.onerror = () =>
-          resolve(false);
-
-        document.body.appendChild(
-          script,
-        );
-      },
-    );
+  function setError(plan: PlanKey, message: string) {
+    setErrors((prev) => ({ ...prev, [plan]: message }));
   }
 
-  async function verifyPayment(
-    response: any,
-    checkoutType: CheckoutType,
-  ) {
-    const verifyResponse =
-      await fetch(
-        "/api/payments/verify",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            razorpay_order_id:
-              response.razorpay_order_id,
+  /* ---------- one checkout for every plan ---------- */
+  async function checkout(plan: PlanKey) {
+    if (busy) return;
+    setError(plan, "");
 
-            razorpay_payment_id:
-              response.razorpay_payment_id,
-
-            razorpay_signature:
-              response.razorpay_signature,
-          }),
-        },
-      );
-
-    const verifyData =
-      await verifyResponse.json();
-
-    if (
-      !verifyResponse.ok ||
-      !verifyData.success
-    ) {
-      throw new Error(
-        verifyData.message ||
-          "Payment verification failed.",
-      );
+    if (plan === "PRO") {
+      if (isFounder) return setError(plan, "Your founder account already has lifetime PRO access.");
+      if (isPro) return setError(plan, "Your account already has PRO access.");
     }
 
-    if (
-      checkoutType === "TEAM"
-    ) {
-      window.location.href =
-        "/team";
-      return;
-    }
-
-    window.location.href =
-      "/pro";
-  }
-
-  async function handleProUpgrade() {
-    if (loading) return;
-
-    setError("");
-
-    if (isFounder) {
-      setError(
-        "Your founder account already has lifetime PRO access.",
-      );
-      return;
-    }
-
-    if (isPro) {
-      setError(
-        "Your account already has PRO access. You can still purchase Team Intelligence below.",
-      );
-      return;
-    }
-
-    setLoading(true);
+    const config = CHECKOUTS[plan](cycle);
+    setBusy(plan);
 
     try {
-      const razorpayLoaded =
-        await loadRazorpayScript();
+      if (!(await loadRazorpayScript())) throw new Error("Unable to load Razorpay Checkout.");
 
-      if (!razorpayLoaded) {
-        throw new Error(
-          "Unable to load Razorpay Checkout.",
-        );
-      }
-
-      const orderResponse =
-        await fetch(
-          "/api/payments/create-order",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              checkoutType:
-                "PRO",
-
-              billingCycle:
-                selectedCycle,
-            }),
-          },
-        );
-
-      const orderData =
-        await orderResponse.json();
-
-      if (
-        !orderResponse.ok ||
-        !orderData.success
-      ) {
-        throw new Error(
-          orderData.message ||
-            "Unable to create payment order.",
-        );
-      }
-
-      const options = {
-        key: orderData.key,
-
-        amount:
-          orderData.order.amount,
-
-        currency:
-          orderData.order.currency,
-
-        name:
-          "ESOP Value Clarity",
-
-        description:
-          `Professional PRO · ${selectedPlan.label}`,
-
-        order_id:
-          orderData.order.id,
-
-        handler:
-          async function (
-            response: any,
-          ) {
-            try {
-              setLoading(true);
-              setError("");
-
-              await verifyPayment(
-                response,
-                "PRO",
-              );
-            } catch (
-              verificationError: any
-            ) {
-              console.error(
-                "PRO payment verification error:",
-                verificationError,
-              );
-
-              setError(
-                verificationError
-                  ?.message ||
-                  "Payment was completed but verification failed.",
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-
-        theme: {
-          color: "#2563eb",
-        },
-
-        modal: {
-          ondismiss:
-            function () {
-              setLoading(false);
-            },
-        },
-      };
-
-      const razorpay =
-        new window.Razorpay(
-          options,
-        );
-
-      razorpay.on(
-        "payment.failed",
-        function (
-          response: any,
-        ) {
-          console.error(
-            "Razorpay PRO payment failed:",
-            response,
-          );
-
-          setError(
-            response?.error
-              ?.description ||
-              "Payment failed. Please try again.",
-          );
-
-          setLoading(false);
-        },
-      );
-
-      razorpay.open();
-    } catch (error: any) {
-      console.error(
-        "PRO payment error:",
-        error,
-      );
-
-      setError(
-        error?.message ||
-          "Unable to start payment.",
-      );
-
-      setLoading(false);
-    }
-  }
-
-  async function handleTeamPurchase() {
-    if (teamLoading) return;
-
-    setTeamError("");
-
-    setTeamLoading(true);
-
-    try {
-      const razorpayLoaded =
-        await loadRazorpayScript();
-
-      if (!razorpayLoaded) {
-        throw new Error(
-          "Unable to load Razorpay Checkout.",
-        );
-      }
-
-      const orderResponse =
-        await fetch(
-          "/api/payments/create-order",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              checkoutType:
-                "TEAM",
-            }),
-          },
-        );
-
-      const orderData =
-        await orderResponse.json();
-
-      if (
-        !orderResponse.ok ||
-        !orderData.success
-      ) {
-        throw new Error(
-          orderData.message ||
-            "Unable to create Team payment order.",
-        );
-      }
-
-      const options = {
-        key: orderData.key,
-
-        amount:
-          orderData.order.amount,
-
-        currency:
-          orderData.order.currency,
-
-        name:
-          "ESOP Value Clarity",
-
-        description:
-          "Team Intelligence · Annual Workspace",
-
-        order_id:
-          orderData.order.id,
-
-        handler:
-          async function (
-            response: any,
-          ) {
-            try {
-              setTeamLoading(true);
-              setTeamError("");
-
-              await verifyPayment(
-                response,
-                "TEAM",
-              );
-            } catch (
-              verificationError: any
-            ) {
-              console.error(
-                "Team payment verification error:",
-                verificationError,
-              );
-
-              setTeamError(
-                verificationError
-                  ?.message ||
-                  "Payment was completed but verification failed.",
-              );
-            } finally {
-              setTeamLoading(false);
-            }
-          },
-
-        theme: {
-          color: "#2563eb",
-        },
-
-        modal: {
-          ondismiss:
-            function () {
-              setTeamLoading(false);
-            },
-        },
-      };
-
-      const razorpay =
-        new window.Razorpay(
-          options,
-        );
-
-      razorpay.on(
-        "payment.failed",
-        function (
-          response: any,
-        ) {
-          console.error(
-            "Razorpay Team payment failed:",
-            response,
-          );
-
-          setTeamError(
-            response?.error
-              ?.description ||
-              "Team payment failed. Please try again.",
-          );
-
-          setTeamLoading(false);
-        },
-      );
-
-      razorpay.open();
-    } catch (error: any) {
-      console.error(
-        "Team payment error:",
-        error,
-      );
-
-      setTeamError(
-        error?.message ||
-          "Unable to start Team payment.",
-      );
-
-      setTeamLoading(false);
-    }
-  }
-
-  async function handleAdvisorPurchase() {
-    if (advisorLoading) return;
-
-    setAdvisorError("");
-    setAdvisorLoading(true);
-
-    try {
-      const razorpayLoaded = await loadRazorpayScript();
-
-      if (!razorpayLoaded) {
-        throw new Error("Unable to load Razorpay Checkout.");
-      }
-
-      const orderResponse = await fetch(
-        "/api/advisor/billing/create-order",
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      );
+      const orderResponse = await fetch(config.createUrl, {
+        method: "POST",
+        credentials: "include",
+        ...(config.createBody
+          ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(config.createBody) }
+          : {}),
+      });
 
       if (orderResponse.status === 401) {
         window.location.href = "/login";
@@ -780,1406 +484,1023 @@ export default function PricingPage() {
       }
 
       const orderData = await orderResponse.json();
-
       if (!orderResponse.ok || !orderData.success) {
-        throw new Error(
-          orderData.message ||
-            "Unable to start Advisor plan payment.",
-        );
+        throw new Error(orderData.message || "Unable to create payment order.");
       }
 
-      const options = {
+      const razorpay = new window.Razorpay({
         key: orderData.key,
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "ESOP Value Clarity",
-        description: "Advisor plan · Annual",
+        description: config.description,
         order_id: orderData.order.id,
-
-        handler: async function (response: any) {
+        theme: { color: "#042653" },
+        handler: async (response: any) => {
           try {
-            setAdvisorLoading(true);
-            setAdvisorError("");
-
-            const verifyResponse = await fetch(
-              "/api/advisor/billing/verify",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
-              },
-            );
-
+            setBusy(plan);
+            const verifyResponse = await fetch(config.verifyUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
             const verifyData = await verifyResponse.json();
-
             if (!verifyResponse.ok || !verifyData.success) {
-              throw new Error(
-                verifyData.message ||
-                  "Payment was completed but verification failed.",
-              );
+              throw new Error(verifyData.message || "Payment verification failed.");
             }
-
-            window.location.href = "/advisor";
+            window.location.href = config.successUrl;
           } catch (verificationError: any) {
-            console.error(
-              "Advisor payment verification error:",
-              verificationError,
-            );
-
-            setAdvisorError(
+            console.error(`${plan} payment verification error:`, verificationError);
+            setError(
+              plan,
               verificationError?.message ||
-                "Payment was completed but verification failed. Please contact us with your payment reference.",
+                "Payment was completed but verification failed. Please contact us with your payment reference."
             );
           } finally {
-            setAdvisorLoading(false);
+            setBusy(null);
           }
         },
+        modal: { ondismiss: () => setBusy(null) },
+      });
 
-        theme: { color: "#2563eb" },
-
-        modal: {
-          ondismiss: function () {
-            setAdvisorLoading(false);
-          },
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-
-      razorpay.on("payment.failed", function (response: any) {
-        console.error("Razorpay Advisor payment failed:", response);
-
-        setAdvisorError(
-          response?.error?.description ||
-            "Payment failed. Please try again.",
-        );
-
-        setAdvisorLoading(false);
+      razorpay.on("payment.failed", (response: any) => {
+        console.error(`Razorpay ${plan} payment failed:`, response);
+        setError(plan, response?.error?.description || "Payment failed. Please try again.");
+        setBusy(null);
       });
 
       razorpay.open();
     } catch (error: any) {
-      console.error("Advisor payment error:", error);
-
-      setAdvisorError(
-        error?.message || "Unable to start Advisor plan payment.",
-      );
-
-      setAdvisorLoading(false);
+      console.error(`${plan} payment error:`, error);
+      setError(plan, error?.message || "Unable to start payment.");
+      setBusy(null);
     }
   }
 
-  function openContactWithTopic(
-    topic: "CUSTOM_BILLING" | "FREE_TRIAL",
-  ) {
+  function contact(plan: "STARTUP" | "ADVISOR" | "TEAM" | "ANY", kind: "trial" | "custom") {
+    const topic = kind === "trial" && plan !== "TEAM" ? "FREE_TRIAL" : "CUSTOM_BILLING";
     const message =
-      topic === "FREE_TRIAL"
-        ? "Hello, I run a CA/CS practice and would like a free trial of the Advisor plan. My firm: \nNumber of client companies: "
-        : "Hello, I would like a custom billing cycle / more than 25 client companies on the Advisor plan. My firm: \nWhat I need: ";
-
-    window.dispatchEvent(
-      new CustomEvent("evc:contact-prefill", {
-        detail: { topic, message },
-      }),
-    );
-
-    openWalkthrough();
+      plan === "ANY"
+        ? "Hello, we need a custom plan (more seats or clients, or a different billing cycle). Company: \nWhich plan: \nWhat we need: "
+        : CONTACT_MESSAGES[plan][kind];
+    window.dispatchEvent(new CustomEvent("evc:contact-prefill", { detail: { topic, message } }));
+    document.getElementById("contact-product")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function openWalkthrough() {
-    const contactSection =
-      document.getElementById(
-        "contact-product",
-      );
-
-    if (contactSection) {
-      contactSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+  function switchAudience(next: Audience) {
+    setAudience(next);
+    if (plansRef.current && plansRef.current.getBoundingClientRect().top < 0) {
+      plansRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
-  useEffect(() => {
-    if (!checkingAccount && window.location.hash === "#advisor") {
-      document
-        .getElementById("advisor")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [checkingAccount]);
-
-  if (checkingAccount) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
-      </main>
-    );
-  }
+  const pro = PRO_PRICES[cycle];
+  const proLabel = isFounder ? "Founder PRO active" : isPro ? "PRO is active" : "Upgrade to PRO";
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f6f8fc] text-slate-950">
-      <div className="pricing-grid pointer-events-none fixed inset-0 opacity-40" />
+    <main ref={pageRef} className="evc-pricing min-h-screen bg-[#F7F9FC] text-[#0b1220]">
+      {/* =====================================================
+          HERO
+      ====================================================== */}
+      <section className="relative overflow-hidden">
+        <div className="pr-dots pointer-events-none absolute inset-0" />
+        <div className="pr-orb pointer-events-none absolute left-1/2 top-[-200px] h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[#5B9BFF]/15 blur-[140px]" />
+        <div className="pr-orb pr-orb-2 pointer-events-none absolute right-[10%] top-[60px] h-[260px] w-[260px] rounded-full bg-[#F2B421]/20 blur-[110px]" />
 
-      <div className="pointer-events-none fixed left-1/2 top-20 h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-blue-200/35 blur-[150px]" />
+        <div className="relative mx-auto max-w-[1200px] px-4 pb-12 pt-16 text-center sm:px-6 md:pt-24">
+          <p className="pr-fade inline-flex items-center gap-2 rounded-full border border-[#042653]/10 bg-white px-3 py-1 text-xs font-semibold text-[#042653] shadow-sm">
+            <Sparkles className="pr-twinkle h-3.5 w-3.5 text-[#B7800E]" />
+            Pricing
+          </p>
+          <h1 className="pr-fade mx-auto mt-5 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-[#042653] sm:text-6xl" style={{ animationDelay: "60ms" }}>
+            Simple pricing for every{" "}
+            <span className="relative inline-block whitespace-nowrap">
+              equity decision.
+              <svg aria-hidden="true" viewBox="0 0 300 16" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-3 w-full sm:-bottom-3 sm:h-4">
+                <path className="pr-draw" d="M3 11 C 70 3, 150 3, 297 9" fill="none" stroke="#F2B421" strokeWidth="5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h1>
+          <p className="pr-fade mx-auto mt-7 max-w-2xl text-lg leading-8 text-slate-600" style={{ animationDelay: "120ms" }}>
+            Start free. Pay when it matters, whether the equity is yours, your company&apos;s or your clients&apos;.
+          </p>
 
-      <div className="relative mx-auto max-w-[1380px] px-6 py-10">
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-  <Link
-    href="/profile"
-    className="group inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-slate-950"
-  >
-    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-    Back to Profile
-  </Link>
-
-  <Link
-    href="/pro"
-    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700 hover:shadow-md"
-  >
-    <Crown className="h-4 w-4 text-amber-500" />
-    Open PRO Workspace
-  </Link>
-
-  <Link
-    href="/team"
-    className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
-  >
-    <Users className="h-4 w-4 text-blue-300" />
-    Team Intelligence
-  </Link>
-</div>
-
-        {/* =====================================================
-            HERO
-        ====================================================== */}
-
-        <section className="relative overflow-hidden rounded-[36px] border border-slate-800 bg-[#030817] p-8 text-white shadow-[0_45px_130px_-60px_rgba(15,23,42,.95)] md:p-12">
-          <div className="pricing-dark-grid pointer-events-none absolute inset-0 opacity-60" />
-
-          <div className="pricing-orb pointer-events-none absolute -right-28 -top-28 h-96 w-96 rounded-full bg-blue-600/15 blur-[110px]" />
-
-          <div className="pointer-events-none absolute -bottom-40 left-[25%] h-80 w-80 rounded-full bg-violet-600/10 blur-[110px]" />
-
-          <div className="relative grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.08] px-3 py-1.5">
-                <Crown className="h-3.5 w-3.5 text-blue-300" />
-
-                <span className="text-[9px] font-black uppercase tracking-[0.17em] text-blue-200">
-                  ESOP VALUE CLARITY · FREE + PRO + TEAM
-                </span>
-              </div>
-
-              <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.02] tracking-[-0.055em] md:text-6xl">
-                Start free.
-                <span className="block text-slate-500">
-                  Go deeper when the decision matters.
-                </span>
-
-                <span className="block bg-gradient-to-r from-blue-300 via-cyan-200 to-violet-300 bg-clip-text text-transparent">
-                  One workspace. Deeper clarity.
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-2xl text-base leading-8 text-slate-400">
-                Use the core ESOP workflow for free. Upgrade to PRO for
-                deeper equity intelligence or purchase Team Intelligence when
-                you need a dedicated workspace for an entire group of existing
-                EVC users.
-              </p>
-
-              <div className="mt-7 flex flex-wrap gap-2">
-                {[
-                  "Free simulator",
-                  "Saved history",
-                  "PRO intelligence",
-                  "Team workspace",
-                  "20 members",
-                  "Team analytics",
-                ].map((item, index) => (
-                  <span
-                    key={item}
-                    className="pricing-chip rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] text-slate-400"
-                    style={{
-                      animationDelay: `${index * 120}ms`,
-                    }}
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500">
-                  DECISION WORKFLOW
-                </p>
-
-                <span className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                  Explainable
-                </span>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                {[
-                  [
-                    "01",
-                    "Explore",
-                    "Start with the core ESOP model for free.",
-                  ],
-                  [
-                    "02",
-                    "Review",
-                    "Keep assumptions, history and scenarios visible.",
-                  ],
-                  [
-                    "03",
-                    "Go deeper",
-                    "Unlock PRO equity and offer intelligence when needed.",
-                  ],
-                  [
-                    "04",
-                    "Operate",
-                    "Use Team Intelligence when the workflow spans multiple users.",
-                  ],
-                ].map(
-                  ([
-                    number,
-                    label,
-                    detail,
-                  ], index) => (
-                    <div
-                      key={number}
-                      className="pricing-flow group flex items-center gap-4 rounded-2xl border border-white/[0.07] bg-[#08111f]/90 p-4 transition duration-500 hover:translate-x-2 hover:border-blue-400/20"
-                      style={{
-                        animationDelay: `${index * 150}ms`,
-                      }}
-                    >
-                      <span className="font-mono text-[9px] font-black text-blue-300">
-                        {number}
-                      </span>
-
-                      <div className="flex-1">
-                        <p className="text-xs font-black text-white">
-                          {label}
-                        </p>
-
-                        <p className="mt-1 text-[10px] text-slate-500">
-                          {detail}
-                        </p>
-                      </div>
-
-                      <ArrowRight className="h-3.5 w-3.5 text-slate-700 transition group-hover:translate-x-1 group-hover:text-blue-300" />
-                    </div>
-                  ),
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            FREE WORKSPACE
-        ====================================================== */}
-
-        <section className="mt-8 rounded-[32px] border border-slate-200 bg-white/90 p-7 shadow-[0_25px_80px_-50px_rgba(15,23,42,.35)] backdrop-blur md:p-9">
-          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">
-                FREE WORKSPACE
-              </p>
-
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.045em] md:text-4xl">
-                Start with the core equity workflow.
-              </h2>
-            </div>
-
-            <p className="max-w-xl text-sm leading-7 text-slate-500">
-              You do not need PRO to understand a basic ESOP scenario. The
-              core modelling and workspace experience is already available
-              for free.
-            </p>
-          </div>
-
-          <div className="mt-7 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {FREE_FEATURES.map(
-              (feature) => {
-                const Icon =
-                  feature.icon;
-
-                return (
-                  <div
-                    key={
-                      feature.title
-                    }
-                    className="group rounded-[22px] border border-slate-200 bg-[#f8fafc] p-5 transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white hover:shadow-lg"
-                  >
-                    <div className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-emerald-600 shadow-sm transition group-hover:scale-105">
-                      <Icon className="h-4 w-4" />
-                    </div>
-
-                    <h3 className="mt-5 text-sm font-black text-slate-950">
-                      {feature.title}
-                    </h3>
-
-                    <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                      {feature.description}
-                    </p>
-                  </div>
-                );
-              },
-            )}
-          </div>
-
-          <div className="mt-7 flex flex-col gap-4 rounded-[22px] border border-emerald-200 bg-emerald-50/70 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-black text-emerald-950">
-                Explore before you pay.
-              </p>
-
-              <p className="mt-1 text-xs leading-5 text-emerald-900/70">
-                Start with the Simulator and move into the private workspace
-                when you want saved analysis and history.
-              </p>
-            </div>
-
-            <Link
-              href="/simulator"
-              className="group inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-emerald-500"
+          {/* Audience switch */}
+          <div className="pr-fade mt-10 flex justify-center" style={{ animationDelay: "180ms" }}>
+            <div
+              ref={audiencePill.container}
+              role="tablist"
+              aria-label="Who is this for"
+              className="relative flex rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_12px_40px_-24px_rgba(4,38,83,0.5)]"
             >
-              Open Simulator
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-        </section>
-
-        {/* =====================================================
-            PRO WORKSPACE
-        ====================================================== */}
-
-        <section className="mt-8 rounded-[32px] border border-slate-200 bg-white/90 p-7 shadow-[0_25px_80px_-50px_rgba(15,23,42,.35)] backdrop-blur md:p-9">
-          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">
-                PRO WORKSPACE
-              </p>
-
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.045em] md:text-4xl">
-                When the analysis goes beyond the basics.
-              </h2>
-            </div>
-
-            <p className="max-w-xl text-sm leading-7 text-slate-500">
-              PRO adds the deeper workflows required to review startup
-              compensation, equity terms, exercise economics and competing
-              offers.
-            </p>
-          </div>
-
-          <div className="mt-7 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {PRO_FEATURES.map(
-              (feature, index) => {
-                const Icon =
-                  feature.icon;
-
-                return (
-                  <div
-                    key={
-                      feature.title
-                    }
-                    className="pricing-feature group relative min-h-[220px] overflow-hidden rounded-[23px] border border-slate-200 bg-[#f8fafc] p-5 transition duration-500 hover:-translate-y-2 hover:border-blue-200 hover:bg-white hover:shadow-[0_25px_50px_-35px_rgba(37,99,235,.5)]"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                    }}
-                  >
-                    <span className="absolute right-4 top-4 font-mono text-[9px] font-black text-slate-300">
-                      {String(
-                        index + 1,
-                      ).padStart(
-                        2,
-                        "0",
-                      )}
+              {audiencePill.pill ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute bottom-1.5 top-1.5 rounded-xl bg-[#042653] shadow-md transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{ left: audiencePill.pill.left, width: audiencePill.pill.width }}
+                />
+              ) : null}
+              {(
+                [
+                  ["individuals", "Individuals", User],
+                  ["organisations", "Companies & firms", Building2],
+                ] as const
+              ).map(([key, label, Icon]) => (
+                <button
+                  key={key}
+                  ref={audiencePill.register(key)}
+                  role="tab"
+                  type="button"
+                  aria-selected={audience === key}
+                  onClick={() => switchAudience(key)}
+                  className={`group relative z-10 inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors duration-300 sm:px-7 ${
+                    audience === key ? "text-white" : "text-slate-600 hover:text-[#042653]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                  {label}
+                  {key === "organisations" && audience !== key ? (
+                    <span className="pr-bob absolute -right-1 -top-2 rounded-full bg-[#F2B421] px-1.5 py-0.5 text-[9px] font-bold leading-none text-[#020d1f] shadow">
+                      New
                     </span>
-
-                    <div className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-blue-600 shadow-sm transition group-hover:-rotate-6 group-hover:scale-110">
-                      <Icon className="h-4 w-4" />
-                    </div>
-
-                    <p className="mt-5 text-[9px] font-black uppercase tracking-[0.12em] text-blue-600">
-                      {feature.question}
-                    </p>
-
-                    <h3 className="mt-2 text-sm font-black text-slate-950">
-                      {feature.title}
-                    </h3>
-
-                    <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                      {
-                        feature.description
-                      }
-                    </p>
-                  </div>
-                );
-              },
-            )}
+                  ) : null}
+                </button>
+              ))}
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =====================================================
-            PRO PRICING
-        ====================================================== */}
-
-        <section className="mt-8">
-          <div className="text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">
-              PRO ACCESS
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.045em] md:text-4xl">
-              Upgrade when you need deeper equity intelligence.
-            </h2>
-
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-              Every paid period unlocks the same complete PRO workspace.
-              Choose the commitment period that fits your work.
-            </p>
-
-            {isPro && (
-              <div className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-emerald-700">
-                <CheckCircle2 className="h-4 w-4" />
-                Personal PRO is already active
-              </div>
-            )}
-          </div>
-
-          <div className="mt-7 grid gap-5 lg:grid-cols-3">
-            {PRO_PLANS.map(
-              (plan) => {
-                const selected =
-                  selectedCycle ===
-                  plan.cycle;
-
-                const monthlyEquivalent =
-                  plan.cycle ===
-                  "MONTHLY"
-                    ? plan.price
-                    : plan.cycle ===
-                        "SIX_MONTHS"
-                      ? plan.price /
-                        6
-                      : plan.price /
-                        12;
-
-                const savingsVsMonthly =
-                  plan.cycle ===
-                  "MONTHLY"
-                    ? 0
-                    : plan.cycle ===
-                        "SIX_MONTHS"
-                      ? 2999 *
-                          6 -
-                        plan.price
-                      : 2999 *
-                          12 -
-                        plan.price;
-
-                return (
+      {/* =====================================================
+          PLAN CARDS
+      ====================================================== */}
+      <section ref={plansRef} className="relative mx-auto max-w-[1200px] scroll-mt-24 px-4 pb-10 sm:px-6">
+        {audience === "individuals" ? (
+          <div key="ind" className="pr-swap">
+            {/* Billing switch */}
+            <div className="mb-8 flex justify-center">
+              <div ref={cyclePill.container} className="relative inline-flex rounded-full border border-slate-200 bg-white p-1 text-sm shadow-sm">
+                {cyclePill.pill ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-1 top-1 rounded-full bg-slate-900 shadow transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                    style={{ left: cyclePill.pill.left, width: cyclePill.pill.width }}
+                  />
+                ) : null}
+                {CYCLES.map((c) => (
                   <button
-                    key={
-                      plan.cycle
-                    }
+                    key={c}
+                    ref={cyclePill.register(c)}
                     type="button"
-                    disabled={
-                      isPro ||
-                      isFounder
-                    }
-                    onClick={() =>
-                      setSelectedCycle(
-                        plan.cycle,
-                      )
-                    }
-                    className={`group relative overflow-hidden rounded-[28px] border p-7 text-left transition duration-500 ${
-                      isPro ||
-                      isFounder
-                        ? "cursor-default"
-                        : ""
-                    } ${
-                      selected
-                        ? "border-blue-500 bg-[#061225] text-white shadow-[0_30px_70px_-40px_rgba(37,99,235,.8)] -translate-y-2"
-                        : "border-slate-200 bg-white text-slate-950 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
+                    onClick={() => setCycle(c)}
+                    className={`relative z-10 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-semibold transition-colors duration-300 sm:px-4 ${
+                      cycle === c ? "text-white" : "text-slate-500 hover:text-slate-900"
                     }`}
                   >
-                    {isPro && (
-                      <div className="absolute right-5 top-5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300">
-                        ACTIVE
-                      </div>
-                    )}
-
-                    {!isPro &&
-                      (plan.popular ||
-                        plan.badge) && (
-                        <div
-                          className={`absolute right-5 top-5 rounded-full border px-3 py-1 text-[8px] font-black uppercase tracking-[0.12em] ${
-                            selected
-                              ? "border-blue-400/20 bg-blue-500/10 text-blue-300"
-                              : "border-blue-100 bg-blue-50 text-blue-600"
-                          }`}
-                        >
-                          {
-                            plan.badge
-                          }
-                        </div>
-                      )}
-
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${
-                          selected
-                            ? "border-blue-400"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        {selected && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-blue-400" />
-                        )}
-                      </div>
-
-                      <div>
-                        <p
-                          className={`text-sm font-black ${
-                            selected
-                              ? "text-white"
-                              : "text-slate-950"
-                          }`}
-                        >
-                          {
-                            plan.name
-                          }
-                        </p>
-
-                        <p
-                          className={`mt-1 text-[9px] font-bold uppercase tracking-[0.12em] ${
-                            selected
-                              ? "text-blue-300"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          {
-                            plan.label
-                          }
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 flex items-end gap-2">
-                      <span className="text-5xl font-black tracking-[-0.05em]">
-                        ₹
-                        {plan.price.toLocaleString(
-                          "en-IN",
-                        )}
-                      </span>
-
+                    {PRO_PRICES[c].short}
+                    {c !== "MONTHLY" ? (
                       <span
-                        className={`mb-1 text-xs ${
-                          selected
-                            ? "text-slate-500"
-                            : "text-slate-400"
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-colors duration-300 ${
+                          cycle === c ? "bg-[#F2B421] text-[#020d1f]" : "bg-emerald-50 text-emerald-700"
                         }`}
                       >
-                        {
-                          plan.period
-                        }
+                        −{savingPct(c)}%
                       </span>
-                    </div>
-
-                    <p
-                      className={`mt-4 min-h-[60px] text-xs leading-6 ${
-                        selected
-                          ? "text-slate-400"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      {
-                        plan.description
-                      }
-                    </p>
-
-                    {plan.cycle !==
-                      "MONTHLY" && (
-                      <div
-                        className={`mt-5 rounded-xl border p-3 ${
-                          selected
-                            ? "border-white/10 bg-white/[0.04]"
-                            : "border-slate-100 bg-slate-50"
-                        }`}
-                      >
-                        <p
-                          className={`text-[8px] font-black uppercase tracking-[0.12em] ${
-                            selected
-                              ? "text-blue-300"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          Effective monthly cost
-                        </p>
-
-                        <p className="mt-1 text-sm font-black">
-                          ₹
-                          {Math.round(
-                            monthlyEquivalent,
-                          ).toLocaleString(
-                            "en-IN",
-                          )}{" "}
-                          / month
-                        </p>
-
-                        <p
-                          className={`mt-1 text-[10px] ${
-                            selected
-                              ? "text-emerald-300"
-                              : "text-emerald-600"
-                          }`}
-                        >
-                          Save ₹
-                          {savingsVsMonthly.toLocaleString(
-                            "en-IN",
-                          )}{" "}
-                          versus monthly billing
-                        </p>
-                      </div>
-                    )}
-
-                    <div
-                      className={`mt-6 border-t pt-5 ${
-                        selected
-                          ? "border-white/10"
-                          : "border-slate-100"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 text-xs font-black">
-                        <CheckCircle2
-                          className={`h-4 w-4 ${
-                            selected
-                              ? "text-emerald-300"
-                              : "text-emerald-600"
-                          }`}
-                        />
-                        Full PRO workspace
-                      </div>
-
-                      <p
-                        className={`mt-2 text-[10px] leading-5 ${
-                          selected
-                            ? "text-slate-500"
-                            : "text-slate-400"
-                        }`}
-                      >
-                        Offer Intelligence,
-                        vesting, dilution,
-                        exercise, tax
-                        estimation, exit
-                        scenarios, reports
-                        and comparison.
-                      </p>
-                    </div>
+                    ) : null}
                   </button>
-                );
-              },
-            )}
-          </div>
-
-          <div className="mt-6 rounded-[28px] border border-slate-800 bg-[#030817] p-6 text-white shadow-[0_30px_80px_-50px_rgba(15,23,42,.9)]">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
-                  SELECTED PRO ACCESS
-                </p>
-
-                <h3 className="mt-2 text-2xl font-black">
-                  {selectedPlan.label}
-                </h3>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  ₹
-                  {selectedPlan.price.toLocaleString(
-                    "en-IN",
-                  )}{" "}
-                  {selectedPlan.period}
-                </p>
-              </div>
-
-              <div className="flex w-full flex-col gap-3 md:w-auto md:min-w-[330px]">
-                {error && (
-                  <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-xs text-red-200">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={
-                    handleProUpgrade
-                  }
-                  disabled={
-                    loading ||
-                    isPro ||
-                    isFounder
-                  }
-                  className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-4 text-sm font-black text-white shadow-[0_18px_40px_-18px_rgba(37,99,235,.9)] transition hover:-translate-y-1 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isFounder ? (
-                    <>
-                      <Crown className="h-5 w-5" />
-                      Founder PRO
-                    </>
-                  ) : isPro ? (
-                    <>
-                      <CheckCircle2 className="h-5 w-5" />
-                      PRO already active
-                    </>
-                  ) : loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Preparing secure checkout...
-                    </>
-                  ) : (
-                    <>
-                      Continue with PRO
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </>
-                  )}
-                </button>
-
-                {!isPro &&
-                  !isFounder && (
-                    <div className="flex items-center justify-center gap-2 text-[10px] text-slate-500">
-                      <LockKeyhole className="h-3.5 w-3.5" />
-                      Secure checkout via Razorpay.
-                    </div>
-                  )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            TEAM INTELLIGENCE
-        ====================================================== */}
-
-        <section className="relative mt-10 overflow-hidden rounded-[34px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_40px_110px_-50px_rgba(15,23,42,.95)] md:p-10 lg:p-12">
-          <div className="pricing-dark-grid pointer-events-none absolute inset-0 opacity-50" />
-
-          <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blue-600/15 blur-[110px]" />
-
-          <div className="pointer-events-none absolute -bottom-32 left-[20%] h-80 w-80 rounded-full bg-violet-600/10 blur-[110px]" />
-
-          <div className="relative">
-            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-              <div className="max-w-4xl">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.08] px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-blue-200">
-                    <Users className="h-3.5 w-3.5" />
-                    Team Intelligence
-                  </span>
-
-                  <span className="rounded-full border border-amber-300/20 bg-amber-300/[0.08] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-amber-200">
-                    ANNUAL
-                  </span>
-                </div>
-
-                <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] md:text-5xl">
-                  One workspace for the team.
-                </h2>
-
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-400 md:text-base">
-                  Team Intelligence is the organization-level layer of EVC:
-                  one workspace, one paying administrator and up to 20 existing
-                  EVC users receiving sponsored PRO access automatically.
-                </p>
-              </div>
-
-              <div className="shrink-0 rounded-[28px] border border-white/10 bg-white/[0.045] p-5 lg:min-w-[280px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
-                  ANNUAL TEAM PLAN
-                </p>
-
-                <div className="mt-3 flex items-end gap-2">
-                  <span className="text-4xl font-black tracking-[-0.05em]">
-                    ₹
-                    {TEAM_PRICE.toLocaleString(
-                      "en-IN",
-                    )}
-                  </span>
-
-                  <span className="mb-1 text-xs text-slate-500">
-                    / year
-                  </span>
-                </div>
-
-                <p className="mt-2 text-[10px] leading-5 text-slate-500">
-                  One workspace · up to 20 active members
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {TEAM_FEATURES.map(
-                (feature, index) => {
-                  const Icon =
-                    feature.icon;
-
-                  return (
-                    <div
-                      key={
-                        feature.title
-                      }
-                      className="group rounded-[23px] border border-white/10 bg-white/[0.035] p-5 transition duration-500 hover:-translate-y-1 hover:border-blue-300/20 hover:bg-white/[0.055]"
-                    >
-                      <div className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.045] text-blue-200 transition group-hover:scale-105">
-                        <Icon className="h-4 w-4" />
-                      </div>
-
-                      <p className="mt-5 font-mono text-[9px] font-black text-slate-700">
-                        {String(
-                          index + 1,
-                        ).padStart(
-                          2,
-                          "0",
-                        )}
-                      </p>
-
-                      <h3 className="mt-1 text-sm font-black text-white">
-                        {
-                          feature.title
-                        }
-                      </h3>
-
-                      <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                        {
-                          feature.description
-                        }
-                      </p>
-                    </div>
-                  );
-                },
-              )}
-            </div>
-
-            <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.035] p-5">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <TeamStat
-                    value="1"
-                    label="Workspace"
-                  />
-
-                  <TeamStat
-                    value="20"
-                    label="Member limit"
-                  />
-
-                  <TeamStat
-                    value="12"
-                    label="Months"
-                  />
-                </div>
-              </div>
-
-              <div className="w-full lg:min-w-[330px]">
-                {teamError && (
-                  <div className="mb-3 rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-xs leading-5 text-red-200">
-                    {teamError}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={
-                    handleTeamPurchase
-                  }
-                  disabled={
-                    teamLoading
-                  }
-                  className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black text-white shadow-[0_22px_45px_-20px_rgba(37,99,235,.95)] transition hover:-translate-y-1 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {teamLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Preparing Team checkout...
-                    </>
-                  ) : (
-                    <>
-                      Purchase Team Intelligence
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </>
-                  )}
-                </button>
-
-                <p className="mt-3 text-center text-[10px] leading-5 text-slate-500">
-                  Secure Razorpay checkout · ₹1,45,000/year
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-7 rounded-[22px] border border-blue-400/10 bg-blue-500/[0.04] p-5">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
-
-                <div>
-                  <p className="text-xs font-black text-blue-100">
-                    How Team-sponsored PRO works
-                  </p>
-
-                  <p className="mt-1 text-[11px] leading-6 text-slate-500">
-                    The paying customer becomes the Team Admin. They can add
-                    only users who already have registered EVC accounts. Once
-                    added, those members receive Team-sponsored PRO access
-                    automatically. Members do not receive Team administration
-                    privileges.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            PROFESSIONAL USERS / DISCUSSION
-        ====================================================== */}
-
-        <section className="mt-8 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-[0_25px_80px_-50px_rgba(15,23,42,.25)]">
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-600">
-              PROFESSIONAL USERS
-            </p>
-
-            <h3 className="mt-3 text-2xl font-black tracking-[-0.035em]">
-              Built for people who repeatedly handle equity decisions.
-            </h3>
-
-            <p className="mt-3 text-sm leading-7 text-slate-500">
-              The Professional workspace is designed for people who regularly
-              review, explain, compare or model startup compensation and
-              employee equity.
-            </p>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {[
-                "CAs and tax professionals",
-                "Startup founders",
-                "HR / People teams",
-                "Recruiters",
-                "Startup advisors",
-                "Employment lawyers",
-              ].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700"
-                  >
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    {item}
-                  </div>
-                ),
-              )}
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[28px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_30px_80px_-50px_rgba(15,23,42,.9)]">
-            <div className="pricing-dark-grid pointer-events-none absolute inset-0 opacity-50" />
-
-            <div className="relative">
-              <div className="flex items-center gap-2">
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
-                  TEAM WORKFLOW
-                </p>
-
-                <span className="rounded-full border border-blue-300/20 bg-blue-300/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-blue-200">
-                  LIVE
-                </span>
-              </div>
-
-              <h3 className="mt-3 text-2xl font-black tracking-[-0.035em]">
-                One place to review the people doing the work.
-              </h3>
-
-              <p className="mt-3 text-sm leading-7 text-slate-400">
-                Team Intelligence turns separate EVC user accounts into one
-                professional command center for the administrator: member
-                cards, previews, comparisons and a consolidated analytical
-                workspace.
-              </p>
-
-              <button
-                type="button"
-                onClick={
-                  openWalkthrough
-                }
-                className="group mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-6 text-sm font-black text-white transition hover:-translate-y-1 hover:border-blue-400/30 hover:bg-blue-500/10"
-              >
-                Discuss your workflow
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            ADVISOR PLAN (CA / CS firms)
-        ====================================================== */}
-
-        <section
-          id="advisor"
-          className="mt-8 scroll-mt-6 overflow-hidden rounded-[28px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_30px_80px_-50px_rgba(15,23,42,.9)] md:p-9"
-        >
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
-                  FOR CA &amp; CS FIRMS
-                </p>
-                <span className="rounded-full border border-blue-300/20 bg-blue-300/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.1em] text-blue-200">
-                  ANNUAL
-                </span>
-              </div>
-
-              <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">
-                Advisor plan
-              </h2>
-
-              <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
-                Run ESOP compliance for your client companies from one
-                console: the ESOP Diligence Pack and the Tax-Event Ledger
-                with deadline reminders, for every client you manage.
-              </p>
-
-              <div className="mt-6 space-y-3">
-                {[
-                  `Up to ${ADVISOR_PLAN.includedClients} client companies included`,
-                  "ESOP Diligence Pack: register checks, board/shareholder resolutions, exports",
-                  "Tax-Event Ledger: perquisite and TDS estimates, deadlines, e-mail reminders",
-                  "Annual plan, activated immediately after payment",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 text-xs leading-6 text-slate-300"
-                  >
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-400" />
-                    {item}
-                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
-                ONE PLAN · ONE YEAR
-              </p>
+            <div className="grid gap-5 lg:grid-cols-3">
+              <PlanCard
+                index={0}
+                icon={User}
+                name="Free"
+                tagline="For anyone with an ESOP grant who wants to understand it."
+                amount={0}
+                period="forever"
+                note="No card needed"
+                features={[
+                  "ESOP simulator: grant, vesting, valuation, dilution and exit",
+                  "Cap table builder with round modelling",
+                  "Saved calculations and dashboard",
+                  "History, search and CSV export",
+                  "Indian number formatting",
+                ]}
+                cta={{ label: "Start free", href: "/simulator" }}
+              />
 
-              <div className="mt-3 flex items-end gap-2">
-                <span className="text-4xl font-black tracking-[-0.04em]">
-                  ₹{ADVISOR_PLAN.priceRupees.toLocaleString("en-IN")}
-                </span>
-                <span className="pb-1 text-xs font-bold text-slate-500">
-                  / year
-                </span>
-              </div>
+              <PlanCard
+                id="pro"
+                index={1}
+                icon={Crown}
+                name="PRO"
+                tagline="For people who make or explain equity decisions often."
+                amount={pro.price}
+                period={pro.period === "month" ? "/ month" : `/ ${pro.period}`}
+                note={
+                  cycle === "MONTHLY"
+                    ? "Pay month by month"
+                    : `${inr(pro.price / pro.months)} a month · save ${inr(PRO_PRICES.MONTHLY.price * pro.months - pro.price)}`
+                }
+                badge="Most popular"
+                highlight
+                featuresTitle="Everything in Free, plus"
+                features={[
+                  "Offer Intelligence: what an offer is really worth",
+                  "Vesting, dilution and exercise cost",
+                  "Tax estimate and take-home after tax",
+                  "Exit scenarios and side-by-side comparison",
+                  "Reports",
+                ]}
+                cta={{
+                  label: checkingAccount ? "Checking your account..." : proLabel,
+                  onClick: () => void checkout("PRO"),
+                  loading: busy === "PRO",
+                  disabled: checkingAccount || isPro || isFounder,
+                }}
+                error={errors.PRO}
+              />
 
-              <p className="mt-1 text-[11px] leading-5 text-slate-500">
-                Includes {ADVISOR_PLAN.includedClients} client companies.
-              </p>
-
-              {advisorError && (
-                <div className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2.5 text-xs font-semibold text-red-200">
-                  {advisorError}
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleAdvisorPurchase}
-                disabled={advisorLoading}
-                className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-black text-white shadow-[0_18px_40px_-18px_rgba(37,99,235,.9)] transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60"
+              {/* Cross-sell card */}
+              <div
+                data-reveal
+                onMouseMove={spotlight}
+                className="pr-reveal pr-spot pr-spot-light group/x relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-dashed border-slate-300 bg-white/60 p-7 hover:border-[#F2B421]/60 hover:bg-white"
+                style={{ transitionDelay: "160ms" }}
               >
-                {advisorLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Preparing secure checkout...
-                  </>
-                ) : (
-                  <>
-                    Subscribe to Advisor plan
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </button>
-
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="pr-spot-glow pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/x:opacity-100" />
+                <div className="relative">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#F2B421]/15 text-[#8A5A00] transition duration-500 group-hover/x:rotate-[-8deg] group-hover/x:scale-110">
+                    <Building2 className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-5 text-xl font-semibold tracking-[-0.02em] text-[#042653]">Buying for a company?</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Run your cap table and ESOP grants, manage ESOP work for client companies, or give a whole team PRO.
+                  </p>
+                  <ul className="mt-5 space-y-2 text-sm text-slate-700">
+                    {[
+                      `Startup plan · ${inr(STARTUP_PLAN.priceRupees)} / year`,
+                      `Advisor plan · ${inr(ADVISOR_PLAN.priceRupees)} / year`,
+                      `Team Intelligence · ${inr(TEAM_PRICE)} / year`,
+                    ].map((t, i) => (
+                      <li key={t} className="pr-tick flex items-center gap-2" style={{ animationDelay: `${300 + i * 90}ms` }}>
+                        <BadgeCheck className="h-4 w-4 text-[#B7800E]" /> {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <button
                   type="button"
-                  onClick={() => openContactWithTopic("FREE_TRIAL")}
-                  className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black text-white transition hover:border-blue-400/30 hover:bg-blue-500/10"
+                  onClick={() => switchAudience("organisations")}
+                  className="pr-ripple group relative mt-8 inline-flex h-11 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#042653]/15 bg-white text-sm font-semibold text-[#042653] transition hover:border-[#042653]/40 hover:shadow-md"
                 >
-                  Request a free trial
+                  See company plans
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => openContactWithTopic("CUSTOM_BILLING")}
-                  className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-xs font-black text-white transition hover:border-blue-400/30 hover:bg-blue-500/10"
-                >
-                  Custom billing / more clients
-                </button>
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 text-[10px] text-slate-500">
-                <LockKeyhole className="h-3.5 w-3.5" />
-                Secure checkout via Razorpay. Taxes, if applicable, as per your invoice.
               </div>
             </div>
           </div>
-        </section>
-
-        {/* =====================================================
-            PAYMENT / TRUST
-        ====================================================== */}
-
-        <section className="mt-8 grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
-          <div className="rounded-[28px] border border-slate-200 bg-white p-7">
-            <div className="grid h-11 w-11 place-items-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-
-            <p className="mt-5 text-[9px] font-black uppercase tracking-[0.15em] text-emerald-700">
-              PAYMENT & PRODUCT TRUST
+        ) : (
+          <div key="org" className="pr-swap">
+            <p className="mb-8 text-center text-sm text-slate-500">
+              Annual plans · activated as soon as you pay · free trial on request for startups and advisory firms
             </p>
 
-            <h3 className="mt-2 text-2xl font-black tracking-[-0.035em]">
-              Clear upgrade. Secure checkout.
-            </h3>
+            <div className="grid gap-5 lg:grid-cols-3">
+              <PlanCard
+                id="startup"
+                index={0}
+                icon={Building2}
+                name="Startup"
+                tagline="Run your cap table and ESOPs, and show every employee what theirs is worth."
+                amount={STARTUP_PLAN.priceRupees}
+                period="/ year"
+                note={`Up to ${STARTUP_PLAN.includedOptionHolders} employees with options`}
+                badge="New"
+                highlight
+                features={[
+                  "Cap table as of any date, fully diluted",
+                  "ESOP pool and grants, with checks before you issue",
+                  "A private page for each employee: vesting, tax, take-home, Accept",
+                  "Signed grant letters, downloadable by employees",
+                  "Import your cap table and grants from Excel",
+                ]}
+                cta={{ label: "Get the Startup plan", onClick: () => void checkout("STARTUP"), loading: busy === "STARTUP", disabled: busy !== null && busy !== "STARTUP" }}
+                secondary={{ label: "Request a free trial", onClick: () => contact("STARTUP", "trial") }}
+                error={errors.STARTUP}
+              />
 
-            <div className="mt-5 space-y-3">
-              {[
-                "The core workspace remains free.",
-                "PRO unlocks deeper equity and offer intelligence.",
-                "Team Intelligence is a separate annual workspace product.",
-                "Secure payment flow powered by Razorpay.",
-                "Modeled outcomes are scenarios, not guaranteed future value.",
-                "Offer extraction is assistance and should be reviewed before important decisions.",
-              ].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 text-xs leading-6 text-slate-500"
-                  >
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
-                    {item}
-                  </div>
-                ),
-              )}
+              <PlanCard
+                id="advisor"
+                index={1}
+                icon={Briefcase}
+                name="Advisor"
+                tagline="For CA and CS firms running ESOP compliance for client companies."
+                amount={ADVISOR_PLAN.priceRupees}
+                period="/ year"
+                note={`Up to ${ADVISOR_PLAN.includedClients} client companies`}
+                features={[
+                  "One console for every client company",
+                  "ESOP Diligence Pack: register checks, resolutions, exports",
+                  "Tax-Event Ledger: perquisite and TDS estimates",
+                  "Deadline e-mail reminders",
+                ]}
+                cta={{ label: "Get the Advisor plan", onClick: () => void checkout("ADVISOR"), loading: busy === "ADVISOR", disabled: busy !== null && busy !== "ADVISOR" }}
+                secondary={{ label: "Request a free trial", onClick: () => contact("ADVISOR", "trial") }}
+                error={errors.ADVISOR}
+              />
+
+              <PlanCard
+                id="team"
+                index={2}
+                icon={Users}
+                name="Team Intelligence"
+                tagline="One workspace that gives a whole team PRO, with analytics for the admin."
+                amount={TEAM_PRICE}
+                period="/ year"
+                note={`Up to ${TEAM_MEMBERS} members`}
+                features={[
+                  `PRO access for up to ${TEAM_MEMBERS} existing EVC users`,
+                  "Member preview, compare and analysis",
+                  "Workspace-level analytics",
+                  "One admin, 12 months",
+                ]}
+                cta={{ label: "Get Team Intelligence", onClick: () => void checkout("TEAM"), loading: busy === "TEAM", disabled: busy !== null && busy !== "TEAM" }}
+                secondary={{ label: "Talk to us first", onClick: () => contact("TEAM", "trial") }}
+                error={errors.TEAM}
+              />
+            </div>
+
+            {/* Custom strip */}
+            <div
+              data-reveal
+              onMouseMove={spotlight}
+              className="pr-reveal pr-spot group/c relative mt-5 flex flex-col items-start justify-between gap-5 overflow-hidden rounded-[24px] bg-[#042653] p-7 text-white sm:flex-row sm:items-center"
+            >
+              <div className="pr-spot-glow pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/c:opacity-100" />
+              <div className="pr-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
+              <div className="relative">
+                <p className="text-lg font-semibold tracking-[-0.02em]">Need more seats, more clients or a different billing cycle?</p>
+                <p className="mt-1 text-sm text-slate-300">Tell us what you need and we&apos;ll set up a plan that fits.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => contact("ANY", "custom")}
+                className="pr-ripple pr-btn-gold group relative inline-flex h-11 shrink-0 items-center gap-2 overflow-hidden rounded-xl bg-[#F2B421] px-5 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5 hover:bg-[#ffc43d] hover:shadow-[0_12px_30px_-10px_rgba(242,180,33,0.8)]"
+              >
+                <span className="relative">Talk to us</span>
+                <ArrowRight className="relative h-4 w-4 transition group-hover:translate-x-1" />
+              </button>
             </div>
           </div>
+        )}
 
-          <div className="relative overflow-hidden rounded-[28px] border border-slate-800 bg-[#030817] p-7 text-white shadow-[0_30px_80px_-50px_rgba(15,23,42,.9)]">
-            <div className="pricing-dark-grid pointer-events-none absolute inset-0 opacity-50" />
+        {/* Trust row */}
+        <div data-reveal className="pr-reveal mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-slate-500">
+          <span className="inline-flex items-center gap-2">
+            In use at
+            <span className="font-semibold text-[#042653]">{CUSTOMERS.join(" · ")}</span>
+          </span>
+          <span className="hidden h-4 w-px bg-slate-300 sm:block" />
+          <span className="inline-flex items-center gap-1.5">
+            <LockKeyhole className="h-4 w-4" /> Secure checkout by Razorpay
+          </span>
+          <span className="hidden h-4 w-px bg-slate-300 sm:block" />
+          <span>Prices in INR · no auto-renewal</span>
+        </div>
+      </section>
 
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-blue-300">
-                    TWO COMMERCIAL LAYERS
-                  </p>
+      {/* =====================================================
+          COMPARISON TABLE
+      ====================================================== */}
+      <section className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24">
+        <div data-reveal className="pr-reveal text-center">
+          <h2 className="text-3xl font-semibold tracking-[-0.035em] text-[#042653] sm:text-4xl">Compare plans</h2>
+          <p className="mt-3 text-slate-600">
+            {audience === "individuals" ? "Free and PRO, feature by feature." : "Startup, Advisor and Team Intelligence, side by side."}
+          </p>
+        </div>
 
-                  <h3 className="mt-2 text-2xl font-black">
-                    PRO for individuals. Team Intelligence for groups.
-                  </h3>
-                </div>
+        <div
+          key={audience}
+          data-reveal
+          className="pr-reveal mt-10 overflow-x-auto rounded-[24px] border border-slate-200 bg-white shadow-[0_30px_80px_-60px_rgba(4,38,83,0.5)]"
+        >
+          {audience === "individuals" ? (
+            <CompareTable
+              columns={["Free", "PRO"]}
+              highlight={1}
+              groups={INDIVIDUAL_ROWS.map((g) => ({ group: g.group, rows: g.rows.map((r) => ({ label: r.label, cells: [r.free, r.pro] })) }))}
+            />
+          ) : (
+            <CompareTable
+              columns={["Startup", "Advisor", "Team"]}
+              highlight={0}
+              groups={ORG_ROWS.map((g) => ({ group: g.group, rows: g.rows.map((r) => ({ label: r.label, cells: [r.startup, r.advisor, r.team] })) }))}
+            />
+          )}
+        </div>
+      </section>
 
-                <Layers3 className="hidden h-7 w-7 text-blue-300 sm:block" />
-              </div>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5">
-                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-blue-300">
-                    PROFESSIONAL PRO
-                  </p>
-
-                  <p className="mt-2 text-2xl font-black">
-                    ₹2,999+
-                  </p>
-
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    Monthly, 6-month or yearly individual access.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-blue-300/10 bg-blue-500/[0.05] p-5">
-                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-blue-300">
-                    TEAM INTELLIGENCE
-                  </p>
-
-                  <p className="mt-2 text-2xl font-black">
-                    ₹1,45,000
-                  </p>
-
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    One workspace · up to 20 members · one year.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex items-center gap-2 text-[10px] text-slate-500">
-                <LockKeyhole className="h-3.5 w-3.5" />
-                Both purchase paths use the same verified Razorpay payment infrastructure.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            DISCLAIMER
-        ====================================================== */}
-
-        <section className="mt-7 rounded-[24px] border border-amber-200 bg-amber-50/70 p-5">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-
-            <div>
-              <p className="text-xs font-black text-amber-950">
-                Decision support, not a promise of future value.
-              </p>
-
-              <p className="mt-1 text-[11px] leading-6 text-amber-800/80">
-                ESOP Value Clarity provides scenario modelling, structured
-                offer review and decision-support tools. Equity values, tax
-                estimates, dilution assumptions and exit outcomes can change
-                and are not guarantees or financial, investment, legal or tax
-                advice.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
+      {/* =====================================================
+          FAQ
+      ====================================================== */}
+      <section className="mx-auto grid max-w-[1200px] gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+        <div data-reveal className="pr-reveal">
+          <h2 className="text-3xl font-semibold tracking-[-0.035em] text-[#042653] sm:text-4xl">Questions, answered</h2>
+          <p className="mt-3 max-w-sm text-slate-600">Can&apos;t find what you need? Send us a message and the founder will reply.</p>
+          <button
+            type="button"
+            onClick={() => document.getElementById("contact-product")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="pr-ripple group relative mt-6 inline-flex items-center gap-2 overflow-hidden rounded-xl border border-[#042653]/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#042653] transition hover:border-[#042653]/40 hover:shadow-md"
+          >
+            Contact us
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          </button>
+        </div>
+        <div data-reveal className="pr-reveal divide-y divide-slate-200 rounded-[24px] border border-slate-200 bg-white px-6" style={{ transitionDelay: "100ms" }}>
+          {FAQS.map((f) => (
+            <FaqItem key={f.q} q={f.q} a={f.a} />
+          ))}
+        </div>
+      </section>
 
       <div id="contact-product">
         <Footer />
       </div>
 
       <style jsx global>{`
-        .pricing-grid {
-          background-image:
-            linear-gradient(
-              rgba(15, 23, 42, 0.035) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(15, 23, 42, 0.035) 1px,
-              transparent 1px
-            );
-          background-size: 38px 38px;
+        /* ---------- entrance ---------- */
+        .evc-pricing .pr-fade {
+          animation: pr-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .evc-pricing .pr-swap {
+          animation: pr-swap 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes pr-up {
+          from {
+            opacity: 0;
+            transform: translateY(18px);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+        @keyframes pr-swap {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.99);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
         }
 
-        .pricing-dark-grid {
-          background-image:
-            linear-gradient(
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            );
-          background-size: 34px 34px;
+        /* ---------- scroll reveal ---------- */
+        .evc-pricing .pr-reveal {
+          opacity: 0;
+          transform: translateY(24px);
+          transition:
+            opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 0.5s ease,
+            background-color 0.5s ease,
+            box-shadow 0.5s ease;
+        }
+        .evc-pricing .pr-reveal.is-in {
+          opacity: 1;
+          transform: none;
         }
 
-        @keyframes pricingOrb {
+        /* ticks pop in once their block is visible */
+        .evc-pricing .pr-tick {
+          opacity: 0;
+          transform: translateX(-8px);
+        }
+        .evc-pricing .is-in .pr-tick {
+          animation: pr-tick 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes pr-tick {
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        /* ---------- hero ---------- */
+        .evc-pricing .pr-dots {
+          background-image: radial-gradient(rgba(4, 38, 83, 0.08) 1px, transparent 1px);
+          background-size: 22px 22px;
+          mask-image: linear-gradient(to bottom, black, transparent 85%);
+          animation: pr-dots 30s linear infinite;
+        }
+        @keyframes pr-dots {
+          to {
+            background-position: 22px 44px;
+          }
+        }
+        .evc-pricing .pr-orb {
+          animation: pr-drift 14s ease-in-out infinite alternate;
+        }
+        .evc-pricing .pr-orb-2 {
+          animation-duration: 18s;
+          animation-delay: -5s;
+        }
+        @keyframes pr-drift {
+          to {
+            translate: 40px -24px;
+            scale: 1.12;
+          }
+        }
+        .evc-pricing .pr-draw {
+          stroke-dasharray: 320;
+          stroke-dashoffset: 320;
+          animation: pr-draw 1.2s 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+        @keyframes pr-draw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        .evc-pricing .pr-twinkle {
+          animation: pr-twinkle 2.6s ease-in-out infinite;
+        }
+        @keyframes pr-twinkle {
           0%,
           100% {
-            transform: translate(0, 0) scale(1);
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
           }
-
           50% {
-            transform: translate(-45px, 35px) scale(1.12);
+            transform: scale(1.25) rotate(20deg);
+            opacity: 0.7;
           }
         }
-
-        @keyframes pricingFloat {
+        .evc-pricing .pr-bob {
+          animation: pr-bob 2.2s ease-in-out infinite;
+        }
+        @keyframes pr-bob {
           0%,
           100% {
             transform: translateY(0);
           }
-
           50% {
             transform: translateY(-3px);
           }
         }
 
-        @keyframes pricingBreathe {
-          0%,
-          100% {
-            opacity: 0.62;
+        /* ---------- cards ---------- */
+        .evc-pricing .pr-tilt {
+          transform-style: preserve-3d;
+          transition:
+            transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.5s ease,
+            opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: transform;
+        }
+        .evc-pricing .pr-spot-glow {
+          background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(242, 180, 33, 0.14), transparent 60%);
+        }
+        .evc-pricing .pr-spot-light .pr-spot-glow {
+          background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(4, 38, 83, 0.06), transparent 60%);
+        }
+
+        /* rotating gold border on the highlighted card */
+        .evc-pricing .pr-border {
+          position: absolute;
+          inset: -1px;
+          border-radius: 25px;
+          padding: 1.5px;
+          background: conic-gradient(from var(--pr-angle), transparent 0deg, #f2b421 70deg, transparent 140deg, transparent 220deg, #5b9bff 290deg, transparent 360deg);
+          -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          animation: pr-spin 6s linear infinite;
+          pointer-events: none;
+        }
+        @property --pr-angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes pr-spin {
+          to {
+            --pr-angle: 360deg;
           }
+        }
 
-          50% {
-            opacity: 1;
+        /* badge shimmer */
+        .evc-pricing .pr-badge-shine {
+          background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+          background-size: 250% 100%;
+          animation: pr-shine 3.2s linear infinite;
+        }
+        @keyframes pr-shine {
+          from {
+            background-position: 150% 0;
+          }
+          to {
+            background-position: -150% 0;
           }
         }
 
-        .pricing-orb {
-          animation: pricingOrb 12s ease-in-out infinite;
+        /* ---------- buttons ---------- */
+        .evc-pricing .pr-btn-gold::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+          transform: translateX(-120%);
+          transition: transform 0.7s ease;
+        }
+        .evc-pricing .pr-btn-gold:hover::before {
+          transform: translateX(120%);
+        }
+        .evc-pricing .pr-ripple {
+          position: relative;
+          overflow: hidden;
+        }
+        .evc-pricing .pr-ripple-dot {
+          position: absolute;
+          border-radius: 9999px;
+          background: currentColor;
+          opacity: 0.25;
+          transform: scale(0);
+          pointer-events: none;
+          animation: pr-ripple 0.65s ease-out forwards;
+        }
+        @keyframes pr-ripple {
+          to {
+            transform: scale(1);
+            opacity: 0;
+          }
         }
 
-        .pricing-flow,
-        .pricing-feature {
-          animation: pricingFloat 6s ease-in-out infinite;
+        /* ---------- table ---------- */
+        .evc-pricing .pr-check {
+          transform: scale(0);
+        }
+        .evc-pricing .is-in .pr-check {
+          animation: pr-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes pr-pop {
+          to {
+            transform: scale(1);
+          }
+        }
+        .evc-pricing .pr-grid {
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+          background-size: 32px 32px;
+          mask-image: linear-gradient(to left, black, transparent 75%);
+          animation: pr-grid 16s linear infinite;
+        }
+        @keyframes pr-grid {
+          to {
+            background-position: 32px 32px;
+          }
         }
 
-        .pricing-chip {
-          animation: pricingBreathe 4s ease-in-out infinite;
-        }
-
+        /* ---------- reduced motion ---------- */
         @media (prefers-reduced-motion: reduce) {
-          .pricing-orb,
-          .pricing-flow,
-          .pricing-feature,
-          .pricing-chip {
+          .evc-pricing *,
+          .evc-pricing *::before {
             animation: none !important;
+            transition: none !important;
           }
-        }
-
-        html {
-          scroll-behavior: smooth;
+          .evc-pricing .pr-reveal,
+          .evc-pricing .pr-tick,
+          .evc-pricing .pr-check {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+          .evc-pricing .pr-draw {
+            stroke-dashoffset: 0;
+          }
         }
       `}</style>
     </main>
   );
 }
 
-function TeamStat({
-  value,
-  label,
+/* ============================================================
+   PIECES
+============================================================ */
+
+function PlanCard({
+  id,
+  index,
+  icon: Icon,
+  name,
+  tagline,
+  amount,
+  period,
+  note,
+  badge,
+  highlight = false,
+  featuresTitle,
+  features,
+  cta,
+  secondary,
+  error,
 }: {
-  value: string;
-  label: string;
+  id?: string;
+  index: number;
+  icon: ComponentType<{ className?: string }>;
+  name: string;
+  tagline: string;
+  amount: number;
+  period: string;
+  note?: string;
+  badge?: string;
+  highlight?: boolean;
+  featuresTitle?: string;
+  features: string[];
+  cta: { label: string; href?: string; onClick?: () => void; loading?: boolean; disabled?: boolean };
+  secondary?: { label: string; onClick: () => void };
+  error?: string;
 }) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  /* 3D tilt + spotlight (mouse only) */
+  function onMove(event: ReactMouseEvent<HTMLDivElement>) {
+    spotlight(event);
+    const el = cardRef.current;
+    if (!el || prefersReducedMotion() || !el.classList.contains("is-in")) return;
+    const rect = el.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
+    el.style.transitionDelay = "0ms";
+    el.style.transform = `perspective(1100px) rotateX(${(-py * 5).toFixed(2)}deg) rotateY(${(px * 6).toFixed(2)}deg) translateY(-4px)`;
+  }
+  function onLeave() {
+    if (cardRef.current) cardRef.current.style.transform = "";
+  }
+
+  const ctaClass = `pr-ripple pr-btn-gold group relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-semibold transition duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 ${
+    highlight
+      ? "bg-[#F2B421] text-[#020d1f] shadow-[0_12px_30px_-12px_rgba(242,180,33,0.8)] hover:-translate-y-0.5 hover:bg-[#ffc43d] hover:shadow-[0_18px_40px_-12px_rgba(242,180,33,0.9)]"
+      : "bg-[#042653] text-white hover:-translate-y-0.5 hover:bg-[#06306a] hover:shadow-[0_14px_30px_-14px_rgba(4,38,83,0.8)]"
+  }`;
+
+  const ctaInner: ReactNode = cta.loading ? (
+    <>
+      <Loader2 className="relative h-4 w-4 animate-spin" />
+      <span className="relative">Opening secure checkout...</span>
+    </>
+  ) : (
+    <>
+      <span className="relative">{cta.label}</span>
+      {!cta.disabled ? <ArrowRight className="relative h-4 w-4 transition duration-300 group-hover:translate-x-1" /> : null}
+    </>
+  );
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4">
-      <p className="text-2xl font-black text-white">
-        {value}
+    <div
+      id={id}
+      ref={cardRef}
+      data-reveal
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      className={`pr-reveal pr-tilt pr-spot group/card relative flex scroll-mt-28 flex-col rounded-[24px] p-7 ${
+        highlight
+          ? "bg-[#020d1f] text-white shadow-[0_40px_90px_-40px_rgba(2,13,31,0.9)]"
+          : "pr-spot-light border border-slate-200 bg-white shadow-[0_20px_60px_-50px_rgba(4,38,83,0.6)] hover:shadow-[0_40px_80px_-45px_rgba(4,38,83,0.55)]"
+      }`}
+      style={{ transitionDelay: `${index * 90}ms` }}
+    >
+      {highlight ? <span className="pr-border" aria-hidden="true" /> : null}
+
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]">
+        <div className="pr-spot-glow absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100" />
+        {highlight ? (
+          <>
+            <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#F2B421]/20 blur-[70px] transition duration-700 group-hover/card:scale-125" />
+            <div className="absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-[#5B9BFF]/15 blur-[70px] transition duration-700 group-hover/card:translate-x-6" />
+          </>
+        ) : null}
+      </div>
+
+      <div className="relative flex items-center justify-between gap-3">
+        <span
+          className={`grid h-10 w-10 place-items-center rounded-xl transition duration-500 group-hover/card:rotate-[-8deg] group-hover/card:scale-110 ${
+            highlight ? "bg-[#F2B421] text-[#042653]" : "bg-[#042653] text-[#F2B421]"
+          }`}
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+        {badge ? (
+          <span
+            className={`pr-badge-shine rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+              highlight ? "bg-[#F2B421]/15 text-[#FFD877] ring-1 ring-[#F2B421]/30" : "bg-[#FFF4D6] text-[#8A5A00]"
+            }`}
+          >
+            {badge}
+          </span>
+        ) : null}
+      </div>
+
+      <h3 className={`relative mt-5 text-xl font-semibold tracking-[-0.02em] ${highlight ? "text-white" : "text-[#042653]"}`}>{name}</h3>
+      <p className={`relative mt-2 min-h-[48px] text-sm leading-6 ${highlight ? "text-slate-300" : "text-slate-600"}`}>{tagline}</p>
+
+      <div className="relative mt-6 flex items-end gap-1.5">
+        <span className={`text-4xl font-semibold tracking-[-0.04em] ${highlight ? "text-white" : "text-[#0b1220]"}`}>
+          {amount === 0 ? "₹0" : <AnimatedNumber value={amount} format={inr} />}
+        </span>
+        <span className={`pb-1.5 text-sm ${highlight ? "text-slate-400" : "text-slate-500"}`}>{period}</span>
+      </div>
+      <p key={note} className={`pr-swap relative mt-1 min-h-[20px] text-xs ${highlight ? "text-[#FFD877]" : "text-slate-500"}`}>
+        {note}
       </p>
 
-      <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
-        {label}
-      </p>
+      <div className="relative mt-6 space-y-2">
+        {cta.href ? (
+          <Link href={cta.href} className={ctaClass}>
+            {ctaInner}
+          </Link>
+        ) : (
+          <button type="button" onClick={cta.onClick} disabled={cta.disabled || cta.loading} className={ctaClass}>
+            {ctaInner}
+          </button>
+        )}
+        {secondary ? (
+          <button
+            type="button"
+            onClick={secondary.onClick}
+            className={`pr-ripple group inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition ${
+              highlight ? "text-slate-300 hover:bg-white/5 hover:text-white" : "text-slate-600 hover:bg-slate-50 hover:text-[#042653]"
+            }`}
+          >
+            {secondary.label}
+            <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+          </button>
+        ) : null}
+      </div>
+
+      {error ? (
+        <div className="pr-swap relative mt-3 rounded-xl border border-red-300/40 bg-red-500/10 px-3 py-2.5 text-xs font-medium text-red-500">
+          {error}
+        </div>
+      ) : null}
+
+      <div className={`relative mt-6 border-t pt-6 ${highlight ? "border-white/10" : "border-slate-100"}`}>
+        {featuresTitle ? (
+          <p className={`mb-4 text-xs font-semibold uppercase tracking-[0.12em] ${highlight ? "text-slate-400" : "text-slate-500"}`}>
+            {featuresTitle}
+          </p>
+        ) : null}
+        <ul className="space-y-3">
+          {features.map((f, i) => (
+            <li
+              key={f}
+              className={`pr-tick flex items-start gap-3 text-sm leading-6 ${highlight ? "text-slate-200" : "text-slate-700"}`}
+              style={{ animationDelay: `${index * 90 + 250 + i * 70}ms` }}
+            >
+              <span
+                className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                  highlight ? "bg-[#F2B421]/15 text-[#F2B421]" : "bg-emerald-50 text-emerald-600"
+                }`}
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function CompareTable({
+  columns,
+  highlight,
+  groups,
+}: {
+  columns: string[];
+  highlight: number;
+  groups: { group: string; rows: { label: string; cells: Cell[] }[] }[];
+}) {
+  // The hovered column lights up; otherwise the recommended column stays lit.
+  const [hoverCol, setHoverCol] = useState<number | null>(null);
+  const lit = hoverCol ?? highlight;
+  const starts = groups.reduce<number[]>((acc, g, i) => [...acc, i === 0 ? 0 : acc[i - 1] + groups[i - 1].rows.length], []);
+
+  return (
+    <table className="w-full min-w-[640px] border-collapse text-left text-sm" onMouseLeave={() => setHoverCol(null)}>
+      <thead>
+        <tr className="border-b border-slate-200">
+          <th className="w-[40%] px-6 py-5 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Features</th>
+          {columns.map((c, i) => (
+            <th
+              key={c}
+              onMouseEnter={() => setHoverCol(i)}
+              className={`px-4 py-5 text-center text-sm font-semibold transition-colors duration-300 ${
+                i === lit ? "bg-[#042653]/[0.05] text-[#042653]" : "text-slate-700"
+              }`}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                {c}
+                {i === highlight ? <span className="h-1.5 w-1.5 rounded-full bg-[#F2B421]" /> : null}
+              </span>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {groups.map((g, gi) => (
+          <GroupRows key={g.group} group={g} columns={columns.length} lit={lit} onHoverCol={setHoverCol} startIndex={starts[gi]} />
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function GroupRows({
+  group,
+  columns,
+  lit,
+  onHoverCol,
+  startIndex,
+}: {
+  group: { group: string; rows: { label: string; cells: Cell[] }[] };
+  columns: number;
+  lit: number;
+  onHoverCol: (i: number) => void;
+  startIndex: number;
+}) {
+  return (
+    <>
+      <tr>
+        <td colSpan={columns + 1} className="bg-slate-50 px-6 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#042653]">
+          {group.group}
+        </td>
+      </tr>
+      {group.rows.map((r, ri) => (
+        <tr key={r.label} className="group/row border-b border-slate-100 transition-colors last:border-0 hover:bg-[#F7F9FC]">
+          <td className="px-6 py-4 text-slate-700 transition-colors group-hover/row:text-[#042653]">{r.label}</td>
+          {r.cells.map((cell, i) => (
+            <td
+              key={i}
+              onMouseEnter={() => onHoverCol(i)}
+              className={`px-4 py-4 text-center transition-colors duration-300 ${i === lit ? "bg-[#042653]/[0.04]" : ""}`}
+            >
+              {cell === true ? (
+                <span
+                  className="pr-check inline-grid h-6 w-6 place-items-center rounded-full bg-emerald-50 text-emerald-600"
+                  style={{ animationDelay: `${Math.min(900, (startIndex + ri) * 45 + i * 30)}ms` }}
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </span>
+              ) : cell === false ? (
+                <Minus className="mx-auto h-4 w-4 text-slate-300" />
+              ) : (
+                <span className="text-sm font-medium text-slate-700">{cell}</span>
+              )}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="group flex w-full items-center justify-between gap-4 py-5 text-left text-base font-semibold text-[#0b1220] transition hover:text-[#042653]"
+      >
+        <span className="transition-transform duration-300 group-hover:translate-x-1">{q}</span>
+        <span
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition duration-300 ${
+            open ? "rotate-180 border-[#042653] bg-[#042653] text-white" : "border-slate-200 text-slate-500 group-hover:border-[#042653]/40 group-hover:text-[#042653]"
+          }`}
+        >
+          <ChevronDown className="h-4 w-4" />
+        </span>
+      </button>
+      <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          <p className={`pb-5 pr-10 text-sm leading-7 text-slate-600 transition duration-500 ${open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"}`}>{a}</p>
+        </div>
+      </div>
     </div>
   );
 }

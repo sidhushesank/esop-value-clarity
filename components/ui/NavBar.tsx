@@ -134,6 +134,18 @@ export default function NavBar() {
           </NavLink>
 
           <NavLink
+            href="/cap-table"
+            active={pathname === "/cap-table"}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              Cap Table
+              <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+                Free
+              </span>
+            </span>
+          </NavLink>
+
+          <NavLink
             href="/history"
             active={pathname === "/history"}
           >
@@ -321,6 +333,19 @@ export default function NavBar() {
               onClick={() => setOpen(false)}
             >
               Simulator
+            </MobileLink>
+
+            <MobileLink
+              href="/cap-table"
+              active={pathname === "/cap-table"}
+              onClick={() => setOpen(false)}
+            >
+              <span className="inline-flex items-center gap-2">
+                Cap Table
+                <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+                  Free
+                </span>
+              </span>
             </MobileLink>
 
             <MobileLink

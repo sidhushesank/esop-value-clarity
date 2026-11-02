@@ -19,7 +19,7 @@ const articles = [
 // IMPORTANT: use fixed dates. `new Date()` makes every URL look "modified
 // right now" on every crawl, which teaches Google to ignore lastmod.
 // Bump these when the page content genuinely changes.
-const SITE_UPDATED = new Date("2026-10-25");
+const SITE_UPDATED = new Date("2026-11-02");
 const LEGAL_UPDATED = new Date("2026-10-01");
 const ARTICLES_UPDATED = new Date("2026-10-01");
 
@@ -27,6 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: BASE_URL, lastModified: SITE_UPDATED, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE_URL}/simulator`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE_URL}/cap-table`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE_URL}/blog`, lastModified: ARTICLES_UPDATED, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/pricing`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/meeting`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.6 },

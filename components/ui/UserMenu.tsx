@@ -61,6 +61,11 @@ export default function UserMenu() {
   const [open, setOpen] =
     useState(false);
 
+  // Paid workspaces this user can open (Advisor Console, Startup Equity Desk).
+  // Loaded the first time the menu opens.
+  const [workspaces, setWorkspaces] =
+    useState<{ company: boolean; advisor: boolean } | null>(null);
+
   const menuRef =
     useRef<HTMLDivElement>(null);
 
@@ -89,6 +94,25 @@ export default function UserMenu() {
   useEffect(() => {
     void loadUser();
   }, []);
+
+  useEffect(() => {
+    if (!open || workspaces) return;
+
+    fetch("/api/me/workspaces", {
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((res) => res.json())
+      .then((data) =>
+        setWorkspaces({
+          company: data?.company === true,
+          advisor: data?.advisor === true,
+        })
+      )
+      .catch(() =>
+        setWorkspaces({ company: false, advisor: false })
+      );
+  }, [open, workspaces]);
 
   useEffect(() => {
     function handleProfileUpdated() {
@@ -197,11 +221,15 @@ export default function UserMenu() {
     user.account?.isTeamAdmin ===
       true;
 
-  // Founder only for now. Paying advisor firms get this entry once the
-  // Advisor Console pricing and billing step is built.
+  // Founder, or any firm with an active Advisor plan.
   const canAccessAdvisorConsole =
-    user.account?.isFounder ===
-    true;
+    user.account?.isFounder === true ||
+    workspaces?.advisor === true;
+
+  // Founder, or any company with an active Startup plan.
+  const canAccessStartupDesk =
+    user.account?.isFounder === true ||
+    workspaces?.company === true;
 
   const teamWorkspaceName =
     user.account?.teamWorkspace
@@ -317,7 +345,11 @@ export default function UserMenu() {
               absolute
               right-0
               mt-3
+              flex
+              max-h-[calc(100dvh-110px)]
               w-[330px]
+              max-w-[calc(100vw-24px)]
+              flex-col
               overflow-hidden
               rounded-[24px]
               border
@@ -330,7 +362,7 @@ export default function UserMenu() {
                 IDENTITY HEADER
             ------------------------------------------------- */}
 
-            <div className="relative overflow-hidden border-b border-slate-200 bg-slate-50 p-5">
+            <div className="relative shrink-0 overflow-hidden border-b border-slate-200 bg-slate-50 p-4">
               <div
                 className={`
                   pointer-events-none
@@ -427,10 +459,11 @@ export default function UserMenu() {
             </div>
 
             {/* -------------------------------------------------
-                NAVIGATION
+                NAVIGATION (scrolls on short screens; header and
+                logout always stay visible)
             ------------------------------------------------- */}
 
-            <div className="p-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
               <MenuItem
                 icon={
                   <LayoutDashboard
@@ -516,6 +549,25 @@ export default function UserMenu() {
                 />
               )}
 
+              {canAccessStartupDesk && (
+                <MenuItem
+                  icon={
+                    <Building2
+                      size={18}
+                    />
+                  }
+                  text="Startup Equity Desk"
+                  subtext="Cap table & ESOP grants"
+                  highlighted
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(
+                      "/company"
+                    );
+                  }}
+                />
+              )}
+
               <MenuItem
                 icon={
                   <User size={18} />
@@ -534,7 +586,7 @@ export default function UserMenu() {
                 ACCESS INFORMATION
             ------------------------------------------------- */}
 
-            <div className="border-t border-slate-200 bg-slate-50/70 px-5 py-3">
+            <div className="shrink-0 border-t border-slate-200 bg-slate-50/70 px-5 py-3">
               <div className="flex items-center gap-2">
                 {badge === "FOUNDER" ? (
                   <Crown
@@ -566,7 +618,7 @@ export default function UserMenu() {
                 LOGOUT
             ------------------------------------------------- */}
 
-            <div className="border-t border-slate-200 p-2">
+            <div className="shrink-0 border-t border-slate-200 p-2">
               <MenuItem
                 icon={
                   <LogOut
@@ -620,7 +672,7 @@ function MenuItem({
         gap-3
         rounded-xl
         px-3
-        py-3
+        py-2.5
         text-left
         transition-colors
 

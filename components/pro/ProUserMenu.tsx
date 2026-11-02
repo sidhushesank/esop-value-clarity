@@ -443,8 +443,10 @@ export default function ProUserMenu() {
               right-4
               top-[72px]
               z-[200]
+              flex
               max-h-[calc(100dvh-88px)]
-              overflow-y-auto
+              flex-col
+              overflow-hidden
               rounded-[24px]
               border
               border-slate-200
@@ -456,14 +458,14 @@ export default function ProUserMenu() {
               sm:right-0
               sm:top-[calc(100%+10px)]
               sm:w-[330px]
-              sm:max-h-none
+              sm:max-h-[calc(100dvh-110px)]
             "
           >
             {/* ------------------------------------------------
                 IDENTITY HEADER
             ------------------------------------------------ */}
 
-            <div className="relative overflow-hidden border-b border-slate-200 bg-slate-50 p-5">
+            <div className="relative shrink-0 overflow-hidden border-b border-slate-200 bg-slate-50 p-4">
               <div
                 className={`
                   pointer-events-none
@@ -577,10 +579,11 @@ export default function ProUserMenu() {
             </div>
 
             {/* ------------------------------------------------
-                NAVIGATION
+                NAVIGATION (scrolls on short screens; header and
+                logout always stay visible)
             ------------------------------------------------ */}
 
-            <div className="bg-white p-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white p-2">
               <MenuItem
                 icon={
                   <LayoutDashboard
@@ -665,7 +668,7 @@ export default function ProUserMenu() {
                 ACCESS INFORMATION
             ------------------------------------------------ */}
 
-            <div className="border-t border-slate-200 bg-slate-50/70 px-5 py-3">
+            <div className="shrink-0 border-t border-slate-200 bg-slate-50/70 px-5 py-3">
               <div className="flex items-start gap-2">
                 <BadgeIcon
                   size={14}
@@ -695,7 +698,7 @@ export default function ProUserMenu() {
                 LOGOUT
             ------------------------------------------------ */}
 
-            <div className="border-t border-slate-200 p-2">
+            <div className="shrink-0 border-t border-slate-200 p-2">
               <MenuItem
                 icon={
                   <LogOut

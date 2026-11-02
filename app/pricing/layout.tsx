@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Plans for employees, HR teams and advisory firms using ESOP Value Clarity to model ESOP value, dilution, exercise cost, tax scenarios and offers.",
+    "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Pricing | ESOP Value Clarity",
     description:
-      "Plans for employees, HR teams and advisory firms using ESOP Value Clarity to model ESOP value, dilution, exercise cost, tax scenarios and offers.",
+      "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
     url: "/pricing",
     type: "website",
     siteName: "ESOP Value Clarity",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pricing | ESOP Value Clarity",
     description:
-      "Plans for employees, HR teams and advisory firms using ESOP Value Clarity to model ESOP value, dilution, exercise cost, tax scenarios and offers.",
+      "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
     images: ["/og-image.png"],
   },
 };

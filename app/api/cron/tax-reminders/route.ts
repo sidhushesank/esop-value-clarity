@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendAdvisorReminderEmail } from "@/lib/mail";
 import { sendAdvisorPlanEmail } from "@/lib/advisor-billing-mail";
+import { sendStartupPlanEndingReminders } from "@/lib/company/plan-reminders";
 import { computeClientLedger, dayStart } from "@/lib/advisor/tax/ledger-data";
 import {
   buildReminderEmail,
@@ -164,12 +165,17 @@ export async function GET(request: Request) {
     expiryEmails += 1;
   }
 
+  // Startup Equity Desk: same 14-day plan-ending notice for companies.
+  const startup = await sendStartupPlanEndingReminders(now);
+  failures += startup.failures;
+
   return NextResponse.json({
     success: true,
     firms: firms.length,
     emails,
     reminders,
     expiryEmails,
+    startupExpiryEmails: startup.sent,
     failures,
   });
 }

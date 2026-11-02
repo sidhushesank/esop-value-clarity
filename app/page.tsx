@@ -11,6 +11,8 @@ import {
 } from "react";
 import Link from "next/link";
 import Footer from "@/components/sections/Footer";
+import StartupDeskSection from "@/components/home/StartupDeskSection";
+import CapTableToolSection from "@/components/home/CapTableToolSection";
 import { calculateAdvancedTax } from "@/lib/esop/tax";
 import {
   Area,
@@ -164,6 +166,11 @@ const CAPABILITIES = [
   "One-page PDF report",
   "Advisor Console",
   "Tax-event ledger",
+  "Cap table",
+  "ESOP pool & grants",
+  "Employee grant links",
+  "Excel import",
+  "Free cap table builder",
 ];
 
 const STORY = [
@@ -218,6 +225,20 @@ const AUDIENCES = [
       "Two offers compared on the same basis",
     ],
     cta: { label: "Model your grant free", href: "/simulator" },
+  },
+  {
+    key: "startups",
+    icon: Layers3,
+    label: "Startups & founders",
+    title: "Your cap table, your ESOPs, and employees who value them.",
+    text: "Keep the cap table and every grant in one place, and give each employee a page that shows what their grant is worth after tax.",
+    points: [
+      "Cap table as of any date, fully diluted",
+      "Grants from your approved ESOP pool",
+      "A private page per employee, with Accept",
+      "Import your existing Excel cap table and grants",
+    ],
+    cta: { label: "See the Startup plan", href: "/pricing#startup" },
   },
   {
     key: "hr",
@@ -297,7 +318,11 @@ const FAQ_GROUPS = [
       },
       {
         q: "What is not modelled yet?",
-        a: "Liquidation preferences, multiple share classes and buyback-specific tax treatment. Every report lists what is excluded, so nobody mistakes an estimate for a payout.",
+        a: "In exit scenarios: liquidation preferences and buyback-specific tax treatment. The Startup Equity Desk records multiple share classes on the cap table, but exit take-home does not yet apply preferences. Every report lists what is excluded, so nobody mistakes an estimate for a payout.",
+      },
+      {
+        q: "Can EVC run our cap table and ESOP grants?",
+        a: "Yes, with the Startup plan. Record or import your cap table, your ESOP pool and every grant, and give each employee a private page that explains their grant. EVC does not draft your ESOP scheme or grant letters: your CS or lawyer does, and you can upload the signed letter for the employee to download.",
       },
     ],
   },
@@ -342,8 +367,12 @@ const FAQ_GROUPS = [
         a: "The free simulator models a grant from numbers you enter. PRO adds grant-document upload with field confirmation, the full connected model, Offer Intelligence and the one-page report.",
       },
       {
-        q: "How does pricing work for teams and advisory firms?",
-        a: "See the pricing page for current plans, or book a 20-minute call and we will walk through what fits your team or client base.",
+        q: "What is the Startup plan?",
+        a: "₹14,999 a year for a startup managing its own cap table and ESOPs, with up to 25 employees holding options. More employees or a custom term are available on request, and so is a free trial.",
+      },
+      {
+        q: "How does pricing work for teams, startups and advisory firms?",
+        a: "See the pricing page for current plans, or book a 20-minute call and we will walk through what fits your team, startup or client base.",
       },
     ],
   },
@@ -530,14 +559,14 @@ export default function HomePage() {
         <div className="mx-auto grid grid-cols-1 max-w-[1200px] gap-14 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)] lg:items-center lg:pb-24">
           <div>
             <a
-              href="#output"
+              href="#startups"
               className="evc-rise group inline-flex items-center gap-2 rounded-full border border-[#F2B421]/30 bg-[#F2B421]/[0.08] py-1 pl-1 pr-3 text-xs text-[#FCE3A3] backdrop-blur transition hover:border-[#F2B421]/60"
               style={{ animationDelay: "0ms" }}
             >
               <span className="rounded-full bg-[#F2B421] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#020d1f]">
                 New
               </span>
-              One-page employee equity reports
+              Startup Equity Desk for founders
               <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
             </a>
 
@@ -790,6 +819,16 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ======================= STARTUP EQUITY DESK ======================= */}
+      <CapTableToolSection />
+      <StartupDeskSection
+        companyName={SAMPLE.company}
+        employeeOptions={SAMPLE.totalOptions}
+        vestedOptions={SAMPLE.vestedOptions}
+        strike={SAMPLE.strike}
+        baseTakeHome={runModel(SAMPLE.totalOptions, 50 * CRORE).takeHome}
+      />
 
       {/* ======================= AUDIENCES ======================= */}
       <Audiences />
@@ -2441,6 +2480,13 @@ const WORKFLOWS: Record<string, { step: string; detail: string }[]> = {
     { step: "Test the futures", detail: "Bear, Base and Bull exits, after tax, in both regimes." },
     { step: "Decide with a report", detail: "Exercise, wait, negotiate or walk away, with the numbers in hand." },
   ],
+  startups: [
+    { step: "Bring in your cap table", detail: "Import it from Excel, or record founders, investors and allotments." },
+    { step: "Record your ESOP pool", detail: "Pool size and the dates the board and shareholders approved it." },
+    { step: "Grant options", detail: "Draft, check what is flagged, then issue from the pool." },
+    { step: "Share each employee’s page", detail: "A private link: vesting, exercise cost, tax and take-home." },
+    { step: "Employees accept", detail: "You see who has opened, downloaded and accepted their grant." },
+  ],
   hr: [
     { step: "Set up the team workspace", detail: "Invite employees to one shared EVC workspace." },
     { step: "Each grant comes in", detail: "Employees add their own grant letter." },
@@ -2468,7 +2514,7 @@ function Audiences() {
         <Reveal>
           <Eyebrow>Workflows</Eyebrow>
           <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
-            One model. Three ways teams work with it.
+            One model. Four ways teams work with it.
           </h2>
         </Reveal>
         <div className="flex gap-1 overflow-x-auto rounded-2xl bg-slate-100 p-1" role="tablist">
@@ -2546,6 +2592,7 @@ const COMPARE: { row: string; sheet: Mark; calc: Mark; evc: Mark }[] = [
   { row: "Bear, Base and Bull exits side by side", sheet: "partial", calc: "no", evc: "yes" },
   { row: "One-page report a non-finance person can read", sheet: "no", calc: "no", evc: "yes" },
   { row: "Works for a team or a client book, not one person", sheet: "partial", calc: "no", evc: "yes" },
+  { row: "Cap table and ESOP grants kept alongside what each grant is worth", sheet: "partial", calc: "no", evc: "yes" },
 ];
 
 const WHY = [
@@ -2723,7 +2770,7 @@ function Objections() {
 function FinalCta() {
   const paths = [
     { icon: UserRound, who: "Employees", text: "See your grant in rupees, free.", cta: "Model your grant", href: "/simulator" },
-    { icon: Building2, who: "HR & founders", text: "Clear reports for the whole team.", cta: "Book a team demo", href: "/meeting" },
+    { icon: Building2, who: "Startups & founders", text: "Cap table, ESOPs and a page for every employee.", cta: "See the Startup plan", href: "/pricing#startup" },
     { icon: Landmark, who: "CA & advisory firms", text: "Every client’s ESOPs in one console.", cta: "See the Advisor Console", href: "/meeting" },
   ];
 
@@ -2895,6 +2942,7 @@ const PARTNER_PLANS: PartnerPlan[] = [
   { key: "annual", group: "pro", label: "PRO Annual", price: 24999, cadence: "per year", maxCustomers: 50 },
   { key: "team", group: "org", label: "Team Intelligence", price: 145000, cadence: "per year · up to 20 members", maxCustomers: 10 },
   { key: "advisor", group: "org", label: "Advisor Console", price: 60000, cadence: "per year · 25 client companies", maxCustomers: 10 },
+  { key: "startup", group: "org", label: "Startup plan", price: 14999, cadence: "per year · 25 option holders", maxCustomers: 20 },
 ];
 
 function planPayout(key: string) {
@@ -2921,20 +2969,20 @@ const PARTNER_WHO = [
   {
     icon: Users,
     title: "Consultants and communities",
-    text: "Startup communities, founders’ groups and advisors whose people hold equity. Refer them to PRO.",
-    planKey: "annual",
+    text: "Startup communities, founders’ groups and advisors. Refer founders to the Startup plan, and their people to PRO.",
+    planKey: "startup",
   },
 ];
 
 const PARTNER_STEPS = [
   { n: "01", title: "Apply", text: "Email us who you are and who you work with. We reply with written partner terms." },
   { n: "02", title: "Introduce", text: "Tell your people about EVC. We note your name against every customer you bring." },
-  { n: "03", title: "They subscribe", text: "A customer new to EVC buys a plan: PRO, Team Intelligence or the Advisor Console." },
+  { n: "03", title: "They subscribe", text: "A customer new to EVC buys a plan: PRO, Team Intelligence, the Startup plan or the Advisor Console." },
   { n: "04", title: "You earn 10%", text: "We pay you 10% of the amount they paid, once the payment has cleared." },
 ];
 
 const PARTNER_TERMS = [
-  "10% of the plan amount a referred customer actually pays: PRO, Team Intelligence or Advisor Console. Refunded payments do not earn commission.",
+  "10% of the plan amount a referred customer actually pays: PRO, Team Intelligence, the Startup plan or the Advisor Console. Refunded payments do not earn commission.",
   "The customer must be new to EVC. No self-referrals.",
   "Partners tell their audience they are an EVC partner when they recommend it.",
   "Custom or negotiated plans: commission is on the amount actually paid.",
@@ -3003,8 +3051,8 @@ function PartnerProgram() {
               <p className="mt-5 max-w-xl text-lg leading-8 text-slate-300">
                 If you introduce a person, firm or company to EVC, you get 10%
                 of what they pay for their plan: PRO for individuals, Team
-                Intelligence for companies, or the Advisor Console for CA, CS
-                and advisory firms. No quota, no joining fee, no lock-in.
+                Intelligence for companies, the Startup plan for founders, or
+                the Advisor Console for CA, CS and advisory firms. No quota, no joining fee, no lock-in.
               </p>
 
               <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
@@ -3062,7 +3110,7 @@ function PartnerProgram() {
                 </div>
 
                 <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">For organisations · annual</p>
-                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {PARTNER_PLANS.filter((item) => item.group === "org").map((item) => (
                     <PartnerPlanButton key={item.key} item={item} active={item.key === planKey} onSelect={choosePlan} />
                   ))}

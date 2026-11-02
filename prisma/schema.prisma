@@ -164,6 +164,10 @@ enum AdminActionType {
   ADVISOR_FIRM_EXTENDED
   ADVISOR_FIRM_UPDATED
   ADVISOR_FIRM_REVOKED
+  COMPANY_WORKSPACE_GRANTED
+  COMPANY_WORKSPACE_EXTENDED
+  COMPANY_WORKSPACE_UPDATED
+  COMPANY_WORKSPACE_REVOKED
 }
 
 // ============================================================
@@ -393,6 +397,13 @@ model User {
   // ============================================================
 
   offerIntelligenceRecords OfferIntelligence[]
+
+  // ============================================================
+  // STARTUP EQUITY DESK
+  // ============================================================
+
+  ownedCompanyWorkspace CompanyWorkspace? @relation("CompanyOwner")
+  companyPayments       CompanyPayment[]  @relation("CompanyPaymentUser")
 }
 
 model GuestSession {
@@ -1376,4 +1387,319 @@ model TaxReminderLog {
 
   @@unique([deadlineKey, offsetDays])
   @@index([clientId])
+}
+
+// ============================================================
+// STARTUP EQUITY DESK (company-side, paid)
+// ============================================================
+
+enum CompanyWorkspaceStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum SecurityKind {
+  EQUITY
+  CCPS
+  CCD
+  CONVERTIBLE_NOTE
+  ISAFE
+  WARRANT
+}
+
+enum ShareholderType {
+  FOUNDER
+  INVESTOR
+  EMPLOYEE
+  OTHER
+}
+
+enum ShareMovementKind {
+  ALLOTMENT
+  TRANSFER
+  CONVERSION
+  BUYBACK
+}
+
+enum OptionGrantStatus {
+  DRAFT
+  ISSUED
+  ACCEPTED
+  LEFT
+  LAPSED
+  EXERCISED
+}
+
+model CompanyWorkspace {
+  id String @id @default(cuid())
+
+  ownerId String @unique
+  owner   User   @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name              String
+  cin               String?
+  companyType       ClientCompanyType @default(PRIVATE_LIMITED)
+  incorporationDate DateTime?
+  dpiitRecognised   Boolean?
+
+  // Current value per share shown to employees on their grant page
+  // (usually the latest merchant-banker valuation).
+  currentFmvPerShare Float?
+  fmvValuationDate   DateTime? @db.Date
+  fmvValuerName      String?
+
+  status      CompanyWorkspaceStatus @default(ACTIVE)
+  holderLimit Int                    @default(25)
+
+  source      SubscriptionSource @default(PAYMENT)
+  grantedById String?
+  grantReason String?
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  paymentReference  String?
+  expiryReminderFor DateTime?
+
+  payments     CompanyPayment[]
+  classes      SecurityClass[]
+  shareholders Shareholder[]
+  movements    ShareMovement[]
+  schemes      EsopScheme[]
+  grants       OptionGrant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model CompanyPayment {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("CompanyPaymentUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  amount   Int
+  currency String @default("INR")
+
+  status PaymentStatus @default(PENDING)
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([status])
+}
+
+// A class of security on the cap table (equity, CCPS series, notes...)
+model SecurityClass {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name String
+  kind SecurityKind @default(EQUITY)
+
+  faceValue Float?
+
+  // Convertibles. Null when not applicable or not entered.
+  conversionRatio Float?
+  liqPrefMultiple Float?
+  participating   Boolean?
+  valuationCap    Float?
+  discountPct     Float?
+  principalAmount Float?
+
+  archivedAt DateTime?
+
+  movements ShareMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model Shareholder {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name       String
+  type       ShareholderType @default(OTHER)
+  email      String?
+  isResident Boolean         @default(true)
+
+  archivedAt DateTime?
+
+  movementsIn  ShareMovement[] @relation("MovementTo")
+  movementsOut ShareMovement[] @relation("MovementFrom")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+// The cap table is the sum of these rows. Never edit a snapshot directly.
+// ALLOTMENT: toHolder only. BUYBACK: fromHolder only.
+// TRANSFER: from and to. CONVERSION: same holder, from one class into toClass.
+model ShareMovement {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  kind ShareMovementKind
+  date DateTime          @db.Date
+
+  classId String
+  class   SecurityClass @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  // CONVERSION only: the class the units convert into
+  toClassId String?
+
+  fromHolderId String?
+  fromHolder   Shareholder? @relation("MovementFrom", fields: [fromHolderId], references: [id], onDelete: Restrict)
+
+  toHolderId String?
+  toHolder   Shareholder? @relation("MovementTo", fields: [toHolderId], references: [id], onDelete: Restrict)
+
+  quantity      Int
+  // CONVERSION only: units received in toClass
+  toQuantity    Int?
+  pricePerShare Float?
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  @@index([workspaceId, date])
+  @@index([classId])
+}
+
+model EsopScheme {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name     String
+  poolSize Int
+
+  boardApprovedOn       DateTime?      @db.Date
+  shareholderApprovedOn DateTime?      @db.Date
+  // Recorded as passed; EVC does not judge which type is required.
+  resolutionVote        ResolutionVote?
+  mgt14FiledOn          DateTime?      @db.Date
+  explanatoryStatement  Boolean        @default(false)
+
+  defaultVestingMonths Int @default(48)
+  defaultCliffMonths   Int @default(12)
+  defaultPostExitDays  Int @default(90)
+
+  archivedAt DateTime?
+
+  grants OptionGrant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+model OptionGrant {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   CompanyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  schemeId String
+  scheme   EsopScheme @relation(fields: [schemeId], references: [id], onDelete: Restrict)
+
+  employeeName  String
+  employeeEmail String?
+  employeeRef   String?
+  // Normalised email, else normalised name. Used for the option-holder limit.
+  holderKey     String
+
+  isPromoterOver10Pct Boolean @default(false)
+
+  grantDate     DateTime @db.Date
+  options       Int
+  exercisePrice Float
+
+  vestingStart  DateTime  @db.Date
+  vestingMonths Int
+  cliffMonths   Int
+  expiryDate    DateTime? @db.Date
+  postExitDays  Int
+
+  status     OptionGrantStatus @default(DRAFT)
+  issuedAt   DateTime?
+  acceptedAt DateTime?
+  leftOn     DateTime?         @db.Date
+
+  optionsLapsed    Int @default(0)
+  optionsExercised Int @default(0)
+
+  note String?
+
+  // Grant letter uploaded by the company (PDF in private storage)
+  letterStorageKey    String?
+  letterFileName      String?
+  letterFileSize      Int?
+  letterUploadedAt    DateTime?
+  letterDownloadedAt  DateTime?
+  letterDownloadCount Int       @default(0)
+
+  links GrantLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([schemeId])
+  @@index([workspaceId, holderKey])
+}
+
+// Per-employee link: view the grant and accept it, no EVC login.
+model GrantLink {
+  id String @id @default(cuid())
+
+  grantId String
+  grant   OptionGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  tokenHash    String  @unique
+  passcodeHash String?
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([grantId])
+  @@index([expiresAt])
 }
