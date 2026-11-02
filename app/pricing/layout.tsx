@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Pricing: ESOP Management Software and Cap Table Plans",
   description:
     "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
   alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "Pricing | ESOP Value Clarity",
+    title: "ESOP Management Software Pricing | ESOP Value Clarity",
     description:
       "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
     url: "/pricing",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pricing | ESOP Value Clarity",
+    title: "ESOP Management Software Pricing | ESOP Value Clarity",
     description:
       "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
     images: ["/og-image.png"],

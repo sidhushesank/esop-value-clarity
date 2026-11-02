@@ -14,6 +14,8 @@ const articles = [
   "esop-vs-rsu",
   "dilution-explained",
   "vesting-schedule",
+  "esop-valuation-india",
+  "cap-table-india",
 ];
 
 // IMPORTANT: use fixed dates. `new Date()` makes every URL look "modified
@@ -21,7 +23,7 @@ const articles = [
 // Bump these when the page content genuinely changes.
 const SITE_UPDATED = new Date("2026-11-02");
 const LEGAL_UPDATED = new Date("2026-10-01");
-const ARTICLES_UPDATED = new Date("2026-10-01");
+const ARTICLES_UPDATED = new Date("2026-11-02");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

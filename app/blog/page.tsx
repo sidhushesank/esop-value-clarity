@@ -82,7 +82,7 @@ const articles = [
   },
   {
     slug: "esop-exercise-cost",
-    title: "How much cash do I need to exercise my ESOPs?",
+    title: "ESOP exercise price and cost: how much cash you need to exercise",
     category: "Exercise",
   },
   {
@@ -102,7 +102,7 @@ const articles = [
   },
   {
     slug: "what-is-an-esop",
-    title: "What is an ESOP? The practical version employees actually need",
+    title: "What is an ESOP? Meaning, how it works and how it is taxed in India",
     category: "Foundation",
   },
   {
@@ -117,8 +117,18 @@ const articles = [
   },
   {
     slug: "vesting-schedule",
-    title: "ESOP vesting schedule: granted is not the same as earned",
+    title: "ESOP vesting schedule explained: cliff, monthly vesting and examples (India)",
     category: "Vesting",
+  },
+  {
+    slug: "esop-valuation-india",
+    title: "ESOP valuation in India: FMV, merchant banker reports and fair value explained",
+    category: "Valuation",
+  },
+  {
+    slug: "cap-table-india",
+    title: "How to make a cap table for an Indian startup (with a free builder)",
+    category: "Cap table",
   },
 ];
 

@@ -38,7 +38,7 @@ const AUTHOR_LINKEDIN =
   "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";
 
 const PUBLISHED_DATE = "2026-09-16";
-const UPDATED_DATE = "2026-09-16";
+const UPDATED_DATE = "2026-11-02";
 
 const YOUTUBE_ID = "k2LzKS1WkzA";
 
@@ -80,7 +80,7 @@ const articles = {
     category: "Offer decision",
     stage: "I have an offer",
     audience: ["Employees", "Founders", "HR"],
-    readTime: "12 min read",
+    readTime: "4 min read",
     videoTime: "3 min video",
     title: "I received 25,000 ESOPs. Is that actually good?",
     description:
@@ -229,7 +229,7 @@ const articles = {
     category: "Negotiation",
     stage: "I am negotiating",
     audience: ["Employees", "Founders", "HR"],
-    readTime: "11 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title: "Should I negotiate ESOPs or salary in my startup offer?",
     description:
@@ -351,149 +351,156 @@ const articles = {
 
   "esop-exercise-cost": {
     category: "Exercise",
-    stage: "I may exercise",
-    audience: ["Employees", "CAs", "Tax"],
-    readTime: "10 min read",
+    stage: "Before exercising",
+    audience: ["Employees", "CAs", "Founders"],
+    readTime: "5 min read",
     videoTime: "3 min video",
-    title: "How much cash do I need to exercise my ESOPs?",
+    title: "ESOP exercise price and cost: how much cash you need to exercise",
     description:
-      "Understand strike price, vested options, exercise cost and why stock options can create a real cash decision before any liquidity happens.",
+      "What the ESOP exercise price (strike price) is, how Indian companies set it, and how to work out the full cash needed to exercise, including the perquisite tax, with a worked example.",
     keywords: [
+      "ESOP exercise price",
+      "strike price ESOP",
+      "what is exercise price in ESOP",
       "ESOP exercise cost",
-      "ESOP strike price",
-      "exercise stock options India",
-      "vested options exercise",
+      "exercising ESOP",
+      "ESOP strike price India",
+      "perquisite tax ESOP",
     ],
     icon: WalletCards,
     quickAnswer: [
-      "Exercise cost is usually vested options multiplied by strike price.",
-      "That cost is separate from taxes, transaction charges and the possibility that shares remain illiquid.",
-      "The decision should be modelled before leaving a company because exercise windows can be short.",
+      "The exercise price, also called the strike price, is the fixed amount you pay per share to convert a vested option into a share. It is written in your grant letter.",
+      "Exercising usually costs more than the exercise price alone. In India the gap between the share's fair market value and your exercise price is taxed as salary at the moment you exercise.",
+      "Cash needed to exercise ≈ (options × exercise price) + tax on (options × (FMV − exercise price)).",
+      "A low exercise price does not make exercising cheap if the fair market value is high. The tax can be many times the exercise price itself.",
     ],
     heroStats: [
-      { label: "Formula", value: "vested x strike" },
-      { label: "Risk", value: "cash before liquidity" },
-      { label: "Timing", value: "exercise window" },
-      { label: "Tax", value: "ask advisor" },
+      { label: "Also called", value: "strike price" },
+      { label: "Set by", value: "the ESOP scheme" },
+      { label: "Taxed at exercise", value: "FMV − strike" },
+      { label: "Often bigger", value: "tax than price" },
     ],
     modelCards: [
-      {
-        label: "Vested options",
-        value: "Only exercisable portion matters",
-      },
-      {
-        label: "Strike price",
-        value: "Cash paid per option",
-      },
-      {
-        label: "Liquidity",
-        value: "Not guaranteed after exercise",
-      },
+      { label: "Step 1", value: "options × exercise price" },
+      { label: "Step 2", value: "options × (FMV − price)" },
+      { label: "Step 3", value: "tax on step 2 at your slab" },
     ],
     sections: [
       {
-        id: "formula",
-        eyebrow: "The basic math",
-        title:
-          "Start with a simple formula, then add the complications.",
+        id: "meaning",
+        eyebrow: "Meaning",
+        title: "The exercise price is what you pay to turn an option into a share.",
         body: [
-          "At the simplest level, exercise cost equals the number of vested options you choose to exercise multiplied by the exercise or strike price per option.",
-          "If 10,000 options have vested and the strike price is ₹50, the basic exercise cost is ₹5,00,000. That is before taxes, paperwork costs or any company-specific rules.",
+          "Every option in your grant comes with an exercise price, also called the strike price or grant price. When an option has vested, you can exercise it by paying that price, and the company issues you one share for each option exercised.",
+          "The exercise price is fixed when the options are granted and does not change as the company's value grows. That fixed price is the whole point: if a share later becomes worth ₹500 and your exercise price is ₹10, each option carries a ₹490 gap in your favour.",
         ],
         cards: [
-          {
-            label: "10,000 vested",
-            value: "options available to exercise",
-          },
-          {
-            label: "₹50 strike",
-            value: "cash required per option",
-          },
-          {
-            label: "₹5,00,000",
-            value: "basic exercise cost",
-          },
+          { label: "Exercise price", value: "fixed at grant" },
+          { label: "Share value", value: "changes over time" },
+          { label: "Your upside", value: "the gap between them" },
         ],
       },
       {
-        id: "why-it-hurts",
-        eyebrow: "The real issue",
-        title:
-          "The painful part is paying cash for something you may not be able to sell.",
+        id: "how-set",
+        eyebrow: "How it is set",
+        title: "Indian companies set the exercise price in their ESOP scheme.",
         body: [
-          "Private-company shares can remain illiquid even after exercise. That means the employee may pay cash today while the ability to sell depends on a future buyback, secondary sale, acquisition, IPO or company-approved transfer.",
-          "This is why exercise decisions should be treated as personal finance decisions, not just compensation mechanics.",
+          "For unlisted companies, the exercise price, or the formula for arriving at it, is set out in the ESOP scheme approved by shareholders. Companies have a lot of freedom here, within accounting and legal limits.",
+          "In practice, many Indian startups set it at the face value of the share, often ₹1 or ₹10. Others set it at a discount to the latest fair market value, or at the fair market value itself.",
+          "A lower exercise price makes options more valuable to you, but it does not avoid tax. The perquisite at exercise is measured from the fair market value, not from the exercise price you paid.",
         ],
         warning:
-          "Do not exercise solely because a paper spread looks positive. Check tax, liquidity, company risk and your personal cash position.",
+          "What a company may set as an exercise price depends on its scheme, the Companies Act rules and accounting standards. A company secretary can confirm what applies to a particular company.",
       },
       {
-        id: "leaving-window",
-        eyebrow: "Leaving company",
-        title:
-          "Exercise windows can turn a future decision into an urgent one.",
+        id: "full-cost",
+        eyebrow: "The full cost",
+        title: "Exercising needs cash for two things: the price and the tax.",
         body: [
-          "Many plans limit how long vested options can be exercised after employment ends. If the window is short, an employee may need to make a large cash decision soon after resigning or being terminated.",
+          "The first cost is obvious: the number of options you exercise multiplied by the exercise price. This is paid to the company.",
+          "The second cost is the tax. In India, on the exercise date, the difference between the share's fair market value and your exercise price is treated as a perquisite, part of your salary income. It is taxed at your slab rate, and your employer deducts TDS, usually through payroll or by asking you to pay it in.",
+          "For unlisted shares, the fair market value comes from a valuation by a Category I merchant banker, as of the exercise date or a date up to 180 days before it. For listed shares, it is based on the market price on the exercise date.",
+        ],
+        cards: [
+          { label: "Paid to company", value: "options × exercise price" },
+          { label: "Taxed as salary", value: "options × (FMV − price)" },
+          { label: "Tax rate", value: "your slab, plus cess" },
+        ],
+      },
+      {
+        id: "example",
+        eyebrow: "Worked example",
+        title: "4,000 options, exercise price ₹10, FMV ₹160.",
+        body: [
+          "Say you want to exercise 4,000 vested options with an exercise price of ₹10. The latest merchant banker valuation puts the share at ₹160. You are in the 30% slab.",
+          "Exercise price payable: 4,000 × ₹10 = ₹40,000. Perquisite: 4,000 × (₹160 − ₹10) = ₹6,00,000. Tax at 30% plus 4% cess: about ₹1,87,200. Total cash needed: about ₹2,27,200, for shares you may not be able to sell for years.",
+          "Notice that the tax is almost five times the exercise price. This is the most common surprise for employees, especially at companies that have grown a lot since the grant.",
+        ],
+        cards: [
+          { label: "Exercise price", value: "₹40,000" },
+          { label: "Perquisite", value: "₹6,00,000" },
+          { label: "Tax (30% + cess)", value: "≈ ₹1,87,200" },
+          { label: "Cash needed", value: "≈ ₹2,27,200" },
+        ],
+      },
+      {
+        id: "options",
+        eyebrow: "Your choices",
+        title: "Ways to manage the cash needed.",
+        body: [
+          "You rarely have to exercise everything at once. Think about timing and quantity.",
         ],
         bullets: [
-          "Confirm the post-termination exercise window.",
-          "Calculate cash needed for different exercise amounts.",
-          "Check whether partial exercise is allowed.",
-          "Get tax advice before committing cash.",
+          "Exercise in tranches, a portion each year, to spread the tax across years and slabs.",
+          "Check whether you qualify for the deferral available to employees of eligible startups: tax at exercise can be postponed to the earliest of 48 months from the end of the assessment year, the sale of the shares, or leaving the company.",
+          "Ask whether the company offers cashless exercise at a buyback or sale, where shares are sold and the proceeds cover the price and tax.",
+          "If you are leaving, compare the cost of exercising with the length of the exercise window before deciding.",
         ],
       },
     ],
     personaViews: [
-      {
-        label: "Employee",
-        value:
-          "Never wait until the last week of your exercise window to calculate cash required.",
-      },
-      {
-        label: "Founder",
-        value:
-          "Clear exercise-window communication avoids employee distrust later.",
-      },
-      {
-        label: "HR",
-        value:
-          "Leaving checklists should include vested options, deadline and exercise-cost education.",
-      },
-      {
-        label: "CA",
-        value:
-          "Exercise decisions can create tax and cash-flow issues even without liquidity.",
-      },
+      { label: "Employee", value: "Budget for the tax, not only the exercise price, before you decide to exercise." },
+      { label: "Founder", value: "Explain the tax at exercise when you grant options, or employees will feel misled later." },
+      { label: "HR", value: "Share the latest FMV with employees so they can estimate the tax themselves." },
+      { label: "CA", value: "Check the FMV report date, the TDS treatment and whether the startup deferral applies." },
     ],
     checklist: [
-      "Find vested option count.",
-      "Confirm strike price per option.",
-      "Calculate full and partial exercise costs.",
-      "Check tax treatment with a professional.",
-      "Confirm liquidity restrictions.",
-      "Check final exercise deadline in writing.",
+      "Find the exercise price in your grant letter.",
+      "Ask HR for the latest merchant banker FMV and its date.",
+      "Work out options × exercise price.",
+      "Work out options × (FMV − exercise price) and the tax at your slab.",
+      "Check whether the startup tax deferral applies to you.",
+      "Decide how many options to exercise, and when.",
     ],
     mistakes: [
-      "Calculating exercise cost using total granted options instead of vested options.",
-      "Forgetting taxes and charges.",
-      "Exercising without understanding liquidity restrictions.",
+      "Budgeting only for the exercise price.",
+      "Assuming a ₹1 exercise price means exercising is almost free.",
+      "Exercising everything in one year and pushing your income into a higher slab.",
+      "Missing the exercise window after leaving.",
     ],
     faq: [
       {
-        question: "Do I need to exercise all vested options?",
-        answer:
-          "Not always. Some plans may allow partial exercise, but the plan and grant documents control what is allowed.",
+        question: "What is the exercise price in ESOP?",
+        answer: "It is the fixed price per share you pay to convert a vested option into a share. It is also called the strike price and is set in your grant letter.",
       },
       {
-        question: "Is exercise cost the same as tax?",
+        question: "Is strike price the same as exercise price?",
+        answer: "Yes. Strike price, exercise price and grant price usually mean the same thing in ESOP documents.",
+      },
+      {
+        question: "Who decides the ESOP exercise price in India?",
+        answer: "The company, through its ESOP scheme approved by shareholders. Many startups set it at face value, others at or below the fair market value.",
+      },
+      {
+        question: "Do I pay tax when I exercise ESOPs?",
         answer:
-          "No. Exercise cost is the cash paid to acquire shares. Tax treatment is separate and depends on jurisdiction and circumstances.",
+          "Usually yes. The gap between fair market value and exercise price is taxed as salary at exercise, unless you qualify for the deferral for employees of eligible startups.",
       },
     ],
     related: [
+      "esop-valuation-india",
       "leaving-startup-esop-options",
       "what-is-an-esop",
-      "vesting-schedule",
     ],
   },
 
@@ -501,7 +508,7 @@ const articles = {
     category: "Leaving company",
     stage: "I am leaving",
     audience: ["Employees", "HR", "CAs"],
-    readTime: "13 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title:
       "I am leaving my startup. What happens to my vested options?",
@@ -630,7 +637,7 @@ const articles = {
     category: "Dilution",
     stage: "Funding happened",
     audience: ["Employees", "Founders", "HR"],
-    readTime: "12 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title:
       "My startup raised funding. Did my ESOP become worthless?",
@@ -756,7 +763,7 @@ const articles = {
     category: "Offer comparison",
     stage: "I have two offers",
     audience: ["Employees", "HR"],
-    readTime: "14 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title: "Two startup offers. Which equity package is stronger?",
     description:
@@ -891,141 +898,174 @@ const articles = {
   "what-is-an-esop": {
     category: "Foundation",
     stage: "Start here",
-    audience: ["Employees", "Founders", "HR", "CAs"],
-    readTime: "10 min read",
+    audience: ["Employees", "Founders", "HR"],
+    readTime: "6 min read",
     videoTime: "3 min video",
-    title:
-      "What is an ESOP? The practical version employees actually need",
+    title: "What is an ESOP? Meaning, how it works and how it is taxed in India",
     description:
-      "A decision-oriented explanation of employee stock options, strike price, vesting, ownership, dilution, liquidity and tax context.",
+      "ESOP meaning in plain language: how employee stock options work in India, from grant and vesting to exercise and sale, the key terms, how ESOPs are taxed twice, and what to ask before you accept one.",
     keywords: [
-      "what is ESOP",
+      "what is an ESOP",
       "ESOP meaning",
-      "employee stock options",
-      "startup ESOP",
-      "ESOP India",
+      "ESOP full form",
+      "employee stock option plan India",
+      "how ESOPs work",
+      "ESOP tax India",
+      "ESOP value",
     ],
-    icon: GraduationCap,
+    icon: BookOpen,
     quickAnswer: [
-      "An ESOP option grant usually gives an employee a right to buy shares later at a defined strike price, subject to plan terms.",
-      "The economic value depends on vesting, exercise price, ownership percentage, dilution, liquidity and taxes.",
-      "An ESOP should not be valued like salary because the outcome is uncertain and conditional.",
+      "ESOP stands for Employee Stock Option Plan. It gives you the right, not the obligation, to buy shares in your company later at a fixed price, called the exercise or strike price.",
+      "An ESOP goes through four stages: grant, vesting, exercise and sale. You earn the options over time, pay to convert them into shares, and only make money when you can sell those shares for more than you paid.",
+      "In India an ESOP is usually taxed twice: as salary when you exercise, on the gap between the share's fair market value and your exercise price, and as capital gains when you sell.",
+      "The number of options alone tells you little. What matters is your percentage of the company, the exercise price, the vesting schedule, and whether there will ever be a way to sell.",
     ],
     heroStats: [
-      { label: "Grant", value: "right" },
-      { label: "Vesting", value: "time" },
-      { label: "Exercise", value: "cash" },
-      { label: "Value", value: "scenario" },
+      { label: "Full form", value: "Employee Stock Option Plan" },
+      { label: "Stages", value: "grant → vest → exercise → sell" },
+      { label: "Tax events", value: "2 in India" },
+      { label: "Key number", value: "% ownership" },
     ],
     modelCards: [
-      {
-        label: "Known terms",
-        value: "grant, strike, vesting",
-      },
-      {
-        label: "Assumptions",
-        value: "value, dilution, exit",
-      },
-      {
-        label: "Outcome",
-        value: "not guaranteed",
-      },
+      { label: "Grant", value: "the promise" },
+      { label: "Exercise", value: "pay to buy shares" },
+      { label: "Sale", value: "where value becomes cash" },
     ],
     sections: [
       {
         id: "meaning",
-        eyebrow: "Definition that matters",
-        title:
-          "An ESOP is not cash. It is a conditional ownership opportunity.",
+        eyebrow: "Meaning",
+        title: "An ESOP is an option to buy shares later at a price fixed today.",
         body: [
-          "In many startup compensation plans, ESOPs are delivered as options: the right to buy company shares later at a predetermined exercise or strike price, after vesting and subject to the plan documents.",
-          "That makes an ESOP different from salary. Salary is paid in cash. Options may become valuable only if the company value exceeds the strike price and liquidity becomes available.",
+          "An ESOP, or Employee Stock Option Plan, is a scheme a company sets up to give employees options over its shares. Each option is a right to buy one share at a fixed price, the exercise price, after the option has vested.",
+          "You do not own shares when you receive an ESOP grant. You own options. They become shares only when you exercise them, which means paying the exercise price and, in India, usually the tax that falls due at that moment.",
+          "Startups use ESOPs because they cannot always match big-company salaries. The idea is simple: if the company's value grows, the gap between what a share is worth and your fixed exercise price is yours.",
         ],
       },
       {
         id: "lifecycle",
-        eyebrow: "Lifecycle",
-        title:
-          "The ESOP journey moves through grant, vesting, exercise and liquidity.",
+        eyebrow: "How it works",
+        title: "Every ESOP goes through four stages.",
         body: [
-          "First the company grants options. Then the options vest over time. After vesting, the employee may be able to exercise by paying the strike price. Eventually, value can be realised only if liquidity becomes possible.",
+          "Understanding where you are in this cycle tells you what you actually have today.",
+        ],
+        bullets: [
+          "Grant: the company grants you a number of options at an exercise price, under its ESOP scheme. You receive a grant letter.",
+          "Vesting: the options become exercisable over time, usually over four years with a one-year cliff. In India there must be at least a year between grant and vesting.",
+          "Exercise: you pay the exercise price for vested options and receive shares. This is usually a taxable event.",
+          "Sale: you sell the shares, in a buyback, a secondary sale, an acquisition or after an IPO. This is the only point where the ESOP turns into cash.",
         ],
         cards: [
-          { label: "Grant", value: "Options awarded" },
-          { label: "Vest", value: "Earned over time" },
-          { label: "Exercise", value: "Pay strike price" },
-          { label: "Liquidity", value: "Sell if permitted" },
+          { label: "Grant", value: "options, not shares" },
+          { label: "Vest", value: "earned over time" },
+          { label: "Exercise", value: "cash out of pocket" },
+          { label: "Sell", value: "cash in hand" },
         ],
       },
       {
         id: "terms",
-        eyebrow: "Terms to know",
-        title:
-          "The important ESOP terms are the ones that change your decision.",
+        eyebrow: "Key terms",
+        title: "Six terms you will see in every grant letter.",
         body: [
-          "A useful explanation should not stop at vocabulary. Each term matters because it changes either ownership, cash requirement, timing, risk or eventual take-home value.",
+          "These words appear in almost every ESOP document. Knowing them makes the rest of the letter readable.",
         ],
         bullets: [
-          "Option count: the number granted.",
-          "Strike price: cash needed per option to exercise.",
-          "Vesting schedule: when options are earned.",
-          "Ownership percentage: what the grant represents.",
-          "Dilution: how future share issuance can reduce percentage.",
-          "Liquidity: whether shares can actually be sold.",
+          "Exercise price (strike price): the fixed price you pay per share when you exercise.",
+          "Fair market value (FMV): what a share is valued at on a given date. For unlisted shares in India, this comes from a merchant banker's valuation.",
+          "Vesting schedule: the timetable on which options become exercisable.",
+          "Cliff: the waiting period before anything vests, usually one year.",
+          "Exercise window: how long you have to exercise vested options, especially after you leave.",
+          "ESOP pool: the block of shares the company has set aside for employee options.",
+        ],
+      },
+      {
+        id: "tax",
+        eyebrow: "Tax in India",
+        title: "ESOPs are usually taxed twice: at exercise and at sale.",
+        body: [
+          "At exercise, the difference between the share's fair market value on the exercise date and your exercise price is treated as a salary perquisite. It is added to your salary income, taxed at your slab rate, and the employer deducts TDS. This tax is due even though you have not sold anything, which is why exercising can need a lot of cash.",
+          "At sale, you pay capital gains tax on the difference between the sale price and the fair market value used at exercise. For unlisted shares, gains on shares held for more than 24 months from exercise are long-term. Shorter holdings are short-term and taxed at slab rates.",
+          "Employees of eligible startups recognised under the startup tax rules can defer the tax due at exercise until the earliest of 48 months from the end of the relevant assessment year, the date they sell the shares, or the date they leave the company.",
+        ],
+        warning:
+          "Tax rules and rates change, and your situation may differ. Treat this as an overview and confirm the numbers with a chartered accountant before you exercise or sell.",
+      },
+      {
+        id: "example",
+        eyebrow: "Example",
+        title: "What an ESOP can be worth, step by step.",
+        body: [
+          "Say you hold 5,000 vested options with an exercise price of ₹10, and a merchant banker values the share at ₹210 on the day you exercise.",
+          "Exercising costs ₹50,000 (5,000 × ₹10). The perquisite is ₹10,00,000 (5,000 × ₹200 gap), taxed as salary. At a 30% slab plus 4% cess, that is about ₹3,12,000 of tax. So exercising needs roughly ₹3.6 lakh in cash before you have sold a single share.",
+          "If you later sell all 5,000 shares at ₹500 in a buyback, the capital gain is ₹14,50,000 (5,000 × ₹290 above the ₹210 FMV). How it is taxed depends on how long you held the shares.",
+        ],
+        cards: [
+          { label: "Exercise cost", value: "₹50,000" },
+          { label: "Perquisite", value: "₹10,00,000" },
+          { label: "Tax at exercise", value: "≈ ₹3,12,000" },
+          { label: "Gain at sale", value: "₹14,50,000" },
+        ],
+      },
+      {
+        id: "questions",
+        eyebrow: "Before you accept",
+        title: "Questions to ask about any ESOP offer.",
+        body: [
+          "A number of options without context is not an offer you can evaluate. Ask for the numbers that turn it into one.",
+        ],
+        bullets: [
+          "What percentage of the company do these options represent, on a fully diluted basis?",
+          "What is the exercise price, and what is the latest fair market value?",
+          "What is the vesting schedule, cliff and vesting start date?",
+          "How long can I exercise vested options after leaving?",
+          "Has the company ever run a buyback or a secondary sale for employees?",
         ],
       },
     ],
     personaViews: [
-      {
-        label: "Employee",
-        value:
-          "Learn enough to ask better questions before accepting or exercising.",
-      },
-      {
-        label: "Founder",
-        value:
-          "Explain ESOPs as uncertainty with upside, not guaranteed wealth.",
-      },
-      {
-        label: "HR",
-        value:
-          "Use a consistent vocabulary to reduce repeated candidate confusion.",
-      },
-      {
-        label: "CA",
-        value:
-          "The practical discussion begins when exercise and tax events appear.",
-      },
+      { label: "Employee", value: "Think of an ESOP as a possible bonus with a cost to claim it, not as guaranteed salary." },
+      { label: "Founder", value: "Employees value ESOPs they understand. Explain the percentage, the price and the path to liquidity." },
+      { label: "HR", value: "Give every offer a worked example: exercise cost, tax and a range of outcomes." },
+      { label: "CA / CS", value: "The two tax events and the FMV report are where employees most often need help." },
     ],
     checklist: [
-      "Identify the number of options.",
-      "Confirm the strike price.",
-      "Understand vesting and cliff.",
-      "Estimate ownership percentage if possible.",
-      "Model dilution and exit scenarios.",
-      "Check tax and liquidity before decisions.",
+      "Read the grant letter and the ESOP scheme, not only the offer email.",
+      "Note the number of options, exercise price and latest FMV.",
+      "Work out your percentage of the fully diluted share count.",
+      "Note the vesting schedule, cliff and exercise window.",
+      "Estimate the cash needed to exercise, including tax.",
+      "Ask how employees have sold shares in the past, if ever.",
     ],
     mistakes: [
-      "Thinking options are already shares.",
-      "Ignoring exercise price.",
-      "Assuming paper value is cash.",
+      "Thinking an ESOP grant means you own shares today.",
+      "Valuing options at the latest funding-round price per share.",
+      "Forgetting that exercising is taxed before you can sell.",
+      "Ignoring how future funding rounds dilute your percentage.",
     ],
     faq: [
       {
-        question: "Is ESOP the same as shares?",
-        answer:
-          "Not necessarily. Options usually provide a right to acquire shares after vesting and exercise, subject to plan terms.",
+        question: "What is the full form of ESOP?",
+        answer: "Employee Stock Option Plan, sometimes also expanded as Employee Stock Ownership Plan in the US, which is a different, retirement-style arrangement.",
       },
       {
-        question: "Can ESOPs become worthless?",
+        question: "Is an ESOP the same as owning shares?",
+        answer: "No. An ESOP gives you options. You only own shares after you exercise vested options by paying the exercise price.",
+      },
+      {
+        question: "How is ESOP taxed in India?",
         answer:
-          "Yes. If company value does not exceed strike price, liquidity never happens or terms are unfavorable, the economic outcome may be poor.",
+          "Usually twice. At exercise, the gap between fair market value and exercise price is taxed as salary. At sale, the gain over that fair market value is taxed as capital gains.",
+      },
+      {
+        question: "Can I sell my ESOPs before an IPO?",
+        answer:
+          "Only if the company offers a route, such as a buyback, a secondary sale to investors, or an acquisition. Unlisted shares cannot usually be sold freely.",
       },
     ],
     related: [
-      "startup-offered-25000-esops",
       "vesting-schedule",
-      "dilution-explained",
+      "esop-exercise-cost",
+      "startup-offered-25000-esops",
     ],
   },
 
@@ -1033,7 +1073,7 @@ const articles = {
     category: "Equity types",
     stage: "Compare equity",
     audience: ["Employees", "HR", "CAs"],
-    readTime: "11 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title:
       "ESOP vs RSU: do not compare unit counts blindly",
@@ -1155,7 +1195,7 @@ const articles = {
     category: "Dilution",
     stage: "Understand ownership",
     audience: ["Employees", "Founders", "HR"],
-    readTime: "12 min read",
+    readTime: "2 min read",
     videoTime: "3 min video",
     title: "ESOP dilution explained without the panic",
     description:
@@ -1279,121 +1319,486 @@ const articles = {
     category: "Vesting",
     stage: "Understand timing",
     audience: ["Employees", "Founders", "HR"],
-    readTime: "10 min read",
+    readTime: "6 min read",
     videoTime: "3 min video",
-    title:
-      "ESOP vesting schedule: granted is not the same as earned",
+    title: "ESOP vesting schedule explained: cliff, monthly vesting and examples (India)",
     description:
-      "Understand cliffs, monthly vesting, vested options, unvested options and how timing changes the value of a stock-option grant.",
+      "How an ESOP vesting schedule works in India: the one-year cliff, monthly and yearly vesting, the legal minimum of one year before vesting, worked examples, and what happens to vested and unvested options when you leave.",
     keywords: [
+      "ESOP vesting schedule",
       "ESOP vesting",
-      "vesting schedule",
+      "vesting schedule India",
       "one year cliff",
-      "vested options",
-      "unvested options",
+      "ESOP cliff and vesting",
+      "vested and unvested options",
+      "unvested ESOP meaning",
+      "vesting in ESOP",
     ],
     icon: Clock3,
     quickAnswer: [
-      "Vesting determines when the employee earns portions of the grant.",
-      "A four-year schedule with a one-year cliff is common, but documents control the actual terms.",
-      "Granted options are not the same as vested options, especially if you may leave early.",
+      "A vesting schedule decides when the options you were granted become yours to exercise. Granted is the promise; vested is what you have earned so far.",
+      "The most common pattern is four years with a one-year cliff: nothing for the first year, 25% at the first anniversary, then the rest monthly or quarterly over the next three years.",
+      "In India, the Companies Act rules require at least one year between grant and vesting for unlisted companies, so a cliff of at least a year is built in by law.",
+      "If you leave, unvested options usually lapse. Vested options normally stay yours for an exercise window set in the scheme, so read that window before you resign.",
     ],
     heroStats: [
-      { label: "Granted", value: "headline" },
-      { label: "Vested", value: "earned" },
-      { label: "Cliff", value: "first gate" },
-      { label: "Leaving", value: "critical" },
+      { label: "Common length", value: "4 years" },
+      { label: "Common cliff", value: "1 year" },
+      { label: "Legal minimum", value: "1 year to vest" },
+      { label: "After leaving", value: "exercise window" },
     ],
     modelCards: [
-      { label: "Year 1", value: "cliff risk" },
-      { label: "Years 2-4", value: "gradual vesting" },
-      { label: "Exit", value: "unvested may lapse" },
+      { label: "Year 1", value: "0% until the cliff, then 25%" },
+      { label: "Years 2 to 4", value: "about 2.08% a month" },
+      { label: "Leaving", value: "unvested usually lapses" },
     ],
     sections: [
       {
         id: "meaning",
         eyebrow: "Meaning",
-        title:
-          "Vesting turns a grant into an earned right over time.",
+        title: "Vesting turns a grant into options you have actually earned.",
         body: [
-          "Receiving 10,000 options does not usually mean all 10,000 are immediately available to exercise. The vesting schedule defines how much becomes vested and when.",
+          "When a startup grants you 12,000 options, you do not get the right to exercise all 12,000 on day one. The grant letter and the company's ESOP scheme set a vesting schedule: a timetable that says how many options become vested, and on which dates.",
+          "Vested options are the ones you can exercise, that is, pay the exercise price and convert into shares. Unvested options are still conditional. They depend on you staying with the company, and sometimes on performance targets as well.",
+          "This is why two people with the same grant can be in very different positions. Someone who joined four years ago may own the full grant. Someone who joined eleven months ago may own nothing yet.",
+        ],
+        cards: [
+          { label: "Granted", value: "the total promised" },
+          { label: "Vested", value: "earned, can be exercised" },
+          { label: "Unvested", value: "still conditional" },
         ],
       },
       {
         id: "cliff",
-        eyebrow: "Cliff",
-        title:
-          "A one-year cliff can make the first year binary.",
+        eyebrow: "The cliff",
+        title: "A one-year cliff makes the first year all or nothing.",
         body: [
-          "Under a common one-year cliff, no options vest before the first anniversary. At the cliff, a first portion may vest, with the remainder vesting monthly or quarterly afterwards.",
+          "A cliff is a waiting period before anything vests. With a one-year cliff, nothing vests for the first twelve months. On the first anniversary of your vesting start date, a whole year's worth vests at once, usually 25% of a four-year grant.",
+          "After the cliff, the rest usually vests in equal monthly or quarterly instalments. On a four-year grant with monthly vesting after the cliff, that is the remaining 75% spread over 36 months, about 2.08% of the grant each month.",
+          "The cliff protects the company from giving equity to people who leave within weeks. For you, it means the first year carries the most risk: leave at month eleven and you usually walk away with no vested options at all.",
         ],
         cards: [
-          { label: "Before cliff", value: "0% may be vested" },
-          { label: "At cliff", value: "25% may vest" },
-          { label: "After cliff", value: "monthly or quarterly" },
+          { label: "Before month 12", value: "0 vested" },
+          { label: "At month 12", value: "25% vests" },
+          { label: "Month 13 onwards", value: "~2.08% a month" },
+        ],
+      },
+      {
+        id: "india-rule",
+        eyebrow: "India",
+        title: "Indian law sets a minimum of one year between grant and vesting.",
+        body: [
+          "For unlisted companies, the Companies (Share Capital and Debentures) Rules, 2014 require a minimum gap of one year between the grant of options and their vesting, with limited exceptions such as death or permanent incapacity. Listed companies follow SEBI's share-based employee benefits regulations, which also set a one-year minimum.",
+          "In practice this means an Indian ESOP cannot vest in the first year after the grant date, whatever the offer letter implies. If a company promises immediate vesting, ask its CS how that fits the rules. The answer is usually that it is the grant date, not the joining date, that matters.",
+          "Note the difference between the grant date and the vesting start date. Some companies set the vesting start date to your joining date, and only formally grant the options later, once the board or committee approves them. Check both dates on your grant letter.",
+        ],
+        warning:
+          "This is a general explanation, not legal advice. Your company's ESOP scheme and grant letter control the actual terms. A company secretary or lawyer can confirm how they apply to you.",
+      },
+      {
+        id: "example",
+        eyebrow: "Worked example",
+        title: "12,000 options over four years with a one-year cliff.",
+        body: [
+          "Say you are granted 12,000 options with a vesting start date of 1 April 2026, four-year vesting, a one-year cliff and monthly vesting after that.",
+          "On 31 March 2027 you have 0 vested options. On 1 April 2027, 3,000 options vest (25%). From then, 250 more vest on the first of every month (9,000 options over 36 months). By 1 April 2028 you have 6,000 vested, by 1 April 2029 you have 9,000, and on 1 April 2030 the full 12,000 have vested.",
+          "If you resigned on 15 October 2028, you would have 7,500 vested options (3,000 at the cliff plus 18 monthly instalments of 250), and the other 4,500 would normally lapse.",
+        ],
+        cards: [
+          { label: "Year 1 end", value: "3,000 vested" },
+          { label: "Year 2 end", value: "6,000 vested" },
+          { label: "Year 3 end", value: "9,000 vested" },
+          { label: "Year 4 end", value: "12,000 vested" },
+        ],
+      },
+      {
+        id: "other-schedules",
+        eyebrow: "Variations",
+        title: "Not every company uses the 4-year, 1-year-cliff pattern.",
+        body: [
+          "Schedules vary. Read your own documents rather than assuming the common pattern.",
+        ],
+        bullets: [
+          "Yearly vesting: 25% vests on each anniversary. You earn nothing between anniversaries, so leaving one month before an anniversary costs a full year's tranche.",
+          "Back-loaded vesting: for example 10%, 20%, 30%, 40% over four years. More of the value sits in the later years.",
+          "Performance vesting: some or all options vest only if targets are met, such as revenue, a funding round or personal goals.",
+          "Acceleration: some schemes vest unvested options early on an acquisition, sometimes only if you are also let go (double trigger). This is more common for senior hires.",
         ],
       },
       {
         id: "leaving",
-        eyebrow: "Leaving risk",
-        title:
-          "Vesting matters most when employment changes.",
+        eyebrow: "Leaving",
+        title: "When you leave, vested and unvested options are treated differently.",
         body: [
-          "If you leave before vesting, unvested options are commonly forfeited. If you leave after options vest, the post-termination exercise window becomes the next important rule.",
+          "Unvested options usually lapse on your last working day and go back to the company's ESOP pool.",
+          "Vested options normally remain yours, but only for an exercise window set by the scheme. That window can be anything from 30 days to several years, and some Indian schemes let you exercise only on a liquidity event. If you do not exercise in time, vested options can lapse too.",
+          "Before you resign, find out three numbers: how many options are vested on your last day, how long you have to exercise them, and how much cash exercising would need, including any tax. Leaving a week after a vesting date rather than a week before it can be worth a whole tranche.",
         ],
       },
     ],
     personaViews: [
-      {
-        label: "Employee",
-        value:
-          "Know how much is actually vested before comparing offers or resigning.",
-      },
-      {
-        label: "Founder",
-        value:
-          "Vesting protects the company but must be explained clearly.",
-      },
-      {
-        label: "HR",
-        value:
-          "Candidates need examples, not only plan language.",
-      },
-      {
-        label: "Advisor",
-        value:
-          "Timing determines whether options can be exercised at all.",
-      },
+      { label: "Employee", value: "Know your vested count, your next vesting date and your exercise window before you compare offers or resign." },
+      { label: "Founder", value: "A clear schedule with a worked example in the grant letter avoids most ESOP disputes later." },
+      { label: "HR", value: "Show candidates a month-by-month vesting table, not only the scheme's legal wording." },
+      { label: "CA / CS", value: "Check the grant date against the one-year minimum to vesting, and that the scheme's exercise window matches the grant letter." },
     ],
     checklist: [
-      "Check total vesting duration.",
-      "Confirm cliff length and cliff percentage.",
-      "Check monthly, quarterly or annual vesting after cliff.",
-      "Confirm vesting start date.",
-      "Understand what happens when employment ends.",
+      "Find your grant date and your vesting start date. They are often different.",
+      "Check the total vesting period and the cliff length.",
+      "Check how vesting continues after the cliff: monthly, quarterly or yearly.",
+      "Check for performance conditions or acceleration on an acquisition.",
+      "Find the exercise window for vested options after you leave.",
+      "Work out how many options will be vested on any date you are considering leaving.",
     ],
     mistakes: [
-      "Treating granted as vested.",
-      "Ignoring cliff risk.",
-      "Forgetting exercise window after leaving.",
+      "Treating the full grant as yours from the first day.",
+      "Resigning just before a cliff or a yearly vesting date.",
+      "Ignoring the exercise window until after your last day.",
+      "Assuming the vesting start date is the same as the grant date.",
     ],
     faq: [
       {
-        question: "What is a one-year cliff?",
+        question: "What is a vesting schedule in ESOP?",
         answer:
-          "It means the first vesting event may happen only after completing one year, subject to the grant terms.",
+          "It is the timetable in your grant letter and the company's ESOP scheme that says how many of your options become vested, meaning yours to exercise, and on which dates.",
       },
       {
-        question:
-          "What happens to unvested options when I leave?",
+        question: "What is a one-year cliff?",
         answer:
-          "They are commonly forfeited unless the documents provide special treatment such as acceleration.",
+          "Nothing vests for the first year. On the first anniversary of your vesting start date, a year's worth vests at once, usually 25% of a four-year grant, and the rest vests gradually afterwards.",
+      },
+      {
+        question: "Can ESOPs vest in less than one year in India?",
+        answer:
+          "For unlisted companies, the Companies (Share Capital and Debentures) Rules require at least one year between grant and vesting, with limited exceptions. Listed companies follow SEBI rules with a similar one-year minimum.",
+      },
+      {
+        question: "What does unvested ESOP mean?",
+        answer:
+          "Unvested options are the part of your grant you have not earned yet. You cannot exercise them, and they usually lapse if you leave before they vest.",
+      },
+      {
+        question: "What happens to vested options when I resign?",
+        answer:
+          "They usually remain yours for an exercise window set in the scheme. If you do not exercise within that window, they can lapse. Some schemes only allow exercise at a liquidity event.",
       },
     ],
     related: [
       "leaving-startup-esop-options",
+      "esop-exercise-cost",
       "what-is-an-esop",
-      "startup-offered-25000-esops",
+    ],
+  },
+  "esop-valuation-india": {
+    category: "Valuation",
+    stage: "Understand value",
+    audience: ["Founders", "CAs", "Employees"],
+    readTime: "5 min read",
+    videoTime: "3 min video",
+    title: "ESOP valuation in India: FMV, merchant banker reports and fair value explained",
+    description:
+      "ESOP valuation in India has three different meanings: the merchant banker FMV used for tax, the price set for grants, and the fair value used in the company's accounts. What each is for, who does it and when you need it.",
+    keywords: [
+      "ESOP valuation",
+      "ESOP valuation India",
+      "ESOP FMV",
+      "merchant banker valuation ESOP",
+      "ESOP valuation for tax",
+      "Black-Scholes ESOP valuation",
+      "ESOP fair value accounting",
+    ],
+    icon: Landmark,
+    quickAnswer: [
+      "In India, “ESOP valuation” can mean three different things, and companies often need all three.",
+      "Tax FMV: a Category I merchant banker values the share so the perquisite at exercise can be calculated. It must be as of the exercise date or up to 180 days before it.",
+      "Grant pricing: the exercise price the company sets in its ESOP scheme, often face value or a discount to FMV.",
+      "Accounting fair value: the value of each option for the company's books, usually from an option-pricing model such as Black-Scholes, which becomes an employee cost over the vesting period.",
+    ],
+    heroStats: [
+      { label: "For tax", value: "merchant banker FMV" },
+      { label: "Validity", value: "up to 180 days" },
+      { label: "For accounts", value: "option fair value" },
+      { label: "Common model", value: "Black-Scholes" },
+    ],
+    modelCards: [
+      { label: "Tax FMV", value: "per share, at exercise" },
+      { label: "Exercise price", value: "per share, at grant" },
+      { label: "Fair value", value: "per option, for the books" },
+    ],
+    sections: [
+      {
+        id: "three-meanings",
+        eyebrow: "The confusion",
+        title: "Three valuations, three purposes.",
+        body: [
+          "Founders, employees and accountants often talk past each other about ESOP valuation because they mean different numbers. Separating them makes every other conversation easier.",
+        ],
+        cards: [
+          { label: "Tax FMV", value: "how much salary tax at exercise" },
+          { label: "Exercise price", value: "what employees pay" },
+          { label: "Accounting fair value", value: "the ESOP cost in the P&L" },
+        ],
+      },
+      {
+        id: "tax-fmv",
+        eyebrow: "1. Tax FMV",
+        title: "The merchant banker FMV decides the tax when employees exercise.",
+        body: [
+          "When an employee exercises options, the gap between the fair market value of the share and the exercise price is taxed as a salary perquisite. The company deducts TDS on it.",
+          "For shares that are not listed, the Income-tax Rules require the fair market value to be determined by a Category I merchant banker registered with SEBI, as of the exercise date or any date up to 180 days before it. For listed shares, the fair market value is based on the stock exchange price on the exercise date.",
+          "This means an unlisted company needs a fresh merchant banker report whenever employees exercise more than 180 days after the last one. Employees will also want this number, because it decides their tax.",
+        ],
+        warning:
+          "Valuation and tax requirements change from time to time. A chartered accountant or the merchant banker can confirm the current requirements for a specific company.",
+      },
+      {
+        id: "grant-price",
+        eyebrow: "2. Exercise price",
+        title: "The exercise price is a company decision, not a valuation.",
+        body: [
+          "The exercise price is the amount employees pay per share. For unlisted companies, it is set in the ESOP scheme approved by shareholders, together with the formula for arriving at it.",
+          "Many Indian startups set it at face value. Others use the latest fair market value or a discount to it. A valuation helps the board choose, but the exercise price itself is a policy choice, and it affects both employee upside and the accounting cost.",
+        ],
+      },
+      {
+        id: "accounting",
+        eyebrow: "3. Accounting fair value",
+        title: "The company's books record ESOPs as an employee cost.",
+        body: [
+          "Companies record share-based payments as an employee expense, spread over the vesting period. Companies following Ind AS apply Ind AS 102. Others generally follow the ICAI Guidance Note on Accounting for Share-based Payments.",
+          "The expense is based on the fair value of each option on the grant date, not the share's value. This is usually estimated with an option-pricing model such as Black-Scholes, using the share's fair value, the exercise price, expected life, expected volatility, a risk-free rate and expected dividends.",
+          "Auditors look closely at these inputs, especially volatility for an unlisted startup, which is usually taken from comparable listed companies.",
+        ],
+        cards: [
+          { label: "Inputs", value: "share value, exercise price, life" },
+          { label: "Also", value: "volatility, risk-free rate" },
+          { label: "Expense", value: "spread over vesting" },
+        ],
+      },
+      {
+        id: "when",
+        eyebrow: "When you need one",
+        title: "Moments that usually call for a valuation.",
+        body: [
+          "If you run ESOPs, plan valuations around these events so they are not a scramble.",
+        ],
+        bullets: [
+          "Before employees exercise, if the last merchant banker report is more than 180 days old.",
+          "When setting or revising the exercise price for a new batch of grants.",
+          "At year end, for the share-based payment expense in the accounts.",
+          "Before a buyback, so the buyback price can be supported.",
+          "After a priced funding round, which usually changes the fair value materially.",
+        ],
+      },
+      {
+        id: "employees",
+        eyebrow: "For employees",
+        title: "Which valuation should an employee care about?",
+        body: [
+          "Two of the three. The merchant banker FMV, because it decides your tax at exercise. And your exercise price, because it decides what you pay. The accounting fair value of an option matters to the company's books, not to your tax.",
+          "Remember that none of these is a sale price. An unlisted share can only be turned into cash through a buyback, a secondary sale, an acquisition or an IPO, and the price there may be higher or lower than the last FMV.",
+        ],
+      },
+    ],
+    personaViews: [
+      { label: "Founder", value: "Plan merchant banker reports around exercise windows and rounds, so employees are never blocked." },
+      { label: "CA", value: "Keep the tax FMV and the accounting fair value clearly separate in your working papers." },
+      { label: "Employee", value: "Ask for the latest FMV and its date. It drives the tax you pay when you exercise." },
+      { label: "HR", value: "Publish the FMV used for each exercise window, so employees can plan the cash they need." },
+    ],
+    checklist: [
+      "Know which of the three valuations you are discussing.",
+      "Check the date of the latest merchant banker FMV report.",
+      "Get a new report if exercises will happen more than 180 days later.",
+      "Record the exercise price and its formula in the ESOP scheme.",
+      "Agree option fair value inputs with auditors before year end.",
+    ],
+    mistakes: [
+      "Using the funding round price per share as the tax FMV without a merchant banker report.",
+      "Letting employees exercise on an FMV report older than 180 days.",
+      "Confusing the value of a share with the fair value of an option.",
+      "Treating any valuation as a guaranteed exit price.",
+    ],
+    faq: [
+      {
+        question: "Who can do ESOP valuation for tax in India?",
+        answer: "For unlisted shares, a Category I merchant banker registered with SEBI determines the fair market value used to calculate the perquisite at exercise.",
+      },
+      {
+        question: "How long is an ESOP FMV report valid?",
+        answer: "The fair market value can be as of the exercise date or any date up to 180 days before it. Exercises after that need a newer valuation.",
+      },
+      {
+        question: "Is Black-Scholes used for ESOP valuation in India?",
+        answer: "Commonly, yes, for the fair value of options used in the company's accounts. It is not used for the tax FMV, which values the share rather than the option.",
+      },
+      {
+        question: "Is ESOP valuation the same as a startup valuation?",
+        answer: "No. A funding round sets a price for preference shares bought by investors. ESOP valuations value ordinary shares or options for tax and accounting, and are usually lower.",
+      },
+    ],
+    related: [
+      "esop-exercise-cost",
+      "what-is-an-esop",
+      "startup-raised-funding-dilution",
+    ],
+  },
+  "cap-table-india": {
+    category: "Cap table",
+    stage: "Founder basics",
+    audience: ["Founders", "CAs", "HR"],
+    readTime: "5 min read",
+    videoTime: "3 min video",
+    title: "How to make a cap table for an Indian startup (with a free builder)",
+    description:
+      "A step-by-step guide to building your startup's cap table in India: equity, CCPS, ESOP pool, fully diluted ownership, modelling a funding round, the registers you must keep, and common mistakes. Includes a free cap table builder.",
+    keywords: [
+      "cap table",
+      "cap table India",
+      "how to make a cap table",
+      "cap table template",
+      "cap table calculator",
+      "fully diluted ownership",
+      "ESOP pool cap table",
+      "option pool shuffle",
+    ],
+    icon: Layers3,
+    quickAnswer: [
+      "A cap table lists who owns what in your company: every shareholder, how many shares or convertible securities they hold, and their percentage.",
+      "Show ownership on a fully diluted basis: count CCPS and CCDs as if converted, and include the whole ESOP pool, granted and unallocated.",
+      "Model every round before you sign it. Investors usually want the ESOP pool topped up before their money comes in, so the dilution falls on existing holders.",
+      "Your cap table must match the statutory records: the register of members, the ESOP register and the allotments filed with the RoC.",
+    ],
+    heroStats: [
+      { label: "Shows", value: "who owns what" },
+      { label: "Basis", value: "fully diluted" },
+      { label: "Includes", value: "ESOP pool" },
+      { label: "Must match", value: "statutory registers" },
+    ],
+    modelCards: [
+      { label: "Rows", value: "every holder" },
+      { label: "Columns", value: "security, shares, %" },
+      { label: "Scenarios", value: "the next round" },
+    ],
+    sections: [
+      {
+        id: "what",
+        eyebrow: "What it is",
+        title: "A cap table is the single source of truth for ownership.",
+        body: [
+          "A capitalisation table, or cap table, is a table of everyone who owns a piece of the company: founders, angel and venture investors, employees with shares or options, and advisors. For each, it shows the type and number of securities they hold, and their percentage of the company.",
+          "Investors ask for it in every round, acquirers ask for it in every deal, and employees with ESOPs depend on it being right. An error found during due diligence can delay a round by weeks.",
+        ],
+      },
+      {
+        id: "build",
+        eyebrow: "Step by step",
+        title: "How to build your first cap table.",
+        body: [
+          "Start from your incorporation documents and every allotment since. Do not start from memory.",
+        ],
+        bullets: [
+          "List every shareholder and the date and number of shares in each allotment or transfer.",
+          "Record the class of each security: equity shares, compulsorily convertible preference shares (CCPS), compulsorily convertible debentures (CCDs), warrants or convertible notes.",
+          "Add the ESOP pool: the total reserved under your ESOP scheme, split into options granted and options still unallocated.",
+          "Convert CCPS and CCDs at their current conversion ratio to get the fully diluted share count.",
+          "Calculate each holder's percentage of the fully diluted total.",
+          "Check the totals against the paid-up capital in your latest filings.",
+        ],
+      },
+      {
+        id: "fully-diluted",
+        eyebrow: "Fully diluted",
+        title: "Why “fully diluted” is the number that matters.",
+        body: [
+          "Percentages based only on equity shares overstate founders' ownership, because Indian investors usually hold CCPS that will convert into equity, and the ESOP pool will eventually be issued.",
+          "Fully diluted ownership counts everything that can become equity: equity shares, preference shares and debentures as if converted, and the whole ESOP pool. This is the basis investors use to price rounds, and the basis employees should use to understand what their options represent.",
+        ],
+        cards: [
+          { label: "Equity only", value: "overstates founders" },
+          { label: "Fully diluted", value: "what investors use" },
+          { label: "Includes", value: "CCPS, CCDs, pool" },
+        ],
+      },
+      {
+        id: "round",
+        eyebrow: "Modelling a round",
+        title: "Model the round, including the ESOP top-up, before you sign.",
+        body: [
+          "In a priced round, the price per share is the pre-money valuation divided by the fully diluted shares before the round. The investor's percentage after the round is the amount invested divided by the post-money valuation.",
+          "Investors often ask for the ESOP pool to be increased to a target size, say 10% to 15% after the round, and for the extra options to be counted in the pre-money. This is often called the option pool shuffle. It lowers the price per share and moves the dilution from the new investor onto existing shareholders.",
+          "For example, raising ₹5 crore at a ₹20 crore pre-money gives the investor 20%. If the pool must also reach 12% afterwards, founders who held 80% before the round can end up near 60%, not the 64% they might expect.",
+        ],
+      },
+      {
+        id: "records",
+        eyebrow: "Compliance",
+        title: "Your cap table must match your statutory records.",
+        body: [
+          "A spreadsheet cap table is a working tool. The legal record is the company's statutory registers and filings, and the two must agree.",
+        ],
+        bullets: [
+          "Register of members, which lists every shareholder.",
+          "Register of employee stock options, which records grants, vesting, exercise and lapse.",
+          "Return of allotment (PAS-3) filed with the RoC after shares are allotted, including on ESOP exercise.",
+          "Board and shareholder resolutions for each allotment, transfer and ESOP grant.",
+        ],
+        warning:
+          "Your company secretary maintains the statutory registers and filings. Reconcile your cap table with them after every allotment.",
+      },
+      {
+        id: "tools",
+        eyebrow: "Tools",
+        title: "Spreadsheet, free builder or ESOP software.",
+        body: [
+          "A spreadsheet works for a very early company, but breaks once you have convertibles, an ESOP pool and several rounds. Formula errors are the most common cap table problem in due diligence.",
+          "You can model your cap table and your next round for free with our cap table builder, without an account. When you need a dated record of every allotment, an ESOP register and a grant page for each employee, a dedicated ESOP system such as the EVC Startup plan keeps it all in one place.",
+        ],
+      },
+    ],
+    personaViews: [
+      { label: "Founder", value: "Model every round, including the pool top-up, before you agree a term sheet." },
+      { label: "CA / CS", value: "Reconcile the cap table with the registers and PAS-3 filings after every allotment." },
+      { label: "Investor", value: "A clean, fully diluted cap table speeds up due diligence." },
+      { label: "Employee", value: "Your options only mean something as a percentage of the fully diluted total." },
+    ],
+    checklist: [
+      "Collect every allotment and transfer since incorporation.",
+      "Record the class and conversion terms of every security.",
+      "Add the ESOP pool, granted and unallocated.",
+      "Calculate fully diluted percentages.",
+      "Model the next round with the pool top-up.",
+      "Reconcile with the register of members and RoC filings.",
+    ],
+    mistakes: [
+      "Leaving the ESOP pool out of the percentages.",
+      "Showing CCPS holders at their pre-conversion share count.",
+      "Ignoring the pool top-up when negotiating valuation.",
+      "Letting the spreadsheet drift away from the statutory registers.",
+    ],
+    faq: [
+      {
+        question: "What is a cap table?",
+        answer: "A table that lists every shareholder in a company, the securities they hold and their percentage ownership, usually on a fully diluted basis.",
+      },
+      {
+        question: "Should the ESOP pool be in the cap table?",
+        answer: "Yes. Include the whole pool, both granted and unallocated options, so percentages reflect full dilution.",
+      },
+      {
+        question: "What is the option pool shuffle?",
+        answer:
+          "When investors require the ESOP pool to be increased before their investment, so the new options dilute existing shareholders rather than the new investor.",
+      },
+      {
+        question: "Is there a free cap table tool?",
+        answer: "Yes. ESOP Value Clarity's cap table builder is free without an account and lets you model a funding round. Exporting to CSV needs a free account.",
+      },
+    ],
+    related: [
+      "startup-raised-funding-dilution",
+      "dilution-explained",
+      "esop-valuation-india",
     ],
   },
 } satisfies Record<string, Article>;

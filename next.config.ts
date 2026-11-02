@@ -11,6 +11,8 @@ const privatePaths = [
   "/profile/:path*",
   "/team/:path*",
   "/share/:path*",
+  "/company/:path*",
+  "/grant/:path*",
   "/login",
   "/signup",
   "/forgot-password",
@@ -23,6 +25,19 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return privatePaths.map((source) => ({ source, headers: NOINDEX }));
+  },
+
+  // One address for Google: send www.esopvalueclarity.com to esopvalueclarity.com
+  // (permanent 308), so rankings are not split across two copies of every page.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.esopvalueclarity.com" }],
+        destination: "https://esopvalueclarity.com/:path*",
+        permanent: true,
+      },
+    ];
   },
 };
 

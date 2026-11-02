@@ -27,12 +27,12 @@ export const metadata: Metadata = {
 
   title: {
     default:
-      "ESOP Value Clarity | Employee Equity Decision Platform",
+      "ESOP Value Clarity: ESOP Calculator and Cap Table Tool for India",
     template: "%s | ESOP Value Clarity",
   },
 
   description:
-    "ESOP Value Clarity is an employee-first equity decision platform for understanding ESOP grants, vesting, dilution, exercise costs, tax scenarios, exit outcomes and equity-heavy job offers.",
+    "Free ESOP calculator for employees and a free cap table builder for founders in India. See vesting, exercise cost, tax and take-home value, and run ESOP grants for your startup.",
 
   keywords: [
     "ESOP",
@@ -52,6 +52,10 @@ export const metadata: Metadata = {
     "Salary vs ESOP",
     "Equity Offer Analysis",
     "Employee Equity Decision Platform",
+    "Cap table India",
+    "Free cap table builder",
+    "ESOP management software",
+    "ESOP valuation India",
   ],
 
   authors: [
@@ -93,7 +97,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title:
-      "ESOP Value Clarity | Employee Equity Decision Platform",
+      "ESOP Value Clarity: ESOP Calculator and Cap Table Tool for India",
 
     description:
       "Understand your ESOP grant, vesting, dilution, exercise economics, tax scenarios and exit outcomes. Compare equity-heavy job offers with assumptions kept visible.",
@@ -121,7 +125,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
 
     title:
-      "ESOP Value Clarity | Employee Equity Decision Platform",
+      "ESOP Value Clarity: ESOP Calculator and Cap Table Tool for India",
 
     description:
       "Understand ESOP grants, vesting, dilution, exercise, tax and exit scenarios. Compare startup offers without treating uncertain equity like guaranteed salary.",
