@@ -9,6 +9,14 @@ import { Menu, X, Crown } from "lucide-react";
 interface User {
   name: string;
   email: string;
+  account?: {
+    plan?: string;
+    isPro?: boolean;
+    isFounder?: boolean;
+    isTeamSponsored?: boolean;
+    isTeamMember?: boolean;
+    isTeamAdmin?: boolean;
+  };
 }
 
 export default function NavBar() {
@@ -39,6 +47,18 @@ export default function NavBar() {
 
     loadUser();
   }, [pathname]);
+
+  // PRO switch: users who already have PRO go to their PRO workspace;
+  // everyone else goes to Pricing to upgrade.
+  const hasPro =
+    user?.account?.isPro === true ||
+    user?.account?.plan === "PRO" ||
+    user?.account?.isFounder === true ||
+    user?.account?.isTeamSponsored === true ||
+    user?.account?.isTeamMember === true ||
+    user?.account?.isTeamAdmin === true;
+
+  const proHref = hasPro ? "/pro" : "/pricing";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
@@ -78,14 +98,20 @@ export default function NavBar() {
                   text-white
                   shadow-sm
                   transition
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:shadow-md
+                  active:translate-y-0
+                  active:scale-95
                 "
               >
                 FREE
               </Link>
 
-              {/* PRO - Upgrade */}
+              {/* PRO - workspace if subscribed, otherwise Upgrade */}
               <Link
-                href="/pricing"
+                href={proHref}
+                title={hasPro ? "Open your PRO workspace" : "See PRO plans"}
                 className="
                   group
                   flex
@@ -100,11 +126,15 @@ export default function NavBar() {
                   transition
                   hover:bg-slate-100
                   hover:text-slate-950
+                  duration-300
+                  hover:-translate-y-0.5
+                  active:translate-y-0
+                  active:scale-95
                 "
               >
                 <Crown
                   size={12}
-                  className="text-amber-500 transition-transform group-hover:scale-110"
+                  className="text-amber-500 transition-transform group-hover:scale-110 duration-300 group-hover:-rotate-12"
                 />
 
                 PRO
@@ -117,7 +147,7 @@ export default function NavBar() {
         {/* DESKTOP NAVIGATION                                  */}
         {/* ================================================== */}
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-5 md:flex lg:gap-8">
 
           <NavLink
             href="/dashboard"
@@ -150,6 +180,13 @@ export default function NavBar() {
             active={pathname === "/history"}
           >
             History
+          </NavLink>
+
+          <NavLink
+            href="/pricing"
+            active={pathname === "/pricing"}
+          >
+            Pricing
           </NavLink>
 
           <NavLink
@@ -191,6 +228,11 @@ export default function NavBar() {
                   text-slate-700
                   transition
                   hover:bg-slate-100
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:shadow-sm
+                  active:translate-y-0
+                  active:scale-95
                 "
               >
                 Login
@@ -208,6 +250,11 @@ export default function NavBar() {
                   text-white
                   transition
                   hover:bg-slate-800
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:shadow-md
+                  active:translate-y-0
+                  active:scale-95
                 "
               >
                 Sign Up
@@ -237,6 +284,8 @@ export default function NavBar() {
             transition
             hover:bg-slate-50
             md:hidden
+            duration-300
+            active:scale-90
           "
         >
           {open ? (
@@ -252,7 +301,7 @@ export default function NavBar() {
       {/* ================================================== */}
 
       {open && (
-        <div className="border-t border-slate-200 bg-white shadow-lg md:hidden">
+        <div className="border-t border-slate-200 bg-white shadow-lg md:hidden animate-[navSlide_.3s_ease-out]">
 
           <nav className="flex flex-col px-6 py-4">
 
@@ -283,9 +332,9 @@ export default function NavBar() {
                     FREE
                   </Link>
 
-                  {/* PRO */}
+                  {/* PRO - workspace if subscribed, otherwise Pricing */}
                   <Link
-                    href="/pricing"
+                    href={proHref}
                     onClick={() => setOpen(false)}
                     className="
                       flex
@@ -357,6 +406,14 @@ export default function NavBar() {
             </MobileLink>
 
             <MobileLink
+              href="/pricing"
+              active={pathname === "/pricing"}
+              onClick={() => setOpen(false)}
+            >
+              Pricing
+            </MobileLink>
+
+            <MobileLink
               href="/blog"
               active={pathname.startsWith("/blog")}
               onClick={() => setOpen(false)}
@@ -422,6 +479,16 @@ export default function NavBar() {
           </nav>
         </div>
       )}
+
+      <style>{`
+        @keyframes navSlide {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          header * { transition: none !important; animation: none !important; }
+        }
+      `}</style>
     </header>
   );
 }
@@ -445,10 +512,30 @@ function NavLink({
       className={`
         text-sm
         transition
+        relative
+        inline-flex
+        items-center
+        py-1.5
+        duration-300
+        hover:-translate-y-0.5
+        active:translate-y-0
+        active:scale-95
+        after:pointer-events-none
+        after:absolute
+        after:inset-x-0
+        after:-bottom-1
+        after:h-[2px]
+        after:origin-center
+        after:rounded-full
+        after:bg-[#F2B421]
+        after:transition-transform
+        after:duration-300
+        after:ease-out
+        hover:after:scale-x-100
         ${
           active
-            ? "font-semibold text-slate-950"
-            : "text-slate-500 hover:text-slate-950"
+            ? "font-semibold text-slate-950 after:scale-x-100"
+            : "text-slate-500 hover:text-slate-950 after:scale-x-0"
         }
       `}
     >
@@ -479,10 +566,17 @@ function MobileLink({
       className={`
         py-3
         text-base
+        transition-all
+        duration-300
+        hover:translate-x-1.5
+        hover:text-slate-950
+        active:scale-[0.98]
+        border-l-2
+        pl-3
         ${
           active
-            ? "font-semibold text-slate-950"
-            : "text-slate-600"
+            ? "font-semibold text-slate-950 border-[#F2B421]"
+            : "text-slate-600 border-transparent hover:border-slate-300"
         }
       `}
     >

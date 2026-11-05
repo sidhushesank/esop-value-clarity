@@ -135,6 +135,41 @@ type Fonts = {
   bold: PDFFont;
 };
 
+/* ============================================================
+   FONT FALLBACK
+   If the DejaVu fonts cannot be loaded or embedded, the report
+   falls back to the built-in Helvetica fonts. Those cannot draw
+   ₹ or some symbols, so text is cleaned first (₹ → "Rs.").
+============================================================ */
+
+const WIN_ANSI_EXTRA = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+
+function toWinAnsi(value: string): string {
+  return value
+    .replace(/₹\s?/g, "Rs. ")
+    .replace(/\u2212/g, "-")
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/≈/g, "~")
+    .replace(/≤/g, "<=")
+    .replace(/≥/g, ">=")
+    .replace(/\u00a0/g, " ")
+    .split("")
+    .filter((ch) => {
+      const code = ch.charCodeAt(0);
+      return (
+        (code >= 32 && code <= 126) ||
+        (code >= 160 && code <= 255) ||
+        ch === "\n" ||
+        WIN_ANSI_EXTRA.includes(ch)
+      );
+    })
+    .join("");
+}
+
+/* Identity while the embedded DejaVu fonts are in use. */
+let cleanText: (value: string) => string = (value) => value;
+
 function wrap(
   text: string,
   font: PDFFont,
@@ -143,7 +178,7 @@ function wrap(
 ): string[] {
   const lines: string[] = [];
 
-  for (const paragraph of text.split("\n")) {
+  for (const paragraph of cleanText(text).split("\n")) {
     const tokens = paragraph.split(" ");
     let line = "";
 
@@ -217,27 +252,50 @@ export async function buildEmployeeReportPdf(
   if (options?.fontsOverride) {
     fonts = await options.fontsOverride(doc);
   } else {
-    const fontkit = (
-      await import("@pdf-lib/fontkit")
-    ).default;
+    try {
+      const fontkit = (
+        await import("@pdf-lib/fontkit")
+      ).default;
 
-    doc.registerFontkit(fontkit);
+      doc.registerFontkit(fontkit);
 
-    const { regularBytes, boldBytes } =
-      await (
-        options?.loadFonts ??
-        defaultFontLoader
-      )();
+      const { regularBytes, boldBytes } =
+        await (
+          options?.loadFonts ??
+          defaultFontLoader
+        )();
 
-    fonts = {
-      regular: await doc.embedFont(
-        regularBytes,
-        { subset: true }
-      ),
-      bold: await doc.embedFont(boldBytes, {
-        subset: true,
-      }),
-    };
+      fonts = {
+        regular: await doc.embedFont(
+          regularBytes,
+          { subset: true }
+        ),
+        bold: await doc.embedFont(boldBytes, {
+          subset: true,
+        }),
+      };
+
+      cleanText = (value) => value;
+    } catch (error) {
+      // Never block the download: use the built-in fonts instead.
+      console.warn(
+        "[EVC report] Custom fonts unavailable, using built-in fonts:",
+        error
+      );
+
+      const { StandardFonts } = await import("pdf-lib");
+
+      fonts = {
+        regular: await doc.embedFont(
+          StandardFonts.Helvetica
+        ),
+        bold: await doc.embedFont(
+          StandardFonts.HelveticaBold
+        ),
+      };
+
+      cleanText = toWinAnsi;
+    }
   }
 
   const page: PDFPage = doc.addPage([
@@ -268,7 +326,7 @@ export async function buildEmployeeReportPdf(
     font: PDFFont,
     color = INK
   ) => {
-    page.drawText(value, {
+    page.drawText(cleanText(value), {
       x,
       y: toY(top) - size * 0.8,
       size,
@@ -289,7 +347,7 @@ export async function buildEmployeeReportPdf(
       value,
       rightX -
         font.widthOfTextAtSize(
-          value,
+          cleanText(value),
           size
         ),
       top,
@@ -767,10 +825,32 @@ export async function buildEmployeeReportPdf(
   return doc.save();
 }
 
+/* TrueType / OpenType files start with one of these signatures. */
+function looksLikeFont(bytes: ArrayBuffer): boolean {
+  if (bytes.byteLength < 4) return false;
+  const b = new Uint8Array(bytes, 0, 4);
+  const tag = String.fromCharCode(b[0], b[1], b[2], b[3]);
+  return (
+    (b[0] === 0 && b[1] === 1 && b[2] === 0 && b[3] === 0) ||
+    tag === "true" ||
+    tag === "OTTO" ||
+    tag === "ttcf"
+  );
+}
+
 async function defaultFontLoader() {
+  const base =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "";
+
   const [regular, bold] = await Promise.all([
-    fetch("/fonts/DejaVuSans.ttf"),
-    fetch("/fonts/DejaVuSans-Bold.ttf"),
+    fetch(`${base}/fonts/DejaVuSans.ttf`, {
+      cache: "force-cache",
+    }),
+    fetch(`${base}/fonts/DejaVuSans-Bold.ttf`, {
+      cache: "force-cache",
+    }),
   ]);
 
   if (!regular.ok || !bold.ok) {
@@ -779,8 +859,14 @@ async function defaultFontLoader() {
     );
   }
 
-  return {
-    regularBytes: await regular.arrayBuffer(),
-    boldBytes: await bold.arrayBuffer(),
-  };
+  const regularBytes = await regular.arrayBuffer();
+  const boldBytes = await bold.arrayBuffer();
+
+  if (!looksLikeFont(regularBytes) || !looksLikeFont(boldBytes)) {
+    throw new Error(
+      "The files in public/fonts are not valid fonts (the server returned something else, e.g. a web page)."
+    );
+  }
+
+  return { regularBytes, boldBytes };
 }
