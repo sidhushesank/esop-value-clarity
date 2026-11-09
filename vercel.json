@@ -4,5 +4,13 @@
       "path": "/api/cron/tax-reminders",
       "schedule": "30 2 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "esop-value-clarity.vercel.app" }],
+      "destination": "https://esopvalueclarity.com/:path*",
+      "permanent": true
+    }
   ]
 }
