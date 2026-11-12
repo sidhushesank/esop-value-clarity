@@ -8,25 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // Private / logged-in / transactional areas should never be crawled.
-        disallow: [
-          "/api/",
-          "/admin",
-          "/advisor",
-          "/company",
-          "/grant/",
-          "/pro",
-          "/dashboard",
-          "/history",
-          "/profile",
-          "/team",
-          "/share/",
-          "/login",
-          "/signup",
-          "/forgot-password",
-          "/reset-password",
-          "/verify-email",
-        ],
+        // Only block the API. Private pages are NOT blocked here on purpose:
+        // they send "X-Robots-Tag: noindex" (next.config.ts), and Google must
+        // be allowed to crawl them to see that noindex and drop them.
+        disallow: ["/api/"],
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

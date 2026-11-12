@@ -1,0 +1,44 @@
+# ESOP Value Clarity
+ 
+> ESOP Value Clarity (EVC) is an Indian ESOP platform. Employees use the free ESOP calculator to see what their stock options could be worth after vesting, dilution, exercise cost and Indian tax. Founders use the free cap table builder and the paid company workspace to run ESOP grants. Built in India, for Indian startups and employees (INR, Indian tax rules).
+ 
+Key facts:
+- Free ESOP calculator for employees in India: vesting, cliff, exercise (strike) price, dilution, perquisite tax and capital gains tax, exit scenarios, and side-by-side comparison of startup job offers.
+- Free cap table builder for Indian founders: no sign-up needed, funding round modelling, ESOP pool, CSV export.
+- Paid plans for companies and advisors: ESOP grant management, grant letters, vesting tracking, and tax-event reminders.
+- Paying customers include Ather and Revolt.
+- Founder: Sheshank Sidheshwar.
+- Figures are estimates for decision-making, not tax or legal advice.
+ 
+## Tools
+ 
+- [ESOP calculator (simulator)](https://esopvalueclarity.com/simulator): Calculate the value of an ESOP grant in India, covering vesting, exercise cost, dilution, tax and take-home value.
+- [Free cap table builder](https://esopvalueclarity.com/cap-table): Build a startup cap table for India with funding rounds and an ESOP pool.
+- [Pricing](https://esopvalueclarity.com/pricing): Plans for individuals and companies.
+ 
+## Guides
+ 
+- [What is an ESOP](https://esopvalueclarity.com/blog/what-is-an-esop): ESOP meaning and how employee stock options work in Indian startups.
+- [ESOP vesting schedule](https://esopvalueclarity.com/blog/vesting-schedule): Cliff, graded vesting, and typical 4-year schedules.
+- [ESOP exercise cost](https://esopvalueclarity.com/blog/esop-exercise-cost): Exercise (strike) price, the cash needed to exercise, and tax on exercise in India.
+- [ESOP vs RSU](https://esopvalueclarity.com/blog/esop-vs-rsu): Differences between ESOPs and RSUs, including tax.
+- [Dilution explained](https://esopvalueclarity.com/blog/dilution-explained): How funding rounds dilute employee equity.
+- [ESOP valuation in India](https://esopvalueclarity.com/blog/esop-valuation-india): How ESOPs are valued in India (FMV, merchant banker valuation).
+- [Cap table in India](https://esopvalueclarity.com/blog/cap-table-india): What a cap table is and how Indian startups maintain one.
+- [Offered 25,000 ESOPs?](https://esopvalueclarity.com/blog/startup-offered-25000-esops): How to work out what an ESOP offer is really worth.
+- [Should I negotiate ESOPs?](https://esopvalueclarity.com/blog/should-i-negotiate-esops): Negotiating equity in a startup offer.
+- [Leaving a startup with ESOPs](https://esopvalueclarity.com/blog/leaving-startup-esop-options): Exercise windows and choices when you leave.
+- [Startup raised funding: what happens to my ESOPs](https://esopvalueclarity.com/blog/startup-raised-funding-dilution): Effect of a new round on your options.
+- [Compare startup offers with equity](https://esopvalueclarity.com/blog/compare-startup-offers-equity): Comparing cash-plus-equity job offers.
+ 
+## Company
+ 
+- [About](https://esopvalueclarity.com/about)
+- [Book a meeting](https://esopvalueclarity.com/meeting)
+ 
+## Optional
+ 
+- [Privacy policy](https://esopvalueclarity.com/privacy)
+- [Terms](https://esopvalueclarity.com/terms)
+- [Disclaimer](https://esopvalueclarity.com/disclaimer)
+ 
