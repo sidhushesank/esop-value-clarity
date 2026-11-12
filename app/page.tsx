@@ -274,7 +274,7 @@ const VIDEOS = [
   {
     key: "overview",
     label: "Product overview",
-    src: "https://www.youtube-nocookie.com/embed/0g_rMiEd1hA",
+    src: "https://www.youtube.com/watch?v=QfBgHBeGIXA",
     title: "ESOP Value Clarity product overview",
     heading: "What EVC does, end to end.",
     description:
