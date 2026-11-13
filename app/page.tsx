@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
@@ -51,6 +52,7 @@ import {
   Mail,
   Minus,
   MonitorPlay,
+  Play,
   Plus,
   ReceiptIndianRupee,
   Scale,
@@ -61,7 +63,6 @@ import {
   Upload,
   UserRound,
   Users,
-  Video,
   Workflow,
   X,
   Zap,
@@ -270,36 +271,70 @@ const AUDIENCES = [
   },
 ];
 
+/* Videos on the home page. `uploadDate` must be the real YouTube upload
+   date in full ISO 8601 with a time zone, e.g. "2026-11-10T18:00:00+05:30"
+   (YouTube Studio → Content → Date). VideoObject schema is only emitted
+   for videos where it is filled in, so Google never sees a bad date. */
 const VIDEOS = [
   {
-    key: "overview",
-    label: "Product overview",
-    src: "https://www.youtube.com/watch?v=QfBgHBeGIXA",
-    title: "ESOP Value Clarity product overview",
-    heading: "What EVC does, end to end.",
+    key: "advisor",
+    id: "KM8xuPqDL_w",
+    duration: "6:30",
+    durationISO: "PT6M30S",
+    uploadDate: "2026-11-13T18:00:00+05:30",
+    icon: Landmark,
+    label: "For CA & CS firms",
+    title: "ESOP compliance checks and ESOP tax for CA and CS firms: EVC Advisor Console",
+    heading: "ESOP compliance and tax, for every client.",
     description:
-      "A short tour of the full chain: how a grant becomes a confirmed model, how the scenarios work, and what the final report looks like.",
+      "How CA and CS firms run ESOP work across client companies in the Advisor Console: grant registers, compliance checks and the tax-event ledger.",
     points: [
-      "Why ESOP letters leave people guessing",
-      "Grant letter to confirmed model",
-      "Bear, Base and Bull take-home",
-      "The one-page report",
+      "Client companies and grant registers in one console",
+      "Compliance checks across every grant",
+      "Tax-event ledger for exercises and sales",
+      "Client-ready reports without rebuilding models",
     ],
+    cta: { label: "Book an advisor walkthrough", href: "/meeting" },
+  },
+  {
+    key: "employee",
+    id: "QfBgHBeGIXA",
+    duration: "4:52",
+    durationISO: "PT4M52S",
+    uploadDate: "2026-11-12T12:00:00+05:30",
+    icon: UserRound,
+    label: "For employees",
+    title: "What is your ESOP grant worth after tax?",
+    heading: "What your grant is worth, after tax.",
+    description:
+      "From the number of options in a grant letter to the rupees you actually keep: vesting, exercise cost, perquisite tax and capital gains.",
+    points: [
+      "What is vested, and what lapses if you leave",
+      "Cash needed to exercise, before any exit",
+      "Perquisite tax at exercise, capital gains at sale",
+      "Take-home across Bear, Base and Bull exits",
+    ],
+    cta: { label: "Model your grant free", href: "/simulator" },
   },
   {
     key: "walkthrough",
-    label: "Full walkthrough",
-    src: "https://www.youtube-nocookie.com/embed/k2LzKS1WkzA?start=1",
+    id: "TMNxdmn4uJM",
+    duration: "3:44",
+    durationISO: "PT3M44S",
+    uploadDate: "2026-10-15T12:00:00+05:30",
+    icon: MonitorPlay,
+    label: "Product walkthrough",
     title: "ESOP Value Clarity product walkthrough",
     heading: "Every screen, on a real workflow.",
     description:
-      "A longer, screen-by-screen walk through the PRO workspace, the way an employee or advisor would actually use it.",
+      "A screen-by-screen walk through EVC, the way an employee, founder or advisor would actually use it.",
     points: [
       "Uploading and confirming a grant",
       "Vesting, exercise and dilution",
-      "Tax under old and new regimes",
-      "Exporting the report",
+      "Tax under the old and new regimes",
+      "Exporting the one-page report",
     ],
+    cta: { label: "Book a 20-minute walkthrough", href: "/meeting" },
   },
 ];
 
@@ -1765,81 +1800,378 @@ function TrustSection() {
 }
 
 /* ============================================================
-   SEE IT WORKING
+   SEE IT WORKING (video studio)
+   - Thumbnail first, YouTube loads only on Play (fast page, no
+     three heavy iframes on load)
+   - Playlist rail: click, or use arrow keys
+   - Cursor spotlight + soft tilt on the player, animated gold frame
 ============================================================ */
+
+const YT_PLAYLIST_ID = "PLXeZ52MngCE4";
+const YT_PLAYLIST_URL = `https://www.youtube.com/playlist?list=${YT_PLAYLIST_ID}`;
+
+const ytThumb = (id: string, size: "maxresdefault" | "hqdefault" | "mqdefault") =>
+  `https://i.ytimg.com/vi/${id}/${size}.jpg`;
+
+const ytEmbed = (id: string) =>
+  `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
 
 function VideoSection() {
   const [active, setActive] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const railRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const video = VIDEOS[active];
+  const next = VIDEOS[(active + 1) % VIDEOS.length];
+  const totalMinutes = Math.round(
+    VIDEOS.reduce((sum, v) => {
+      const [m, sec] = v.duration.split(":").map(Number);
+      return sum + m * 60 + sec;
+    }, 0) / 60
+  );
+
+  const videoSchema = VIDEOS.filter((v) => v.uploadDate).map((v) => ({
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    name: v.title,
+    description: v.description,
+    thumbnailUrl: [ytThumb(v.id, "hqdefault")],
+    uploadDate: v.uploadDate,
+    duration: v.durationISO,
+    embedUrl: `https://www.youtube-nocookie.com/embed/${v.id}`,
+  }));
+
+  function select(index: number, play = playing) {
+    setActive(index);
+    setPlaying(play);
+  }
+
+  function handleRailKey(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const forward = event.key === "ArrowDown" || event.key === "ArrowRight";
+    const back = event.key === "ArrowUp" || event.key === "ArrowLeft";
+    if (!forward && !back) return;
+    event.preventDefault();
+    const index = (active + (forward ? 1 : VIDEOS.length - 1)) % VIDEOS.length;
+    select(index);
+    railRefs.current[index]?.focus();
+  }
+
+  function handleMove(event: ReactMouseEvent<HTMLDivElement>) {
+    const node = frameRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    node.style.setProperty("--x", `${x * 100}%`);
+    node.style.setProperty("--y", `${y * 100}%`);
+    if (!playing) {
+      node.style.transform = `perspective(1400px) rotateX(${((0.5 - y) * 3).toFixed(2)}deg) rotateY(${((x - 0.5) * 3).toFixed(2)}deg)`;
+    }
+  }
+
+  function handleLeave() {
+    if (frameRef.current) frameRef.current.style.transform = "";
+  }
 
   return (
-    <section className="mx-auto max-w-[1200px] px-4 py-24 sm:px-6 md:py-32">
-      <Reveal>
-        <Eyebrow>See it working</Eyebrow>
-        <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
-          Watch the product, not a pitch.
-        </h2>
-        <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-          Real screens, real flow. Start with the short overview, or watch the
-          full walkthrough to see every step an employee or advisor takes.
-        </p>
-      </Reveal>
+    <section id="videos" className="relative isolate overflow-hidden bg-[#020d1f] py-24 text-white md:py-32">
+      <div className="evc-aurora pointer-events-none absolute inset-0 -z-10 opacity-70" />
+      <div className="evc-grid pointer-events-none absolute inset-0 -z-10" />
 
-      <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.55fr)]">
-        <Reveal>
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-[#020d1f] p-2 shadow-[0_50px_100px_-50px_rgba(4,38,83,0.7)]">
-            <div className="aspect-video overflow-hidden rounded-2xl bg-black">
-              <iframe
-                key={video.src}
-                className="h-full w-full"
-                src={video.src}
-                title={video.title}
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+      {videoSchema.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema).replace(/</g, "\\u003c") }}
+        />
+      )}
+
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+        {/* Header */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <Reveal>
+            <EyebrowDark>See it working</EyebrowDark>
+            <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+              Watch the product, <span className="evc-gold-text">not a pitch.</span>
+            </h2>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
+              Real screens, real workflows. Pick the video made for you: CA and
+              CS firms, employees, or the full product tour.
+            </p>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <div className="flex flex-wrap gap-2">
+              {VIDEOS.map((item, index) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => select(index)}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                    active === index
+                      ? "border-[#F2B421]/60 bg-[#F2B421]/15 text-[#FCE3A3]"
+                      : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/30 hover:text-white"
+                  }`}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,0.75fr)]">
+          {/* Player */}
+          <Reveal>
+            <div
+              ref={frameRef}
+              onMouseMove={handleMove}
+              onMouseLeave={handleLeave}
+              className="group/frame relative rounded-[28px] p-px transition-transform duration-300 ease-out [transform-style:preserve-3d]"
+            >
+              {/* animated gold border */}
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
+                <div className="evc-orbit absolute -inset-[60%]" />
+              </div>
+              <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[48px] bg-[#F2B421]/10 blur-3xl transition-opacity duration-500 group-hover/frame:opacity-100 lg:opacity-60" />
+
+              <div className="relative overflow-hidden rounded-[27px] bg-[#04122b] p-2 shadow-[0_60px_120px_-50px_rgba(0,0,0,0.95)]">
+                {/* window bar */}
+                <div className="flex items-center justify-between gap-3 px-3 pb-2.5 pt-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+                  </div>
+                  <p className="truncate text-[11px] text-slate-400">
+                    {String(active + 1).padStart(2, "0")} / {String(VIDEOS.length).padStart(2, "0")} · {video.label}
+                  </p>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-slate-300 ring-1 ring-white/10">
+                    {playing ? (
+                      <>
+                        <span className="evc-eq inline-flex h-2.5 items-end gap-[2px]">
+                          <span /><span /><span />
+                        </span>
+                        Playing
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-2.5 w-2.5 fill-current" />
+                        Ready
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <div className="relative aspect-video overflow-hidden rounded-[20px] bg-black">
+                  {playing ? (
+                    <iframe
+                      key={video.id}
+                      className="evc-swap h-full w-full"
+                      src={ytEmbed(video.id)}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <button
+                      key={video.id}
+                      type="button"
+                      onClick={() => setPlaying(true)}
+                      aria-label={`Play video: ${video.title}`}
+                      className="evc-swap group/play absolute inset-0 block h-full w-full text-left"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={ytThumb(video.id, "maxresdefault")}
+                        alt=""
+                        className="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover/play:scale-[1.04]"
+                        onLoad={(event) => {
+                          // YouTube serves a 120px grey placeholder when no HD thumbnail exists
+                          const img = event.currentTarget;
+                          if (img.naturalWidth <= 120) img.src = ytThumb(video.id, "hqdefault");
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.src = ytThumb(video.id, "hqdefault");
+                        }}
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-[#020d1f] via-[#020d1f]/35 to-[#020d1f]/10" />
+                      <span
+                        className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/frame:opacity-100"
+                        style={{ background: "radial-gradient(420px circle at var(--x, 50%) var(--y, 50%), rgba(242,180,33,0.18), transparent 45%)" }}
+                      />
+
+                      {/* play button */}
+                      <span className="absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center">
+                        <span className="evc-ring absolute h-20 w-20 rounded-full border-2 border-[#F2B421]/70 sm:h-24 sm:w-24" />
+                        <span className="evc-ring absolute h-20 w-20 rounded-full border-2 border-[#F2B421]/40 [animation-delay:.9s] sm:h-24 sm:w-24" />
+                        <span className="relative grid h-20 w-20 place-items-center rounded-full bg-[#F2B421] text-[#020d1f] shadow-[0_20px_60px_-10px_rgba(242,180,33,0.9)] transition duration-300 group-hover/play:scale-110 sm:h-24 sm:w-24">
+                          <Play className="ml-1 h-8 w-8 fill-current sm:h-9 sm:w-9" />
+                        </span>
+                      </span>
+
+                      {/* caption */}
+                      <span className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F2B421]/40 bg-[#020d1f]/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#F2B421] backdrop-blur">
+                          <video.icon className="h-3 w-3" />
+                          {video.label}
+                        </span>
+                        <span className="ml-2 inline-flex items-center rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold tabular-nums text-white backdrop-blur">
+                          {video.duration}
+                        </span>
+                        <span className="mt-3 block max-w-xl text-xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
+                          {video.heading}
+                        </span>
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Playlist rail */}
+          <Reveal delay={120}>
+            <div className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/[0.03] p-3 backdrop-blur">
+              <div className="flex items-center justify-between px-3 pb-3 pt-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Playlist · {VIDEOS.length} videos · {totalMinutes} min
+                </p>
+                <a
+                  href={YT_PLAYLIST_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-1 text-xs font-semibold text-[#F2B421] transition hover:text-white"
+                >
+                  View full playlist
+                  <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
+              </div>
+
+              <div onKeyDown={handleRailKey} className="relative flex flex-col gap-2">
+                {/* progress spine */}
+                <span className="pointer-events-none absolute bottom-8 left-[27px] top-8 hidden w-px bg-white/10 sm:block" />
+                <span
+                  className="pointer-events-none absolute left-[27px] top-8 hidden w-px bg-[#F2B421] transition-all duration-700 sm:block"
+                  style={{ height: `calc((100% - 4rem) * ${active / Math.max(1, VIDEOS.length - 1)})` }}
+                />
+
+                {VIDEOS.map((item, index) => {
+                  const isActive = active === index;
+                  return (
+                    <button
+                      key={item.key}
+                      ref={(node) => {
+                        railRefs.current[index] = node;
+                      }}
+                      type="button"
+                      aria-current={isActive}
+                      onClick={() => select(index, true)}
+                      className={`group/item relative flex items-center gap-3 rounded-2xl border p-2.5 text-left transition duration-300 ${
+                        isActive
+                          ? "border-[#F2B421]/40 bg-white/[0.08] shadow-[0_20px_50px_-30px_rgba(242,180,33,0.6)]"
+                          : "border-transparent hover:border-white/10 hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      <span
+                        className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-semibold transition ${
+                          isActive ? "bg-[#F2B421] text-[#020d1f]" : "bg-[#0b1d3d] text-slate-400 ring-1 ring-white/10"
+                        }`}
+                      >
+                        {isActive && playing ? (
+                          <span className="evc-eq inline-flex h-3 items-end gap-[2px]">
+                            <span /><span /><span />
+                          </span>
+                        ) : (
+                          String(index + 1).padStart(2, "0")
+                        )}
+                      </span>
+
+                      <span className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-white/10">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={ytThumb(item.id, "mqdefault")}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover transition duration-500 group-hover/item:scale-110"
+                        />
+                        <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-px text-[9px] font-semibold tabular-nums text-white">
+                          {item.duration}
+                        </span>
+                        <span className="absolute inset-0 grid place-items-center bg-black/30 opacity-0 transition group-hover/item:opacity-100">
+                          <Play className="h-4 w-4 fill-white text-white" />
+                        </span>
+                      </span>
+
+                      <span className="min-w-0">
+                        <span className={`block text-[10px] font-semibold uppercase tracking-[0.14em] ${isActive ? "text-[#F2B421]" : "text-slate-500"}`}>
+                          {item.label}
+                        </span>
+                        <span className={`mt-1 block text-sm font-semibold leading-snug ${isActive ? "text-white" : "text-slate-300"}`}>
+                          {item.heading}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* In this video */}
+              <div key={video.key} className="evc-panel mt-3 flex-1 rounded-2xl border border-white/10 bg-[#020d1f]/60 p-4">
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  <BookOpenText className="h-3.5 w-3.5 text-[#F2B421]" />
+                  In this video
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{video.description}</p>
+                <ul className="mt-3 space-y-2">
+                  {video.points.map((point, i) => (
+                    <li key={point} className="evc-stagger flex gap-2.5 text-sm text-slate-200" style={{ animationDelay: `${i * 70}ms` }}>
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F2B421]" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Action bar */}
+        <Reveal delay={160}>
+          <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <p className="text-sm text-slate-400">
+              Up next: <span className="font-medium text-white">{next.heading}</span>
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <a
+                href={`https://www.youtube.com/watch?v=${video.id}&list=${YT_PLAYLIST_ID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-semibold text-slate-200 transition hover:border-white/40 hover:text-white"
+              >
+                Watch on YouTube
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+              <button
+                type="button"
+                onClick={() => select((active + 1) % VIDEOS.length, true)}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-semibold text-slate-200 transition hover:border-white/40 hover:text-white"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                Play next
+              </button>
+              <Link
+                href={video.cta.href}
+                className="evc-btn-gold group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-5 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
+              >
+                {video.cta.label}
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </Link>
             </div>
           </div>
         </Reveal>
-
-        <div className="flex flex-col gap-3">
-          {VIDEOS.map((item, index) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setActive(index)}
-              className={`group rounded-2xl border p-5 text-left transition ${
-                active === index ? "border-[#042653] bg-[#042653] text-white shadow-[0_24px_60px_-30px_rgba(4,38,83,0.9)]" : "border-slate-200 bg-white hover:border-[#042653]/30"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {index === 0 ? (
-                  <MonitorPlay className={`h-4 w-4 ${active === index ? "text-[#F2B421]" : "text-[#042653]"}`} />
-                ) : (
-                  <Video className={`h-4 w-4 ${active === index ? "text-[#F2B421]" : "text-[#042653]"}`} />
-                )}
-                <span className={`text-xs font-semibold uppercase tracking-[0.14em] ${active === index ? "text-[#F2B421]" : "text-slate-500"}`}>{item.label}</span>
-              </div>
-              <p className="mt-3 font-semibold">{item.heading}</p>
-              <p className={`mt-1.5 text-sm leading-6 ${active === index ? "text-slate-300" : "text-slate-500"}`}>{item.description}</p>
-            </button>
-          ))}
-
-          <div key={video.key} className="evc-panel rounded-2xl border border-slate-200 bg-[#F7F9FC] p-5">
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              <BookOpenText className="h-3.5 w-3.5" />
-              In this video
-            </p>
-            <ul className="mt-3 space-y-2">
-              {video.points.map((point, i) => (
-                <li key={point} className="evc-stagger flex gap-2.5 text-sm text-slate-700" style={{ animationDelay: `${i * 70}ms` }}>
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F2B421]" />
-                  {point}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -3365,6 +3697,18 @@ const PAGE_CSS = `
 
 .evc-home .evc-blink { animation: evcBlink 1s steps(1) infinite; }
 @keyframes evcBlink { 50% { opacity: .35; } }
+
+.evc-home .evc-orbit {
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(242,180,33,0.0) 200deg, rgba(242,180,33,0.9) 300deg, #FCE3A3 330deg, transparent 360deg);
+  animation: evcOrbit 7s linear infinite;
+}
+@keyframes evcOrbit { to { transform: rotate(360deg); } }
+.evc-home .evc-swap { animation: evcSwap .6s cubic-bezier(.2,.7,.2,1); }
+@keyframes evcSwap { from { opacity: 0; transform: scale(1.03); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+.evc-home .evc-eq span { display: block; width: 2px; height: 100%; border-radius: 2px; background: currentColor; transform-origin: bottom; animation: evcEq .9s ease-in-out infinite; }
+.evc-home .evc-eq span:nth-child(2) { animation-delay: .2s; }
+.evc-home .evc-eq span:nth-child(3) { animation-delay: .4s; }
+@keyframes evcEq { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
 
 @media (prefers-reduced-motion: reduce) {
   .evc-home *, .evc-home *::before, .evc-home *::after {
