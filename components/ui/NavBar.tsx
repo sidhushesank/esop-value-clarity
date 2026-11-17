@@ -197,6 +197,13 @@ export default function NavBar() {
           </NavLink>
 
           <NavLink
+            href="/partners/taxbuddy"
+            active={pathname.startsWith("/partners")}
+          >
+            Partners
+          </NavLink>
+
+          <NavLink
             href="/about"
             active={pathname === "/about"}
           >
@@ -419,6 +426,14 @@ export default function NavBar() {
               onClick={() => setOpen(false)}
             >
               Blog
+            </MobileLink>
+
+            <MobileLink
+              href="/partners/taxbuddy"
+              active={pathname.startsWith("/partners")}
+              onClick={() => setOpen(false)}
+            >
+              Partners
             </MobileLink>
 
             <MobileLink
