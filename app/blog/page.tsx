@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "Equity Intelligence Hub | ESOP Value Clarity",
+    title: "ESOP Guides for India | ESOP Value Clarity",
     description:
       "Decision-first ESOP guides, calculators and scenario frameworks for startup equity decisions.",
     type: "website",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Equity Intelligence Hub | ESOP Value Clarity",
+    title: "ESOP Guides for India | ESOP Value Clarity",
     description:
       "Decision-first ESOP guides, calculators and scenario frameworks for startup equity decisions.",
     images: ["/og-image.png"],
@@ -143,7 +143,7 @@ const articles = [
 const hubJsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  name: "Equity Intelligence Hub",
+  name: "ESOP Guides for India",
   description:
     "Decision-first ESOP and startup equity guides from ESOP Value Clarity.",
   url: `${BASE_URL}/blog`,
@@ -216,6 +216,7 @@ export default function BlogPage() {
           video: a.videoTime,
           tools: a.hub.tools,
           icon: a.icon,
+          publishedAt: a.publishedAt,
         }))}
       />
 

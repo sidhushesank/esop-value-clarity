@@ -1,7 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Link from "next/link";
+import BlogInsights from "@/app/blog/BlogInsights";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -33,6 +41,7 @@ import {
   UserRound,
   UsersRound,
   WalletCards,
+  X,
   Youtube,
 } from "lucide-react";
 
@@ -246,112 +255,21 @@ const guides: Guide[] = [
   }
 ];
 
-const audienceFilters: Audience[] = [
-  "All",
-  "Employee",
-  "Founder",
-  "HR",
-  "CA",
-  "Tax",
+const AUDIENCES: { value: Audience; label: string }[] = [
+  { value: "All", label: "Everyone" },
+  { value: "Employee", label: "Employees" },
+  { value: "Founder", label: "Founders" },
+  { value: "HR", label: "HR" },
+  { value: "CA", label: "CAs" },
+  { value: "Tax", label: "Tax" },
 ];
 
-const decisionFilters = [
-  "All decisions",
-  "I have an offer",
-  "I am negotiating",
-  "I may exercise",
-  "I am leaving",
-  "Funding happened",
-  "I have two offers",
-  "Company news",
-];
-
-const personaCards = [
-  {
-    title: "Employees",
-    subtitle:
-      "Decode your offer before accepting, negotiating, exercising or leaving.",
-    icon: UserRound,
-    bullets: [
-      "What does the grant represent?",
-      "How much cash may I need?",
-      "What could dilution change?",
-    ],
-  },
-
-  {
-    title: "Founders",
-    subtitle:
-      "Explain equity without overselling future outcomes or hiding uncertainty.",
-    icon: Building2,
-    bullets: [
-      "Make offers easier to understand",
-      "Reduce option-count confusion",
-      "Communicate scenarios responsibly",
-    ],
-  },
-
-  {
-    title: "HR and Rewards",
-    subtitle:
-      "Turn equity communication into a repeatable employee education system.",
-    icon: UsersRound,
-    bullets: [
-      "Offer explainers",
-      "Vesting conversations",
-      "Leaving-company checklists",
-    ],
-  },
-
-  {
-    title: "CAs and advisors",
-    subtitle:
-      "Model cash, tax, timing and scenario sensitivity before major decisions.",
-    icon: Landmark,
-    bullets: [
-      "Exercise-cost planning",
-      "Tax-sensitive events",
-      "Client-ready explanation paths",
-    ],
-  },
-];
-
-const toolCards = [
-  {
-    title: "Grant reality check",
-    detail: "Move from option count to ownership questions.",
-    icon: Target,
-  },
-  {
-    title: "Exercise cost lens",
-    detail: "See why vested options can still require cash.",
-    icon: WalletCards,
-  },
-  {
-    title: "Dilution scenario lens",
-    detail:
-      "Understand how future funding can change percentage ownership.",
-    icon: Percent,
-  },
-  {
-    title: "Offer comparison lens",
-    detail:
-      "Separate guaranteed salary from uncertain equity opportunity.",
-    icon: Scale,
-  },
-];
+const POPULAR_SEARCHES = ["Exercise price", "Vesting", "Buyback", "Dilution", "Tax"];
 
 function formatINR(value: number) {
   if (!Number.isFinite(value)) return "-";
-
-  if (Math.abs(value) >= 10000000) {
-    return `₹${(value / 10000000).toFixed(2)}Cr`;
-  }
-
-  if (Math.abs(value) >= 100000) {
-    return `₹${(value / 100000).toFixed(2)}L`;
-  }
-
+  if (Math.abs(value) >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`;
+  if (Math.abs(value) >= 100000) return `₹${(value / 100000).toFixed(2)} L`;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -360,7 +278,10 @@ function formatINR(value: number) {
 }
 
 /** A guide from content/articles/*.json, passed in by app/blog/page.tsx. */
-export type ExtraGuide = Omit<Guide, "icon" | "featured"> & { icon: string };
+export type ExtraGuide = Omit<Guide, "icon" | "featured"> & {
+  icon: string;
+  publishedAt?: string;
+};
 
 const EXTRA_GUIDE_ICONS: Record<string, LucideIcon> = {
   BriefcaseBusiness,
@@ -379,12 +300,52 @@ const EXTRA_GUIDE_ICONS: Record<string, LucideIcon> = {
   WalletCards,
 };
 
+type HubGuide = Guide & { publishedAt?: string };
+
+/** Moves a soft gold spotlight with the cursor (see .evc-spot). */
+function trackSpotlight(event: ReactMouseEvent<HTMLElement>) {
+  const el = event.currentTarget;
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty("--x", `${event.clientX - rect.left}px`);
+  el.style.setProperty("--y", `${event.clientY - rect.top}px`);
+}
+
+/** Adds .is-in to [data-reveal] elements as they scroll into view. */
+function useReveal(rescanKey: unknown) {
+  const root = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = root.current;
+    if (!node) return;
+    const items = Array.from(node.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-in)"));
+    if (typeof IntersectionObserver === "undefined") {
+      items.forEach((item) => item.classList.add("is-in"));
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    );
+    items.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, [rescanKey]);
+
+  return root;
+}
+
 export default function KnowledgeHubClient({
   extraGuides = [],
 }: {
   extraGuides?: ExtraGuide[];
 }) {
-  const allGuides = useMemo<Guide[]>(
+  const allGuides = useMemo<HubGuide[]>(
     () => [
       ...extraGuides.map((guide) => ({
         ...guide,
@@ -395,856 +356,514 @@ export default function KnowledgeHubClient({
     [extraGuides],
   );
 
-  const [activeAudience, setActiveAudience] =
-    useState<Audience>("All");
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    allGuides.forEach((guide) => seen.add(guide.category));
+    return ["All topics", ...Array.from(seen)];
+  }, [allGuides]);
 
-  const [activeDecision, setActiveDecision] =
-    useState("All decisions");
-
+  const [topic, setTopic] = useState("All topics");
+  const [audience, setAudience] = useState<Audience>("All");
   const [query, setQuery] = useState("");
 
-  const [optionCount, setOptionCount] = useState(25000);
-  const [strikePrice, setStrikePrice] = useState(10);
-  const [exitPrice, setExitPrice] = useState(120);
-  const [dilution, setDilution] = useState(20);
-
-  const filteredGuides = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return allGuides.filter((guide) => {
-      const matchesAudience =
-        activeAudience === "All" ||
-        guide.audience.includes(
-          activeAudience as Exclude<Audience, "All">,
-        );
-
-      const matchesDecision =
-        activeDecision === "All decisions" ||
-        guide.stage === activeDecision;
-
-      const searchable =
-        `${guide.title} ${guide.summary} ${guide.category} ${guide.stage} ${guide.tags.join(
-          " ",
-        )}`.toLowerCase();
-
-      const matchesQuery =
-        !normalizedQuery ||
-        searchable.includes(normalizedQuery);
-
-      return (
-        matchesAudience &&
-        matchesDecision &&
-        matchesQuery
-      );
+      if (topic !== "All topics" && guide.category !== topic) return false;
+      if (audience !== "All" && !guide.audience.includes(audience as Exclude<Audience, "All">)) return false;
+      if (!q) return true;
+      return `${guide.title} ${guide.summary} ${guide.category} ${guide.tags.join(" ")}`
+        .toLowerCase()
+        .includes(q);
     });
-  }, [allGuides, activeAudience, activeDecision, query]);
+  }, [allGuides, topic, audience, query]);
 
-  const featuredGuide =
-    allGuides.find((guide) => guide.featured) ?? allGuides[0];
+  const latest = allGuides[0];
+  const filterKey = `${topic}|${audience}|${query}`;
+  const pageRef = useReveal(filterKey);
 
-  const exerciseCost =
-    optionCount * strikePrice;
+  function resetFilters() {
+    setTopic("All topics");
+    setAudience("All");
+    setQuery("");
+  }
 
-  const preDilutionSpread =
-    optionCount *
-    Math.max(exitPrice - strikePrice, 0);
-
-  const postDilutionSpread =
-    preDilutionSpread *
-    (1 - dilution / 100);
+  function jumpToGuides() {
+    document.getElementById("guides")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f7f9fc] text-[#0f172a]">
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-[#dbe5f0] bg-[#030817] text-white">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
-            backgroundSize: "68px 68px",
-          }}
-        />
+    <div ref={pageRef} className="evc-blog overflow-x-clip bg-white text-[#042653] antialiased">
+      <style dangerouslySetInnerHTML={{ __html: BLOG_CSS }} />
+      <ScrollProgress />
 
-        <div className="pointer-events-none absolute -left-40 -top-40 h-[620px] w-[620px] rounded-full bg-[#2563eb]/20 blur-[150px]" />
-        <div className="pointer-events-none absolute -right-40 top-[-180px] h-[620px] w-[620px] rounded-full bg-[#94a3b8]/15 blur-[160px]" />
-        <div className="pointer-events-none absolute bottom-[-260px] left-[38%] h-[540px] w-[540px] rounded-full bg-[#3b82f6]/10 blur-[150px]" />
+      {/* ===================== HERO ===================== */}
+      <section className="relative isolate overflow-hidden bg-[#020d1f] text-white">
+        <div className="evc-aurora pointer-events-none absolute inset-0 -z-10" />
+        <div className="evc-grid pointer-events-none absolute inset-0 -z-10" />
+        <div className="evc-beam pointer-events-none absolute -top-40 left-1/2 -z-10 h-[480px] w-[860px] -translate-x-1/2" />
 
-        <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28 lg:py-32">
-          <div className="grid gap-14 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-4 py-2 backdrop-blur">
-                <Sparkles className="h-4 w-4 text-[#3b82f6]" />
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-4 pb-20 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
+          <div>
+            <p
+              className="evc-rise inline-flex items-center gap-2 rounded-full border border-[#F2B421]/30 bg-[#F2B421]/[0.08] px-3 py-1 text-xs text-[#FCE3A3]"
+              style={{ animationDelay: "0ms" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#F2B421]" />
+              {allGuides.length} free guides · new posts every week
+            </p>
 
-                <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[#bfdbfe]">
-                  Equity Intelligence Hub
-                </span>
-              </div>
+            <h1
+              className="evc-rise mt-6 text-[2.5rem] font-semibold leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-[3.6rem]"
+              style={{ animationDelay: "80ms" }}
+            >
+              ESOP guides for India, in{" "}
+              <span className="evc-gold-text whitespace-nowrap">plain English.</span>
+            </h1>
 
-              <h1 className="mt-8 max-w-4xl text-5xl font-black leading-[0.98] tracking-[-0.06em] md:text-7xl">
-                Startup equity is not one number.
-                <span className="block text-[#60a5fa]">
-                  It is a decision system.
-                </span>
-              </h1>
+            <p
+              className="evc-rise mt-5 max-w-xl text-lg leading-8 text-slate-300"
+              style={{ animationDelay: "160ms" }}
+            >
+              Tax, vesting, buybacks, dilution and what Indian companies are doing with ESOPs,
+              each worked through with real rupee numbers.
+            </p>
 
-              <p className="mt-8 max-w-2xl text-lg leading-8 text-[#dbeafe] md:text-xl">
-                Decision-first guides, mini tools and scenario
-                frameworks for employees, founders, HR teams and
-                advisors who need to understand ESOPs before
-                accepting, negotiating, exercising or explaining
-                equity.
-              </p>
-
-              <div className="mt-9 flex flex-wrap gap-3">
-                <a
-                  href="#decision-center"
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-black text-white shadow-[0_18px_50px_-20px_rgba(37,99,235,.75)] transition duration-300 hover:-translate-y-1 hover:bg-[#3b82f6]"
-                >
-                  Find my equity decision
-
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
-                </a>
-
-                <Link
-                  href="/simulator"
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-6 text-sm font-black text-white backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/[0.12]"
-                >
-                  <Calculator className="h-4 w-4 text-[#60a5fa]" />
-                  Open ESOP simulator
-                </Link>
-              </div>
-
-              <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
-                {[
-                  ["Decision-first", "not dictionary-first"],
-                  ["Scenario-based", "not predictions"],
-                  ["Product-linked", "learn, model, compare"],
-                ].map(([value, label]) => (
-                  <div
-                    key={value}
-                    className="rounded-2xl border border-white/[0.1] bg-white/[0.06] p-4 backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/[0.09]"
+            <div className="evc-rise mt-8 max-w-xl" style={{ animationDelay: "240ms" }}>
+              <label htmlFor="guide-search" className="sr-only">
+                Search the guides
+              </label>
+              <div className="group flex h-14 items-center gap-3 rounded-xl border border-white/15 bg-white/[0.06] px-4 backdrop-blur transition focus-within:border-[#F2B421]/60 focus-within:bg-white/[0.09]">
+                <Search className="h-5 w-5 text-slate-400 transition group-focus-within:text-[#F2B421]" />
+                <input
+                  id="guide-search"
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") jumpToGuides();
+                  }}
+                  placeholder="Search: exercise price, buyback tax, vesting…"
+                  className="h-full w-full bg-transparent text-[15px] text-white placeholder:text-slate-500 focus:outline-none"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    aria-label="Clear search"
+                    className="rounded-md p-1 text-slate-400 transition hover:bg-white/10 hover:text-white"
                   >
-                    <p className="text-sm font-black text-white">
-                      {value}
-                    </p>
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
 
-                    <p className="mt-1 text-xs text-[#94a3b8]">
-                      {label}
-                    </p>
-                  </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <span>Popular:</span>
+                {POPULAR_SEARCHES.map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => {
+                      setQuery(term);
+                      jumpToGuides();
+                    }}
+                    className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-slate-300 transition hover:border-[#F2B421]/50 hover:text-white"
+                  >
+                    {term}
+                  </button>
                 ))}
               </div>
             </div>
-
-            {/* Decision map */}
-            <div className="relative">
-              <div className="absolute -inset-8 rounded-full bg-[#2563eb]/10 blur-3xl" />
-
-              <div className="relative overflow-hidden rounded-[32px] border border-white/12 bg-[#06101f]/85 shadow-[0_45px_130px_-45px_rgba(0,0,0,.9)] backdrop-blur-xl">
-                <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#94a3b8]" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#60a5fa]" />
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#94a3b8]">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#60a5fa] opacity-50" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#60a5fa]" />
-                    </span>
-
-                    Decision map
-                  </div>
-                </div>
-
-                <div className="p-6 md:p-7">
-                  <div className="flex items-start justify-between gap-5">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#60a5fa]">
-                        One grant. Many questions.
-                      </p>
-
-                      <h2 className="mt-2 text-2xl font-black tracking-tight">
-                        What should I check before I believe the number?
-                      </h2>
-                    </div>
-
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#3b82f6]/25 bg-[#3b82f6]/10 text-[#60a5fa]">
-                      <LineChart className="h-5 w-5" />
-                    </div>
-                  </div>
-
-                  <div className="mt-7 space-y-2">
-                    {[
-                      [Layers3, "Grant", "How many options and what type?"],
-                      [Percent, "Ownership", "What percentage do they represent?"],
-                      [WalletCards, "Exercise", "How much cash is required?"],
-                      [Gauge, "Dilution", "What can future funding change?"],
-                      [TrendingUp, "Outcome", "What scenarios are realistic?"],
-                    ].map(([IconValue, label, detail], index) => {
-                      const Icon = IconValue as LucideIcon;
-
-                      return (
-                        <div
-                          key={String(label)}
-                          className="group relative flex items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-4 py-3.5 transition duration-300 hover:translate-x-2 hover:bg-white/[0.075]"
-                        >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-[#030817] text-[#60a5fa] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
-                            <Icon className="h-4 w-4" />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">
-                              {String(label)}
-                            </p>
-
-                            <p className="mt-0.5 truncate text-sm font-bold text-white">
-                              {String(detail)}
-                            </p>
-                          </div>
-
-                          <span className="font-mono text-[10px] font-black text-[#64748b]">
-                            0{index + 1}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-5 rounded-2xl border border-[#3b82f6]/15 bg-[#3b82f6]/10 px-4 py-3">
-                    <p className="text-xs leading-5 text-[#dbeafe]">
-                      Move from confusion to a model — not from one
-                      definition to another definition.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOUNDER VIDEO */}
-      <section className="border-b border-[#dbe5f0] bg-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-20 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#93c5fd] bg-[#eff6ff] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-[#1d4ed8]">
-              <PlayCircle className="h-4 w-4" />
-              Founder video included
-            </div>
-
-            <h2 className="mt-6 max-w-xl text-4xl font-black tracking-[-0.045em] text-[#0f172a] md:text-5xl">
-              Put Sheshank's explanation inside the learning flow.
-            </h2>
-
-            <p className="mt-5 max-w-xl text-lg leading-8 text-[#475569]">
-              The video is not a random embed. It becomes a trust
-              layer: watch the founder explain the problem, then
-              move into the decision framework and the product.
-            </p>
-
-            <a
-              href={LINKEDIN_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-7 inline-flex items-center gap-2 text-sm font-black text-[#2563eb] hover:text-[#1d4ed8]"
-            >
-              Follow Sheshank on LinkedIn
-              <ArrowRight className="h-4 w-4" />
-            </a>
           </div>
 
-          <div className="overflow-hidden rounded-[30px] border border-[#dbe5f0] bg-white shadow-[0_35px_100px_-55px_rgba(15,23,42,.35)]">
-            <div className="aspect-video bg-[#030817]">
-              <iframe
-                className="h-full w-full"
-                src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1`}
-                title="ESOP Value Clarity video by Sheshank"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-
-            <div className="grid gap-3 p-5 sm:grid-cols-3">
-              {[
-                ["Watch", "Founder context"],
-                ["Read", "Decision framework"],
-                ["Model", "Simulator path"],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-2xl border border-[#dbe5f0] bg-[#f7f9fc] p-4"
-                >
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#2563eb]">
-                    {label}
-                  </p>
-
-                  <p className="mt-1 text-sm font-black text-[#0f172a]">
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DECISION CENTER */}
-      <section
-        id="decision-center"
-        className="mx-auto max-w-7xl px-6 py-20 md:py-24"
-      >
-        <div className="grid gap-8 lg:grid-cols-[.78fr_1.22fr] lg:items-end">
-          <div>
-            <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#2563eb]">
-              <Search className="h-4 w-4" />
-              Decision center
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[#0f172a] md:text-5xl">
-              Start with the situation, not the textbook topic.
-            </h2>
-          </div>
-
-          <p className="max-w-2xl text-lg leading-8 text-[#475569]">
-            People rarely search for equity because they want
-            definitions. They search because something happened:
-            an offer, a funding round, an exit, a tax question or a
-            negotiation moment.
-          </p>
-        </div>
-
-        <div className="mt-10 rounded-[32px] border border-[#dbe5f0] bg-white p-5 shadow-[0_30px_100px_-65px_rgba(15,23,42,.35)] md:p-7">
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#94a3b8]" />
-
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search exercise, dilution, leaving, offer, RSU, tax..."
-                className="h-14 w-full rounded-2xl border border-[#dbe5f0] bg-white pl-12 pr-4 text-sm font-semibold text-[#0f172a] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/15"
-              />
-            </div>
-
+          {latest && (
             <Link
-              href="/simulator"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#030817] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#06101f]"
+              href={`/blog/${latest.slug}`}
+              onMouseMove={trackSpotlight}
+              className="evc-rise evc-spot group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-[#F2B421]/40"
+              style={{ animationDelay: "320ms" }}
             >
-              <Calculator className="h-4 w-4 text-[#60a5fa]" />
-              Model in simulator
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#F2B421]">
+                  <span className="relative flex h-2 w-2">
+                    <span className="evc-ring absolute inline-flex h-full w-full rounded-full bg-[#F2B421]" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#F2B421]" />
+                  </span>
+                  Latest
+                </span>
+                <span className="text-xs text-slate-400">{latest.category}</span>
+              </div>
+
+              <h2 className="mt-5 text-2xl font-semibold leading-snug tracking-tight text-white">
+                {latest.title}
+              </h2>
+
+              <p className="mt-3 line-clamp-3 text-[15px] leading-7 text-slate-300">
+                {latest.summary}
+              </p>
+
+              <div className="mt-7 flex items-center justify-between border-t border-white/10 pt-5 text-sm">
+                <span className="inline-flex items-center gap-1.5 text-slate-400">
+                  <Clock3 className="h-4 w-4" />
+                  {latest.readTime}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-semibold text-[#F2B421]">
+                  Read it
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </div>
             </Link>
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
-            <aside className="space-y-5 rounded-[24px] border border-[#dbe5f0] bg-[#f7f9fc] p-5">
-              <div>
-                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  Reader
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {audienceFilters.map((audience) => (
-                    <button
-                      key={audience}
-                      type="button"
-                      onClick={() => setActiveAudience(audience)}
-                      className={`rounded-full px-3 py-2 text-xs font-black transition ${
-                        activeAudience === audience
-                          ? "bg-[#030817] text-white shadow-md"
-                          : "border border-[#dbe5f0] bg-white text-[#475569] hover:border-[#2563eb] hover:text-[#0f172a]"
-                      }`}
-                    >
-                      {audience}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
-                  Situation
-                </p>
-
-                <div className="mt-3 space-y-2">
-                  {decisionFilters.map((decision) => (
-                    <button
-                      key={decision}
-                      type="button"
-                      onClick={() => setActiveDecision(decision)}
-                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-xs font-black transition ${
-                        activeDecision === decision
-                          ? "bg-[#dbeafe] text-[#0f172a] ring-1 ring-[#2563eb]/35"
-                          : "bg-white text-[#475569] hover:bg-[#eff6ff] hover:text-[#0f172a]"
-                      }`}
-                    >
-                      {decision}
-
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </aside>
-
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-black text-[#0f172a]">
-                  {filteredGuides.length} decision guide
-                  {filteredGuides.length === 1 ? "" : "s"} found
-                </p>
-
-                <p className="text-xs font-semibold text-[#64748b]">
-                  Search intent → useful explanation → product action
-                </p>
-              </div>
-
-              <div className="mt-5 grid gap-5 md:grid-cols-2">
-                {filteredGuides.map((guide) => {
-                  const Icon = guide.icon;
-
-                  return (
-                    <Link
-                      key={guide.slug}
-                      href={`/blog/${guide.slug}`}
-                      className="group relative overflow-hidden rounded-[26px] border border-[#dbe5f0] bg-white p-6 transition duration-500 hover:-translate-y-2 hover:border-[#2563eb] hover:shadow-[0_35px_90px_-55px_rgba(37,99,235,.35)]"
-                    >
-                      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#3b82f6]/0 blur-3xl transition duration-500 group-hover:bg-[#3b82f6]/20" />
-
-                      <div className="relative flex items-start justify-between gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#dbe5f0] bg-white text-[#2563eb] shadow-sm transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
-                          <Icon className="h-5 w-5" />
-                        </div>
-
-                        <span className="rounded-full bg-[#eff6ff] px-3 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#1d4ed8]">
-                          {guide.category}
-                        </span>
-                      </div>
-
-                      <h3 className="relative mt-6 text-2xl font-black leading-[1.05] tracking-[-0.04em] text-[#0f172a]">
-                        {guide.title}
-                      </h3>
-
-                      <p className="relative mt-4 text-sm leading-7 text-[#475569]">
-                        {guide.summary}
-                      </p>
-
-                      <div className="relative mt-6 flex flex-wrap gap-2">
-                        {[
-                          guide.stage,
-                          guide.readTime,
-                          guide.video,
-                          guide.tools,
-                        ].map((item) => (
-                          <span
-                            key={item}
-                            className="rounded-full border border-[#dbe5f0] bg-white px-3 py-1.5 text-[10px] font-black text-[#475569]"
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="relative mt-6 flex items-center justify-between border-t border-[#dbe5f0] pt-5 text-sm font-black text-[#2563eb]">
-                        Open guide
-
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#dbe5f0] bg-white transition duration-300 group-hover:translate-x-1 group-hover:border-[#2563eb] group-hover:bg-[#2563eb] group-hover:text-white">
-                          <ArrowRight className="h-4 w-4" />
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {filteredGuides.length === 0 && (
-                <div className="mt-5 rounded-[26px] border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-10 text-center">
-                  <Search className="mx-auto h-6 w-6 text-[#94a3b8]" />
-
-                  <p className="mt-4 text-sm font-black text-[#0f172a]">
-                    No decision guides match those filters.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery("");
-                      setActiveAudience("All");
-                      setActiveDecision("All decisions");
-                    }}
-                    className="mt-5 rounded-xl bg-[#030817] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#2563eb]"
-                  >
-                    Reset filters
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* MINI SCENARIO */}
-      <section className="border-y border-[#dbe5f0] bg-white">
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:py-24 lg:grid-cols-[.95fr_1.05fr] lg:items-center">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#2563eb]">
-              Mini scenario lab
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[#0f172a] md:text-5xl">
-              Make the page feel like a product, not a post.
-            </h2>
-
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#475569]">
-              Readers should be able to touch the assumptions. This
-              small interactive preview gives them a feel for the
-              model, then routes serious analysis into EVC.
-            </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {toolCards.map((tool) => {
-                const Icon = tool.icon;
-
+      {/* ===================== GUIDES ===================== */}
+      <section id="guides" className="scroll-mt-20 bg-[#F7F9FC]">
+        <div className="sticky top-0 z-20 border-b border-slate-200 bg-[#F7F9FC]/90 backdrop-blur">
+          <div className="mx-auto flex max-w-[1200px] flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="evc-scrollx -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:pb-0">
+              {categories.map((item) => {
+                const active = item === topic;
                 return (
-                  <div
-                    key={tool.title}
-                    className="rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setTopic(item)}
+                    aria-pressed={active}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
+                      active
+                        ? "bg-[#042653] text-white shadow-sm"
+                        : "border border-slate-200 bg-white text-slate-600 hover:border-[#F2B421]/60 hover:text-[#042653]"
+                    }`}
                   >
-                    <Icon className="h-5 w-5 text-[#2563eb]" />
-
-                    <p className="mt-4 font-black text-[#0f172a]">
-                      {tool.title}
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-[#475569]">
-                      {tool.detail}
-                    </p>
-                  </div>
+                    {item}
+                  </button>
                 );
               })}
             </div>
+
+            <div className="flex items-center gap-3">
+              <label htmlFor="guide-audience" className="text-sm text-slate-500">
+                For
+              </label>
+              <select
+                id="guide-audience"
+                value={audience}
+                onChange={(event) => setAudience(event.target.value as Audience)}
+                className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-[#042653] transition hover:border-[#F2B421]/60 focus:border-[#F2B421] focus:outline-none"
+              >
+                {AUDIENCES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 md:py-20">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
+                {topic === "All topics" ? "All guides" : topic}
+              </h2>
+              <p className="mt-2 text-slate-500" aria-live="polite">
+                {filtered.length} {filtered.length === 1 ? "guide" : "guides"}
+                {query ? ` matching “${query}”` : ""}
+              </p>
+            </div>
+
+            {(topic !== "All topics" || audience !== "All" || query) && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#B7800E] transition hover:text-[#8A5A00]"
+              >
+                <X className="h-4 w-4" />
+                Clear filters
+              </button>
+            )}
           </div>
 
-          <div className="rounded-[32px] border border-[#dbe5f0] bg-white p-6 shadow-[0_35px_100px_-60px_rgba(15,23,42,.35)] md:p-8">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#2563eb]">
-                  Quick model
-                </p>
-
-                <h3 className="mt-2 text-2xl font-black tracking-[-0.035em] text-[#0f172a]">
-                  Option spread after dilution
-                </h3>
+          {filtered.length === 0 ? (
+            <div className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+              <p className="text-lg font-semibold">Nothing matches that yet.</p>
+              <p className="mt-2 text-slate-500">
+                Try a different word, or tell us what to write about next.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold transition hover:border-[#F2B421]"
+                >
+                  Show all guides
+                </button>
+                <a
+                  href="mailto:sheshank@esopvalueclarity.com?subject=Guide%20request"
+                  className="rounded-xl bg-[#042653] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#020d1f]"
+                >
+                  Request a guide
+                </a>
               </div>
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eff6ff] text-[#2563eb]">
-                <Calculator className="h-5 w-5" />
-              </div>
             </div>
+          ) : (
+            <div key={filterKey} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((guide, index) => {
+                const GuideIcon = guide.icon;
+                const isNews = guide.category === "Company news";
+                return (
+                  <Link
+                    key={guide.slug}
+                    href={`/blog/${guide.slug}`}
+                    onMouseMove={trackSpotlight}
+                    data-reveal
+                    style={{ transitionDelay: `${Math.min(index, 8) * 50}ms` }}
+                    className="evc-card evc-spot-light group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(4,38,83,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#F2B421]/60 hover:shadow-[0_24px_50px_-28px_rgba(4,38,83,0.35)]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] ${
+                          isNews ? "text-[#042653]" : "text-[#B7800E]"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                            isNews
+                              ? "bg-[#042653] text-[#F2B421]"
+                              : "bg-[#FFF4D6] text-[#B7800E] group-hover:bg-[#F2B421] group-hover:text-[#020d1f]"
+                          }`}
+                        >
+                          <GuideIcon className="h-4 w-4" />
+                        </span>
+                        {guide.category}
+                      </span>
+                      {guide.publishedAt && (
+                        <span className="text-xs text-slate-400">
+                          {new Date(`${guide.publishedAt}T00:00:00`).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      )}
+                    </div>
 
-            <div className="mt-7 space-y-5">
-              <RangeInput
-                label="Options"
-                value={optionCount}
-                min={1000}
-                max={100000}
-                step={1000}
-                onChange={setOptionCount}
-                display={optionCount.toLocaleString("en-IN")}
-              />
+                    <h3 className="mt-5 text-lg font-semibold leading-snug tracking-tight text-[#042653]">
+                      {guide.title}
+                    </h3>
 
-              <RangeInput
-                label="Strike price"
-                value={strikePrice}
-                min={1}
-                max={100}
-                step={1}
-                onChange={setStrikePrice}
-                display={`₹${strikePrice}`}
-              />
+                    <p className="mt-3 line-clamp-3 flex-1 text-[15px] leading-7 text-slate-600">
+                      {guide.summary}
+                    </p>
 
-              <RangeInput
-                label="Exit share value assumption"
-                value={exitPrice}
-                min={10}
-                max={500}
-                step={5}
-                onChange={setExitPrice}
-                display={`₹${exitPrice}`}
-              />
-
-              <RangeInput
-                label="Future dilution assumption"
-                value={dilution}
-                min={0}
-                max={60}
-                step={5}
-                onChange={setDilution}
-                display={`${dilution}%`}
-              />
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 text-sm">
+                      <span className="inline-flex items-center gap-1.5 text-slate-500">
+                        <Clock3 className="h-4 w-4" />
+                        {guide.readTime}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-[#042653] opacity-70 transition group-hover:opacity-100">
+                        Read
+                        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
+          )}
+        </div>
+      </section>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <MetricCard
-                label="Exercise cost"
-                value={formatINR(exerciseCost)}
-              />
+      {/* ===================== DATA, TAX, VESTING, PATHS ===================== */}
+      <BlogInsights />
 
-              <MetricCard
-                label="Pre-dilution spread"
-                value={formatINR(preDilutionSpread)}
-              />
+      {/* ===================== QUICK ESTIMATE ===================== */}
+      <QuickEstimate />
 
-              <MetricCard
-                label="After dilution"
-                value={formatINR(postDilutionSpread)}
-                highlight
-              />
-            </div>
-
-            <p className="mt-5 rounded-2xl border border-[#93c5fd] bg-[#f7f9fc] p-4 text-xs leading-6 text-[#64748b]">
-              Simplified educational preview. It does not include
-              taxes, liquidation preferences, plan-specific rules,
-              transaction costs or liquidity restrictions.
+      {/* ===================== ASK ===================== */}
+      <section className="mx-auto max-w-[1200px] px-4 py-20 sm:px-6 md:py-24">
+        <div
+          data-reveal
+          className="evc-card grid gap-8 rounded-3xl border border-slate-200 bg-white p-8 md:grid-cols-[1fr_auto] md:items-center md:p-12"
+        >
+          <div>
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] md:text-3xl">
+              Have an ESOP question we haven&apos;t covered?
+            </h2>
+            <p className="mt-3 max-w-2xl text-slate-600">
+              Every guide is written and checked by{" "}
+              <a
+                href={LINKEDIN_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-[#042653] underline decoration-[#F2B421] decoration-2 underline-offset-4 hover:text-[#B7800E]"
+              >
+                Sheshank Sidheshwar
+              </a>
+              , founder of ESOP Value Clarity. Send your question and it may become the next guide.
             </p>
-
-            <Link
-              href="/simulator"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#2563eb]"
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
+            <a
+              href="mailto:sheshank@esopvalueclarity.com?subject=ESOP%20question"
+              className="evc-btn-gold inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-6 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
             >
-              Continue in the full simulator
+              Ask a question
               <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link
+              href="/meeting"
+              className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 px-6 text-sm font-semibold text-[#042653] transition hover:border-[#042653]"
+            >
+              Book a walkthrough
             </Link>
           </div>
         </div>
       </section>
-
-      {/* AUDIENCE */}
-      <section className="mx-auto max-w-7xl px-6 py-20 md:py-24">
-        <div className="grid gap-8 lg:grid-cols-[.76fr_1.24fr] lg:items-end">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#2563eb]">
-              Audience lanes
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[#0f172a] md:text-5xl">
-              Same equity problem.
-              <span className="block text-[#94a3b8]">
-                Different questions.
-              </span>
-            </h2>
-          </div>
-
-          <p className="max-w-2xl text-lg leading-8 text-[#475569]">
-            The hub is deliberately useful to the people who have
-            shown the strongest reason to understand this product:
-            employees making real decisions, founders, HR and
-            compensation teams, and CAs/advisors.
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {personaCards.map((persona, index) => {
-            const Icon = persona.icon;
-
-            return (
-              <div
-                key={persona.title}
-                className="group relative overflow-hidden rounded-[28px] border border-[#dbe5f0] bg-white p-6 transition duration-500 hover:-translate-y-2 hover:border-[#2563eb] hover:shadow-[0_30px_90px_-55px_rgba(37,99,235,.4)]"
-              >
-                <span className="absolute right-5 top-5 font-mono text-xs font-black text-[#cbd5e1]">
-                  0{index + 1}
-                </span>
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#dbe5f0] bg-[#f7f9fc] text-[#2563eb] transition duration-300 group-hover:-rotate-6 group-hover:scale-110">
-                  <Icon className="h-5 w-5" />
-                </div>
-
-                <h3 className="mt-7 text-xl font-black tracking-[-0.03em] text-[#0f172a]">
-                  {persona.title}
-                </h3>
-
-                <p className="mt-3 text-sm leading-6 text-[#475569]">
-                  {persona.subtitle}
-                </p>
-
-                <div className="mt-6 space-y-3 border-t border-[#dbe5f0] pt-5">
-                  {persona.bullets.map((bullet) => (
-                    <div
-                      key={bullet}
-                      className="flex gap-2 text-xs font-semibold leading-5 text-[#475569]"
-                    >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
-                      {bullet}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* FEATURED CTA */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        <div className="relative overflow-hidden rounded-[36px] bg-[#030817] p-8 text-white md:p-12">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.1]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)",
-              backgroundSize: "58px 58px",
-            }}
-          />
-
-          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#2563eb]/20 blur-[90px]" />
-
-          <div className="relative grid gap-10 lg:grid-cols-[1fr_.82fr] lg:items-center">
-            <div>
-              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#60a5fa]">
-                <FileSearch className="h-4 w-4" />
-                Featured decision
-              </p>
-
-              <h2 className="mt-5 max-w-2xl text-4xl font-black tracking-[-0.05em] md:text-5xl">
-                {featuredGuide.title}
-              </h2>
-
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[#dbeafe]">
-                {featuredGuide.summary}
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href={`/blog/${featuredGuide.slug}`}
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-black text-white transition duration-300 hover:-translate-y-1 hover:bg-[#3b82f6]"
-                >
-                  Open the guide
-
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
-                </Link>
-
-                <Link
-                  href="/pro/offers/new"
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-6 text-sm font-black text-white transition duration-300 hover:-translate-y-1 hover:bg-white/[0.12]"
-                >
-                  Try Offer Intelligence
-                </Link>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                [
-                  HandCoins,
-                  "Option count",
-                  "The number that looks impressive",
-                ],
-                [
-                  Percent,
-                  "Ownership %",
-                  "The missing context",
-                ],
-                [
-                  WalletCards,
-                  "Exercise cost",
-                  "The cash decision",
-                ],
-                [
-                  TrendingUp,
-                  "Scenarios",
-                  "The range of possible outcomes",
-                ],
-              ].map(
-                ([IconValue, label, detail], index) => {
-                  const Icon = IconValue as LucideIcon;
-
-                  return (
-                    <div
-                      key={String(label)}
-                      className="group flex items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-4 transition duration-300 hover:translate-x-2 hover:bg-white/[0.075]"
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-[#60a5fa]">
-                        <Icon className="h-4 w-4" />
-                      </div>
-
-                      <div className="flex-1">
-                        <p className="text-sm font-black text-white">
-                          {String(label)}
-                        </p>
-
-                        <p className="mt-1 text-xs text-[#94a3b8]">
-                          {String(detail)}
-                        </p>
-                      </div>
-
-                      <span className="font-mono text-[9px] font-black text-[#64748b]">
-                        0{index + 1}
-                      </span>
-                    </div>
-                  );
-                },
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    </div>
   );
 }
 
-function RangeInput({
+/** Thin gold bar at the top of the window showing how far down the page you are. */
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] bg-transparent" aria-hidden="true">
+      <div
+        className="h-full origin-left bg-gradient-to-r from-[#F2B421] to-[#FCE3A3]"
+        style={{ transform: `scaleX(${progress})` }}
+      />
+    </div>
+  );
+}
+
+function QuickEstimate() {
+  const [options, setOptions] = useState(25000);
+  const [strike, setStrike] = useState(10);
+  const [exitPrice, setExitPrice] = useState(120);
+  const [dilution, setDilution] = useState(20);
+
+  const exerciseCost = options * strike;
+  const grossValue = options * Math.max(exitPrice - strike, 0);
+  const afterDilution = grossValue * (1 - dilution / 100);
+
+  return (
+    <section className="relative isolate overflow-hidden bg-[#020d1f] py-20 text-white md:py-28">
+      <div className="evc-grid pointer-events-none absolute inset-0 -z-10 opacity-70" />
+      <div className="evc-aurora pointer-events-none absolute inset-0 -z-10 opacity-50" />
+
+      <div className="mx-auto grid max-w-[1200px] gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
+        <div data-reveal className="evc-card">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F2B421]">
+            Quick estimate
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
+            Move the sliders. See what your grant could be worth.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            A rough first look before tax. The full calculator adds vesting, perquisite tax,
+            capital gains and exit scenarios.
+          </p>
+          <Link
+            href="/simulator"
+            className="evc-btn-gold mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-[#F2B421] px-6 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
+          >
+            Open the full ESOP calculator
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div
+          data-reveal
+          className="evc-card rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur md:p-8"
+        >
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Slider label="Options" value={options} min={1000} max={200000} step={1000} onChange={setOptions} format={(v) => v.toLocaleString("en-IN")} />
+            <Slider label="Exercise price" value={strike} min={1} max={500} step={1} onChange={setStrike} format={(v) => `₹${v}`} />
+            <Slider label="Price per share at exit" value={exitPrice} min={1} max={5000} step={5} onChange={setExitPrice} format={(v) => `₹${v.toLocaleString("en-IN")}`} />
+            <Slider label="Dilution before exit" value={dilution} min={0} max={70} step={1} onChange={setDilution} format={(v) => `${v}%`} />
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <Result label="Cash to exercise" value={formatINR(exerciseCost)} />
+            <Result label="Gain before dilution" value={formatINR(grossValue)} />
+            <Result label="Gain after dilution" value={formatINR(afterDilution)} highlight />
+          </div>
+
+          <p className="mt-5 text-xs leading-5 text-slate-400">
+            Illustration only, before tax. Dilution is applied to the gain as a simple percentage cut.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Slider({
   label,
   value,
   min,
   max,
   step,
-  display,
   onChange,
+  format,
 }: {
   label: string;
   value: number;
   min: number;
   max: number;
   step: number;
-  display: string;
   onChange: (value: number) => void;
+  format: (value: number) => string;
 }) {
+  const fill = ((value - min) / (max - min)) * 100;
   return (
     <label className="block">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm font-black text-[#0f172a]">
-          {label}
-        </span>
-
-        <span className="rounded-full bg-[#eff6ff] px-3 py-1 text-xs font-black text-[#1d4ed8]">
-          {display}
-        </span>
-      </div>
-
+      <span className="flex items-baseline justify-between text-sm">
+        <span className="text-slate-300">{label}</span>
+        <span className="font-semibold tabular-nums text-white">{format(value)}</span>
+      </span>
       <input
         type="range"
-        value={value}
         min={min}
         max={max}
         step={step}
-        onChange={(event) =>
-          onChange(Number(event.target.value))
-        }
-        className="mt-3 h-2 w-full cursor-pointer accent-[#2563eb]"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="evc-range mt-3 w-full"
+        style={{ "--fill": `${fill}%` } as CSSProperties}
       />
     </label>
   );
 }
 
-function MetricCard({
+function Result({
   label,
   value,
-  highlight,
+  highlight = false,
 }: {
   label: string;
   value: string;
@@ -1252,19 +871,107 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-4 ${
-        highlight
-          ? "border-[#2563eb] bg-[#eff6ff]"
-          : "border-[#dbe5f0] bg-[#f7f9fc]"
+      className={`rounded-xl border p-4 transition ${
+        highlight ? "border-[#F2B421]/40 bg-[#F2B421]/[0.08]" : "border-white/10 bg-white/[0.03]"
       }`}
     >
-      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#64748b]">
-        {label}
-      </p>
-
-      <p className="mt-2 text-xl font-black tracking-[-0.03em] text-[#0f172a]">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p
+        key={value}
+        className={`evc-swap mt-1 text-xl font-semibold tabular-nums ${highlight ? "text-[#F2B421]" : "text-white"}`}
+      >
         {value}
       </p>
     </div>
   );
 }
+
+const BLOG_CSS = `
+.evc-blog .evc-aurora {
+  background:
+    radial-gradient(40% 50% at 12% 8%, rgba(4,38,83,0.95), transparent 70%),
+    radial-gradient(35% 45% at 88% 18%, rgba(242,180,33,0.18), transparent 70%),
+    radial-gradient(45% 45% at 55% 100%, rgba(91,155,255,0.22), transparent 70%);
+  animation: evcAurora 18s ease-in-out infinite alternate;
+}
+@keyframes evcAurora {
+  0% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(-3%,2%,0) scale(1.06); }
+  100% { transform: translate3d(3%,-2%,0) scale(1.02); }
+}
+.evc-blog .evc-beam {
+  background: conic-gradient(from 180deg at 50% 0%, transparent 40%, rgba(242,180,33,0.16) 50%, transparent 60%);
+  filter: blur(30px);
+  animation: evcBeam 9s ease-in-out infinite alternate;
+}
+@keyframes evcBeam { from { opacity: .55; transform: translateX(-52%) rotate(-4deg); } to { opacity: 1; transform: translateX(-48%) rotate(4deg); } }
+.evc-blog .evc-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+}
+.evc-blog .evc-gold-text {
+  background: linear-gradient(90deg, #F2B421, #FCE3A3, #F2B421, #D9950C, #F2B421);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: evcShimmer 7s linear infinite;
+}
+@keyframes evcShimmer { to { background-position: 300% 0; } }
+
+.evc-blog .evc-rise { opacity: 0; animation: evcRise 0.9s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes evcRise { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+.evc-blog .evc-btn-gold { box-shadow: 0 10px 30px -10px rgba(242,180,33,0.65); }
+.evc-blog .evc-btn-gold:hover { box-shadow: 0 0 0 4px rgba(242,180,33,0.2), 0 16px 40px -12px rgba(242,180,33,0.85); }
+
+.evc-blog .evc-spot::before, .evc-blog .evc-spot-light::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s;
+  background: radial-gradient(360px circle at var(--x, 50%) var(--y, 50%), rgba(242,180,33,0.14), transparent 45%);
+}
+.evc-blog .evc-spot-light::before {
+  background: radial-gradient(320px circle at var(--x, 50%) var(--y, 50%), rgba(242,180,33,0.10), transparent 50%);
+}
+.evc-blog .evc-spot:hover::before, .evc-blog .evc-spot-light:hover::before { opacity: 1; }
+
+.evc-blog [data-reveal].evc-card { opacity: 0; transform: translateY(16px); transition-property: opacity, transform, translate, border-color, box-shadow; transition-duration: .6s, .6s, .3s, .3s, .3s; transition-timing-function: cubic-bezier(.2,.7,.2,1); }
+.evc-blog [data-reveal].evc-card.is-in { opacity: 1; transform: none; }
+.evc-blog [data-reveal].evc-card.is-in:hover { transition-delay: 0ms !important; }
+
+.evc-blog .evc-ring { animation: evcRing 1.8s ease-out infinite; }
+@keyframes evcRing { from { transform: scale(1); opacity: .9; } to { transform: scale(2.2); opacity: 0; } }
+
+.evc-blog .evc-swap { animation: evcSwap .45s cubic-bezier(.2,.7,.2,1); }
+@keyframes evcSwap { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.evc-blog .evc-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: linear-gradient(90deg, #F2B421 var(--fill), rgba(255,255,255,0.15) var(--fill)); cursor: pointer; }
+.evc-blog .evc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 5px rgba(242,180,33,0.35), 0 4px 12px rgba(0,0,0,0.4); transition: transform .15s; }
+.evc-blog .evc-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.evc-blog .evc-range::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 999px; background: #fff; box-shadow: 0 0 0 5px rgba(242,180,33,0.35); }
+
+.evc-blog .evc-range-light { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: linear-gradient(90deg, #F2B421 var(--fill), #E2E8F0 var(--fill)); cursor: pointer; }
+.evc-blog .evc-range-light::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 999px; background: #fff; border: 2px solid #B7800E; box-shadow: 0 2px 8px rgba(4,38,83,0.25); transition: transform .15s; }
+.evc-blog .evc-range-light::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.evc-blog .evc-range-light::-moz-range-thumb { width: 18px; height: 18px; border-radius: 999px; background: #fff; border: 2px solid #B7800E; }
+
+.evc-blog .evc-panel { animation: evcPanel .5s cubic-bezier(.2,.7,.2,1); }
+@keyframes evcPanel { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.evc-blog .recharts-wrapper, .evc-blog .recharts-surface { outline: none; }
+
+.evc-blog .evc-scrollx { scrollbar-width: none; }
+.evc-blog .evc-scrollx::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .evc-blog *, .evc-blog *::before, .evc-blog *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .evc-blog .evc-rise, .evc-blog [data-reveal].evc-card { opacity: 1; transform: none; }
+}
+`;
