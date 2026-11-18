@@ -2161,7 +2161,7 @@ export default async function ArticlePage({
   const Icon = article.icon;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f7f9fc] text-[#0f172a]">
+    <main className="min-h-screen overflow-hidden bg-[#F7F9FC] text-[#0f172a]">
       {/* ============================================================
           STRUCTURED DATA
       ============================================================ */}
@@ -2210,34 +2210,21 @@ export default async function ArticlePage({
           ARTICLE HERO
       ============================================================ */}
 
-      <section className="relative overflow-hidden border-b border-[#dbe5f0] bg-[#030817] text-white">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
-            backgroundSize: "68px 68px",
-          }}
-        />
-
-        <div className="pointer-events-none absolute -left-40 -top-40 h-[620px] w-[620px] rounded-full bg-[#2563eb]/20 blur-[150px]" />
-
-        <div className="pointer-events-none absolute -right-40 top-[-180px] h-[620px] w-[620px] rounded-full bg-[#94a3b8]/15 blur-[160px]" />
-
+      <section className="relative overflow-hidden border-b border-[#E2E8F0] bg-[#020d1f] text-white">
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
           <Link
             href="/blog"
-            className="group inline-flex items-center gap-2 text-sm font-black text-[#94a3b8] transition hover:text-white"
+            className="group inline-flex items-center gap-2 text-sm font-bold text-[#94a3b8] transition hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
 
-            Equity Intelligence Hub
+            All ESOP guides
           </Link>
 
           <div className="mt-12 grid gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-end">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#3b82f6]/25 bg-[#3b82f6]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-[#bfdbfe]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#F2B421]/25 bg-[#F2B421]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#FCE3A3]">
                   <Icon className="h-3.5 w-3.5" />
 
                   {article.category}
@@ -2256,11 +2243,11 @@ export default async function ArticlePage({
                 </span>
               </div>
 
-              <h1 className="mt-7 max-w-4xl text-4xl font-black leading-[1.02] tracking-[-0.055em] text-white md:text-6xl lg:text-[64px]">
+              <h1 className="mt-7 max-w-4xl text-3xl font-bold leading-tight tracking-tight text-white md:text-5xl">
                 {article.title}
               </h1>
 
-              <p className="mt-7 max-w-3xl text-lg leading-8 text-[#dbeafe]">
+              <p className="mt-7 max-w-3xl text-lg leading-8 text-[#CBD5E1]">
                 {article.description}
               </p>
 
@@ -2268,7 +2255,7 @@ export default async function ArticlePage({
                 {article.audience.map((item) => (
                   <span
                     key={item}
-                    className="rounded-full border border-white/12 bg-white/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#94a3b8]"
+                    className="rounded-full border border-white/12 bg-white/[0.07] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#94a3b8]"
                   >
                     {item}
                   </span>
@@ -2277,12 +2264,12 @@ export default async function ArticlePage({
 
               {/* Author signal */}
               <div className="mt-8 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-black text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.08] text-sm font-bold text-white">
                   S
                 </div>
 
                 <div>
-                  <p className="text-xs font-black text-white">
+                  <p className="text-xs font-bold text-white">
                     {AUTHOR_NAME}
                   </p>
 
@@ -2295,12 +2282,10 @@ export default async function ArticlePage({
 
             {/* Quick answer */}
             <div className="relative">
-              <div className="absolute -inset-8 rounded-full bg-[#2563eb]/10 blur-3xl" />
-
-              <div className="relative overflow-hidden rounded-[30px] border border-white/12 bg-[#06101f]/85 shadow-[0_45px_120px_-40px_rgba(0,0,0,.9)] backdrop-blur-xl">
+              <div className="relative overflow-hidden rounded-[30px] border border-white/12 bg-[#042653]/85 shadow-[0_45px_120px_-40px_rgba(0,0,0,.9)] backdrop-blur-xl">
                 <div className="border-b border-white/[0.08] px-6 py-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#60a5fa]">
-                    3-minute answer
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#F2B421]">
+                    Quick answer
                   </p>
                 </div>
 
@@ -2310,11 +2295,11 @@ export default async function ArticlePage({
                       key={item}
                       className="flex gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-4"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#3b82f6]/10 text-[10px] font-black text-[#60a5fa]">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F2B421]/10 text-[10px] font-bold text-[#F2B421]">
                         0{index + 1}
                       </span>
 
-                      <p className="text-sm leading-6 text-[#dbeafe]">
+                      <p className="text-sm leading-6 text-[#CBD5E1]">
                         {item}
                       </p>
                     </div>
@@ -2331,7 +2316,7 @@ export default async function ArticlePage({
                 key={stat.label}
                 className="rounded-2xl border border-white/[0.08] bg-white/[0.055] p-5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white/[0.085]"
               >
-                <p className="text-xl font-black tracking-tight text-white">
+                <p className="text-xl font-bold tracking-tight text-white">
                   {stat.value}
                 </p>
 
@@ -2351,9 +2336,9 @@ export default async function ArticlePage({
       <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-20 lg:grid-cols-[250px_minmax(0,780px)_240px] lg:justify-center">
         {/* LEFT TOC */}
         <aside className="hidden lg:block">
-          <div className="sticky top-8 rounded-[24px] border border-[#dbe5f0] bg-white p-5 shadow-sm">
-            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-[#1d4ed8]">
-              In this decision
+          <div className="sticky top-8 rounded-[24px] border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-[#B7800E]">
+              On this page
             </p>
 
             <nav className="mt-4 space-y-1">
@@ -2361,9 +2346,9 @@ export default async function ArticlePage({
                 <a
                   key={section.id}
                   href={`#${section.id}`}
-                  className="group flex items-center gap-3 rounded-xl px-2 py-2.5 text-xs font-bold text-[#64748b] transition hover:translate-x-1 hover:bg-[#f7f9fc] hover:text-[#0f172a]"
+                  className="group flex items-center gap-3 rounded-xl px-2 py-2.5 text-xs font-bold text-[#64748b] transition hover:translate-x-1 hover:bg-[#F7F9FC] hover:text-[#0f172a]"
                 >
-                  <span className="font-mono text-[9px] font-black text-[#94a3b8] group-hover:text-[#2563eb]">
+                  <span className="font-mono text-[9px] font-bold text-[#94a3b8] group-hover:text-[#B7800E]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
 
@@ -2376,21 +2361,17 @@ export default async function ArticlePage({
 
         {/* MAIN ARTICLE */}
         <article className="min-w-0">
-          <VideoBlock
-            articleTitle={article.title}
-          />
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {article.modelCards.map((card) => (
               <div
                 key={card.label}
-                className="rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+                className="rounded-[22px] border border-[#E2E8F0] bg-white p-5 shadow-sm"
               >
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#2563eb]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B7800E]">
                   {card.label}
                 </p>
 
-                <p className="mt-3 text-lg font-black tracking-[-0.03em] text-[#0f172a]">
+                <p className="mt-3 text-lg font-bold tracking-tight text-[#0f172a]">
                   {card.value}
                 </p>
               </div>
@@ -2405,6 +2386,8 @@ export default async function ArticlePage({
               />
             ))}
           </div>
+
+          <VideoBlock />
 
           <PersonaViews
             views={article.personaViews}
@@ -2440,63 +2423,13 @@ export default async function ArticlePage({
         {/* RIGHT SIDE */}
         <aside className="hidden lg:block">
           <div className="sticky top-8 space-y-4">
-            <div className="rounded-[24px] border border-[#dbe5f0] bg-white p-5 shadow-sm">
-              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
-                Article principles
-              </p>
-
-              <div className="mt-5 space-y-4">
-                {[
-                  [
-                    ShieldCheck,
-                    "Known terms",
-                    "Separate facts",
-                  ],
-                  [
-                    Gauge,
-                    "Assumptions",
-                    "Keep visible",
-                  ],
-                  [
-                    LineChart,
-                    "Scenarios",
-                    "Not forecasts",
-                  ],
-                ].map(
-                  ([IconValue, label, value]) => {
-                    const SmallIcon =
-                      IconValue as LucideIcon;
-
-                    return (
-                      <div
-                        key={String(label)}
-                        className="flex gap-3"
-                      >
-                        <SmallIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
-
-                        <div>
-                          <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#64748b]">
-                            {String(label)}
-                          </p>
-
-                          <p className="mt-1 text-xs font-black text-[#0f172a]">
-                            {String(value)}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
-              </div>
-            </div>
-
             <Link
               href="/simulator"
-              className="group block rounded-[24px] bg-[#030817] p-5 text-white shadow-lg shadow-[#dbe5f0] transition duration-300 hover:-translate-y-1 hover:bg-[#06101f]"
+              className="group block rounded-[24px] bg-[#020d1f] p-5 text-white shadow-lg shadow-[#E2E8F0] transition duration-300 hover:-translate-y-1 hover:bg-[#042653]"
             >
-              <Calculator className="h-5 w-5 text-[#60a5fa]" />
+              <Calculator className="h-5 w-5 text-[#F2B421]" />
 
-              <p className="mt-4 text-sm font-black">
+              <p className="mt-4 text-sm font-bold">
                 Model your own ESOP
               </p>
 
@@ -2515,62 +2448,41 @@ export default async function ArticlePage({
   );
 }
 
-function VideoBlock({
-  articleTitle,
-}: {
-  articleTitle: string;
-}) {
+function VideoBlock() {
   return (
-    <section className="overflow-hidden rounded-[30px] border border-[#dbe5f0] bg-white shadow-[0_28px_90px_-60px_rgba(15,23,42,.35)]">
-      <div className="grid lg:grid-cols-[.82fr_1.18fr]">
-        <div className="border-b border-[#dbe5f0] p-6 md:p-8 lg:border-b-0 lg:border-r">
-          <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
-            <PlayCircle className="h-4 w-4" />
-            Watch first
+    <section className="mt-16 overflow-hidden rounded-[24px] border border-[#E2E8F0] bg-white shadow-sm">
+      <div className="aspect-video w-full bg-[#020d1f]">
+        <iframe
+          className="h-full w-full"
+          src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1`}
+          title="ESOP Value Clarity walkthrough"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+
+      <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-bold text-[#0f172a]">
+            <PlayCircle className="h-4 w-4 text-[#B7800E]" />
+            Prefer to watch?
           </p>
 
-          <h2 className="mt-4 text-3xl font-black tracking-[-0.045em] text-[#0f172a]">
-            Sheshank explains the thinking behind ESOP Value Clarity.
-          </h2>
-
-          <p className="mt-4 text-sm leading-7 text-[#475569]">
-            Start with the founder's explanation, then move through
-            the decision framework below. This keeps the article
-            connected to the product instead of feeling like a
-            generic content page.
+          <p className="mt-1 text-sm leading-6 text-[#475569]">
+            A short walkthrough of how ESOP Value Clarity works out what your ESOPs are worth.
           </p>
-
-          <div className="mt-6 rounded-2xl border border-[#dbe5f0] bg-[#f7f9fc] p-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#2563eb]">
-              Article
-            </p>
-
-            <p className="mt-1 text-sm font-black leading-6 text-[#0f172a]">
-              {articleTitle}
-            </p>
-          </div>
-
-          <a
-            href={YOUTUBE_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex items-center gap-2 text-xs font-black text-[#2563eb]"
-          >
-            Open on YouTube
-            <ArrowRight className="h-3.5 w-3.5" />
-          </a>
         </div>
 
-        <div className="aspect-video bg-[#030817]">
-          <iframe
-            className="h-full w-full"
-            src={`https://www.youtube.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1`}
-            title="ESOP Value Clarity founder explanation"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        </div>
+        <a
+          href={YOUTUBE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-[#B7800E] hover:text-[#8A5A00]"
+        >
+          Open on YouTube
+          <ArrowRight className="h-4 w-4" />
+        </a>
       </div>
     </section>
   );
@@ -2587,12 +2499,12 @@ function ArticleSection({
       className="scroll-mt-10"
     >
       {section.eyebrow && (
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
           {section.eyebrow}
         </p>
       )}
 
-      <h2 className="mt-3 text-3xl font-black leading-tight tracking-[-0.045em] text-[#0f172a] md:text-4xl">
+      <h2 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-[#0f172a] md:text-4xl">
         {section.title}
       </h2>
 
@@ -2600,7 +2512,7 @@ function ArticleSection({
         {section.body.map((paragraph) => (
           <p
             key={paragraph}
-            className="text-[17px] leading-8 text-[#64748b]"
+            className="text-[17px] leading-8 text-[#334155]"
           >
             {paragraph}
           </p>
@@ -2608,17 +2520,27 @@ function ArticleSection({
       </div>
 
       {section.cards && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div
+          className={`mt-8 grid gap-4 ${
+            section.cards.length % 3 === 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"
+          }`}
+        >
           {section.cards.map((card) => (
             <div
               key={card.label}
-              className="rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+              className="rounded-[22px] border border-[#E2E8F0] bg-white p-5 shadow-sm"
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#1d4ed8]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B7800E]">
                 {card.label}
               </p>
 
-              <p className="mt-3 text-xl font-black tracking-[-0.035em] text-[#0f172a]">
+              <p
+                className={
+                  card.value.length > 40
+                    ? "mt-3 text-[15px] leading-7 text-[#475569]"
+                    : "mt-3 text-xl font-bold tracking-tight text-[#0f172a]"
+                }
+              >
                 {card.value}
               </p>
             </div>
@@ -2627,14 +2549,14 @@ function ArticleSection({
       )}
 
       {section.bullets && (
-        <div className="mt-8 rounded-[26px] border border-[#dbe5f0] bg-white p-6 shadow-sm">
+        <div className="mt-8 rounded-[26px] border border-[#E2E8F0] bg-white p-6 shadow-sm">
           <div className="grid gap-3 sm:grid-cols-2">
             {section.bullets.map((bullet) => (
               <div
                 key={bullet}
                 className="flex gap-3 text-sm font-semibold leading-6 text-[#64748b]"
               >
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2563eb]" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#B7800E]" />
 
                 {bullet}
               </div>
@@ -2644,9 +2566,9 @@ function ArticleSection({
       )}
 
       {section.warning && (
-        <div className="mt-8 rounded-[24px] border border-[#93c5fd] bg-[#eff6ff] p-6">
+        <div className="mt-8 rounded-[24px] border border-[#FCE3A3] bg-[#FFF8E6] p-6">
           <div className="flex gap-4">
-            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#2563eb]" />
+            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#B7800E]" />
 
             <p className="text-sm font-semibold leading-7 text-[#64748b]">
               {section.warning}
@@ -2667,8 +2589,8 @@ function PersonaViews({
   }[];
 }) {
   return (
-    <section className="mt-20 rounded-[30px] border border-[#dbe5f0] bg-white p-6 shadow-sm md:p-8">
-      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+    <section className="mt-20 rounded-[30px] border border-[#E2E8F0] bg-white p-6 shadow-sm md:p-8">
+      <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
         <UsersRound className="h-4 w-4" />
         Why this matters to each reader
       </p>
@@ -2677,9 +2599,9 @@ function PersonaViews({
         {views.map((view) => (
           <div
             key={view.label}
-            className="rounded-[22px] border border-[#dbe5f0] bg-[#f7f9fc] p-5"
+            className="rounded-[22px] border border-[#E2E8F0] bg-[#F7F9FC] p-5"
           >
-            <p className="text-sm font-black text-[#0f172a]">
+            <p className="text-sm font-bold text-[#0f172a]">
               {view.label}
             </p>
 
@@ -2699,8 +2621,8 @@ function DecisionChecklist({
   items: string[];
 }) {
   return (
-    <section className="mt-16 rounded-[30px] border border-[#dbe5f0] bg-[#ffffff] p-6 md:p-8">
-      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+    <section className="mt-16 rounded-[30px] border border-[#E2E8F0] bg-[#ffffff] p-6 md:p-8">
+      <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
         <FileSearch className="h-4 w-4" />
         Decision checklist
       </p>
@@ -2709,9 +2631,9 @@ function DecisionChecklist({
         {items.map((item, index) => (
           <div
             key={item}
-            className="flex items-center gap-4 rounded-2xl border border-[#dbe5f0] bg-white p-4"
+            className="flex items-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#eff6ff] text-[10px] font-black text-[#1d4ed8]">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF8E6] text-[10px] font-bold text-[#B7800E]">
               {String(index + 1).padStart(2, "0")}
             </span>
 
@@ -2732,7 +2654,7 @@ function MistakesBlock({
 }) {
   return (
     <section className="mt-16 rounded-[30px] border border-[#fecdd3] bg-[#fff1f2] p-6 md:p-8">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#be123c]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#be123c]">
         Common mistakes
       </p>
 
@@ -2760,7 +2682,7 @@ function FaqBlock({
 }) {
   return (
     <section className="mt-16">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
         FAQ
       </p>
 
@@ -2768,13 +2690,13 @@ function FaqBlock({
         {items.map((item) => (
           <details
             key={item.question}
-            className="group rounded-[22px] border border-[#dbe5f0] bg-white p-5 shadow-sm"
+            className="group rounded-[22px] border border-[#E2E8F0] bg-white p-5 shadow-sm"
           >
-            <summary className="cursor-pointer list-none text-base font-black text-[#0f172a] marker:hidden">
+            <summary className="cursor-pointer list-none text-base font-bold text-[#0f172a] marker:hidden">
               <span className="flex items-center justify-between gap-5">
                 {item.question}
 
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#2563eb] transition group-open:rotate-90" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#B7800E] transition group-open:rotate-90" />
               </span>
             </summary>
 
@@ -2795,7 +2717,7 @@ function SourcesBlock({
 }) {
   return (
     <section className="mt-16">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
         Sources
       </p>
 
@@ -2806,7 +2728,7 @@ function SourcesBlock({
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-[#2563eb] underline-offset-4 hover:underline"
+              className="font-semibold text-[#B7800E] underline-offset-4 hover:underline"
             >
               {item.title}
             </a>
@@ -2819,12 +2741,12 @@ function SourcesBlock({
 
 function EducationalNotice() {
   return (
-    <div className="mt-16 rounded-[24px] border border-[#93c5fd] bg-[#eff6ff] p-6">
+    <div className="mt-16 rounded-[24px] border border-[#FCE3A3] bg-[#FFF8E6] p-6">
       <div className="flex items-start gap-4">
-        <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#2563eb]" />
+        <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#B7800E]" />
 
         <div>
-          <p className="font-black text-[#0f172a]">
+          <p className="font-bold text-[#0f172a]">
             Educational content
           </p>
 
@@ -2847,7 +2769,7 @@ function ProductCta({
   articleTitle: string;
 }) {
   return (
-    <section className="relative mt-16 overflow-hidden rounded-[32px] bg-[#030817] p-8 text-white md:p-10">
+    <section className="relative mt-16 overflow-hidden rounded-[32px] bg-[#020d1f] p-8 text-white md:p-10">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.1]"
         style={{
@@ -2857,22 +2779,22 @@ function ProductCta({
         }}
       />
 
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#2563eb]/20 blur-[80px]" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#B7800E]/20 blur-[80px]" />
 
       <div className="relative">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#3b82f6]/25 bg-[#3b82f6]/10 text-[#60a5fa]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#F2B421]/25 bg-[#F2B421]/10 text-[#F2B421]">
           <Calculator className="h-5 w-5" />
         </div>
 
-        <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#60a5fa]">
+        <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-[#F2B421]">
           Knowledge to modelling
         </p>
 
-        <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-0.045em] md:text-4xl">
+        <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">
           Apply this guide to your own ESOP assumptions.
         </h2>
 
-        <p className="mt-5 max-w-2xl leading-7 text-[#dbeafe]">
+        <p className="mt-5 max-w-2xl leading-7 text-[#CBD5E1]">
           Use ESOP Value Clarity to connect grant size, vesting,
           exercise cost, dilution and exit scenarios instead of
           relying on a headline number from "{articleTitle}".
@@ -2881,7 +2803,7 @@ function ProductCta({
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/simulator"
-            className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-6 text-sm font-black text-white transition hover:bg-[#3b82f6]"
+            className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#B7800E] px-6 text-sm font-bold text-white transition hover:bg-[#F2B421]"
           >
             Open ESOP Simulator
 
@@ -2890,7 +2812,7 @@ function ProductCta({
 
           <Link
             href="/pro/offers/new"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.07] px-5 text-sm font-black text-white transition hover:bg-white/[0.12]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.07] px-5 text-sm font-bold text-white transition hover:bg-white/[0.12]"
           >
             Try Offer Intelligence
 
@@ -2913,18 +2835,18 @@ function RelatedArticles({
     <section className="mt-20">
       <div className="flex items-end justify-between gap-5">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#B7800E]">
             Continue learning
           </p>
 
-          <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-[#0f172a]">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#0f172a]">
             Related equity decisions
           </h2>
         </div>
 
         <Link
           href="/blog"
-          className="group hidden items-center gap-2 text-sm font-black text-[#2563eb] md:flex"
+          className="group hidden items-center gap-2 text-sm font-bold text-[#B7800E] md:flex"
         >
           View hub
 
@@ -2941,15 +2863,15 @@ function RelatedArticles({
               <Link
                 key={relatedSlug}
                 href={`/blog/${relatedSlug}`}
-                className="group relative overflow-hidden rounded-[24px] border border-[#dbe5f0] bg-white p-6 transition duration-500 hover:-translate-y-2 hover:border-[#2563eb] hover:shadow-[0_25px_70px_-45px_rgba(37,99,235,.30)]"
+                className="group relative overflow-hidden rounded-[24px] border border-[#E2E8F0] bg-white p-6 transition duration-500 hover:-translate-y-2 hover:border-[#B7800E] hover:shadow-[0_25px_70px_-45px_rgba(37,99,235,.30)]"
               >
-                <Icon className="h-5 w-5 text-[#2563eb]" />
+                <Icon className="h-5 w-5 text-[#B7800E]" />
 
-                <p className="mt-5 text-[9px] font-black uppercase tracking-[0.14em] text-[#2563eb]">
+                <p className="mt-5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#B7800E]">
                   {relatedArticle.category}
                 </p>
 
-                <h3 className="mt-3 text-lg font-black leading-6 text-[#0f172a]">
+                <h3 className="mt-3 text-lg font-bold leading-6 text-[#0f172a]">
                   {relatedArticle.title}
                 </h3>
 
@@ -2957,12 +2879,12 @@ function RelatedArticles({
                   {relatedArticle.description}
                 </p>
 
-                <div className="mt-6 flex items-center justify-between border-t border-[#dbe5f0] pt-4">
-                  <span className="text-xs font-black text-[#475569]">
+                <div className="mt-6 flex items-center justify-between border-t border-[#E2E8F0] pt-4">
+                  <span className="text-xs font-bold text-[#475569]">
                     {relatedArticle.readTime}
                   </span>
 
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#dbe5f0] transition duration-300 group-hover:translate-x-1 group-hover:border-[#2563eb] group-hover:bg-[#2563eb] group-hover:text-white">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E2E8F0] transition duration-300 group-hover:translate-x-1 group-hover:border-[#B7800E] group-hover:bg-[#B7800E] group-hover:text-white">
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
