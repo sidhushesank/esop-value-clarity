@@ -35,11 +35,23 @@ import {
    #startup (Startup plan), #advisor (Advisor plan).
 ============================================================ */
 
-const LINK_COLUMNS: { title: string; links: { label: string; href: string; badge?: string }[] }[] = [
+// `workspace`: if the signed-in user has that paid workspace (or is the EVC
+// owner), the link opens the workspace instead of the pricing section.
+type PaidWorkspace = "company" | "advisor";
+
+const WORKSPACE_HREF: Record<PaidWorkspace, string> = {
+  company: "/company",
+  advisor: "/advisor",
+};
+
+const LINK_COLUMNS: {
+  title: string;
+  links: { label: string; href: string; badge?: string; workspace?: PaidWorkspace }[];
+}[] = [
   {
     title: "Product",
     links: [
-      { label: "ESOP Simulator", href: "/simulator", badge: "Free" },
+      { label: "ESOP calculator", href: "/simulator", badge: "Free" },
       { label: "Cap table builder", href: "/cap-table", badge: "Free" },
       { label: "PRO Workspace", href: "/pro" },
       { label: "Offer Intelligence", href: "/pro/offers" },
@@ -47,11 +59,21 @@ const LINK_COLUMNS: { title: string; links: { label: string; href: string; badge
     ],
   },
   {
+    title: "ESOP guides",
+    links: [
+      { label: "What is an ESOP?", href: "/blog/what-is-an-esop" },
+      { label: "ESOP vesting schedule", href: "/blog/vesting-schedule" },
+      { label: "ESOP exercise price", href: "/blog/esop-exercise-cost" },
+      { label: "ESOP valuation in India", href: "/blog/esop-valuation-india" },
+      { label: "ESOP vs RSU", href: "/blog/esop-vs-rsu" },
+    ],
+  },
+  {
     title: "Solutions",
     links: [
       { label: "For employees", href: "/simulator" },
-      { label: "For startups", href: "/pricing#startup", badge: "New" },
-      { label: "For advisory firms", href: "/pricing#advisor" },
+      { label: "For startups", href: "/pricing#startup", badge: "New", workspace: "company" },
+      { label: "For advisory firms", href: "/pricing#advisor", workspace: "advisor" },
       { label: "For teams", href: "/pricing" },
     ],
   },
@@ -161,6 +183,26 @@ export default function Footer() {
   const formRef = useRef<HTMLFormElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   const indiaTime = useIndiaTime();
+  const [paid, setPaid] = useState<Record<PaidWorkspace, boolean>>({
+    company: false,
+    advisor: false,
+  });
+
+  // Paying startups / advisory firms (and the EVC owner) get a direct link to
+  // their workspace. Logged-out visitors and Google keep seeing /pricing.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me/workspaces", { credentials: "include", cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        setPaid({ company: data?.company === true, advisor: data?.advisor === true });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useReveal(footerRef);
 
@@ -378,7 +420,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
             {LINK_COLUMNS.map((col, ci) => (
               <div key={col.title} data-reveal className="fx-reveal" style={{ transitionDelay: `${ci * 90}ms` }}>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{col.title}</p>
@@ -386,7 +428,7 @@ export default function Footer() {
                   {col.links.map((l) => (
                     <li key={l.label}>
                       <Link
-                        href={l.href}
+                        href={l.workspace && paid[l.workspace] ? WORKSPACE_HREF[l.workspace] : l.href}
                         className="fx-link group inline-flex items-center gap-2 text-sm text-slate-300 transition hover:text-white"
                       >
                         <span className="fx-underline">{l.label}</span>

@@ -439,7 +439,7 @@ export default function SimulatorPage() {
                 </div>
 
                 <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[0.98] tracking-[-0.065em] sm:text-5xl lg:text-6xl">
-                  Model the equity before you make the move.
+                  Free ESOP calculator: model your equity before you make the move.
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">

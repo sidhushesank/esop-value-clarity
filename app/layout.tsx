@@ -14,7 +14,7 @@ const inter = Inter({
 
 const siteUrl = "https://esopvalueclarity.com";
 const siteName = "ESOP Value Clarity";
-const logoUrl = `${siteUrl}/favicon.ico`;
+const logoUrl = `${siteUrl}/brand/evc-mark.png`;
 const linkedinUrl =
   "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";
 

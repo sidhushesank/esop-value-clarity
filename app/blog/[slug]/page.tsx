@@ -38,7 +38,12 @@ const AUTHOR_LINKEDIN =
   "https://www.linkedin.com/in/sheshank-sidheshwar-b84166252/";
 
 const PUBLISHED_DATE = "2026-09-16";
-const UPDATED_DATE = "2026-11-02";
+const UPDATED_DATE = "2026-11-18";
+
+// Real YouTube upload date of k2LzKS1WkzA, full ISO 8601 with time zone.
+// Check it in YouTube Studio → Content → Date and correct it if needed.
+const VIDEO_UPLOAD_DATE = "2026-09-16T10:00:00+05:30";
+const LOGO_URL = `${BASE_URL}/brand/evc-mark.png`;
 
 const YOUTUBE_ID = "k2LzKS1WkzA";
 
@@ -355,9 +360,9 @@ const articles = {
     audience: ["Employees", "CAs", "Founders"],
     readTime: "5 min read",
     videoTime: "3 min video",
-    title: "ESOP exercise price and cost: how much cash you need to exercise",
+    title: "ESOP Exercise Price (Strike Price): Meaning, Cost and Tax in India",
     description:
-      "What the ESOP exercise price (strike price) is, how Indian companies set it, and how to work out the full cash needed to exercise, including the perquisite tax, with a worked example.",
+      "What the ESOP exercise price (strike price) means, how Indian companies set it, and the full cash you need to exercise, including perquisite tax. Worked ₹ example inside.",
     keywords: [
       "ESOP exercise price",
       "strike price ESOP",
@@ -495,6 +500,26 @@ const articles = {
         question: "Do I pay tax when I exercise ESOPs?",
         answer:
           "Usually yes. The gap between fair market value and exercise price is taxed as salary at exercise, unless you qualify for the deferral for employees of eligible startups.",
+      },
+      {
+        question: "What is the exercise price per share?",
+        answer:
+          "It is the amount you pay for each share when you exercise one option. Multiply it by the number of options you exercise to get the amount payable to the company, before tax.",
+      },
+      {
+        question: "Can the ESOP exercise price be lower than the face value of the share?",
+        answer:
+          "No. An Indian company cannot issue shares below their face value, so the exercise price is at least the face value, commonly ₹1 or ₹10 per share.",
+      },
+      {
+        question: "How do I calculate the total cost of exercising my ESOPs?",
+        answer:
+          "Add two amounts: options × exercise price, paid to the company, and the tax on options × (FMV − exercise price) at your slab rate plus cess. The free ESOP calculator on this site does this for you.",
+      },
+      {
+        question: "What if I cannot afford to exercise my vested options?",
+        answer:
+          "Exercise in smaller tranches, check whether the startup tax deferral applies, or ask whether the company offers cashless exercise at a buyback or sale. If you are leaving, check how long your exercise window is first.",
       },
     ],
     related: [
@@ -901,7 +926,7 @@ const articles = {
     audience: ["Employees", "Founders", "HR"],
     readTime: "6 min read",
     videoTime: "3 min video",
-    title: "What is an ESOP? Meaning, how it works and how it is taxed in India",
+    title: "What Is an ESOP? Meaning, Full Form and How It Works in India",
     description:
       "ESOP meaning in plain language: how employee stock options work in India, from grant and vesting to exercise and sale, the key terms, how ESOPs are taxed twice, and what to ask before you accept one.",
     keywords: [
@@ -1321,7 +1346,7 @@ const articles = {
     audience: ["Employees", "Founders", "HR"],
     readTime: "6 min read",
     videoTime: "3 min video",
-    title: "ESOP vesting schedule explained: cliff, monthly vesting and examples (India)",
+    title: "ESOP Vesting Schedule in India: 1-Year Cliff, 4-Year Vesting and Examples",
     description:
       "How an ESOP vesting schedule works in India: the one-year cliff, monthly and yearly vesting, the legal minimum of one year before vesting, worked examples, and what happens to vested and unvested options when you leave.",
     keywords: [
@@ -1834,7 +1859,7 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(BASE_URL),
 
-    title: `${article.title} | ESOP Value Clarity`,
+    title: article.title,
 
     description: article.description,
 
@@ -1941,7 +1966,7 @@ export default async function ArticlePage({
 
       logo: {
         "@type": "ImageObject",
-        url: `${BASE_URL}/og-image.png`,
+        url: LOGO_URL,
       },
     },
 
@@ -1999,7 +2024,7 @@ export default async function ArticlePage({
       `https://i.ytimg.com/vi/${YOUTUBE_ID}/maxresdefault.jpg`,
     ],
 
-    uploadDate: UPDATED_DATE,
+    uploadDate: VIDEO_UPLOAD_DATE,
 
     embedUrl: `https://www.youtube.com/embed/${YOUTUBE_ID}`,
 
@@ -2014,7 +2039,7 @@ export default async function ArticlePage({
 
       logo: {
         "@type": "ImageObject",
-        url: `${BASE_URL}/og-image.png`,
+        url: LOGO_URL,
       },
     },
 

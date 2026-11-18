@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About ESOP Value Clarity",
+  title: { absolute: "About ESOP Value Clarity: Founder, Customers and Mission" },
   description:
     "Why ESOP Value Clarity exists: helping employees, founders and advisors understand ESOP grants, vesting, dilution, exercise cost, tax and exit outcomes without hype.",
   alternates: { canonical: "/about" },
   openGraph: {
-    title: "About ESOP Value Clarity | ESOP Value Clarity",
+    title: "About ESOP Value Clarity",
     description:
       "Why ESOP Value Clarity exists: helping employees, founders and advisors understand ESOP grants, vesting, dilution, exercise cost, tax and exit outcomes without hype.",
     url: "/about",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About ESOP Value Clarity | ESOP Value Clarity",
+    title: "About ESOP Value Clarity",
     description:
       "Why ESOP Value Clarity exists: helping employees, founders and advisors understand ESOP grants, vesting, dilution, exercise cost, tax and exit outcomes without hype.",
     images: ["/og-image.png"],

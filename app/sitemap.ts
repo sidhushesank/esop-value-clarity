@@ -21,9 +21,9 @@ const articles = [
 // IMPORTANT: use fixed dates. `new Date()` makes every URL look "modified
 // right now" on every crawl, which teaches Google to ignore lastmod.
 // Bump these when the page content genuinely changes.
-const SITE_UPDATED = new Date("2026-11-02");
+const SITE_UPDATED = new Date("2026-11-18");
 const LEGAL_UPDATED = new Date("2026-10-01");
-const ARTICLES_UPDATED = new Date("2026-11-02");
+const ARTICLES_UPDATED = new Date("2026-11-18");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -34,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/pricing`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/meeting`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/about`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE_URL}/partners/taxbuddy`, lastModified: SITE_UPDATED, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/privacy`, lastModified: LEGAL_UPDATED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/terms`, lastModified: LEGAL_UPDATED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/disclaimer`, lastModified: LEGAL_UPDATED, changeFrequency: "yearly", priority: 0.3 },

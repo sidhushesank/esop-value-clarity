@@ -11,7 +11,7 @@ const LINKEDIN_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
 
-  title: "Equity Intelligence Hub | ESOP Value Clarity",
+  title: "ESOP Guides for India: Vesting, Exercise Price, Tax and Valuation",
 
   description:
     "Decision-first ESOP guides, startup equity frameworks, calculators and scenario tools for employees, founders, HR teams and advisors evaluating stock options, dilution, vesting, exercise cost, tax and offer value.",
@@ -82,7 +82,7 @@ const articles = [
   },
   {
     slug: "esop-exercise-cost",
-    title: "ESOP exercise price and cost: how much cash you need to exercise",
+    title: "ESOP Exercise Price (Strike Price): Meaning, Cost and Tax in India",
     category: "Exercise",
   },
   {
@@ -102,7 +102,7 @@ const articles = [
   },
   {
     slug: "what-is-an-esop",
-    title: "What is an ESOP? Meaning, how it works and how it is taxed in India",
+    title: "What Is an ESOP? Meaning, Full Form and How It Works in India",
     category: "Foundation",
   },
   {
@@ -117,7 +117,7 @@ const articles = [
   },
   {
     slug: "vesting-schedule",
-    title: "ESOP vesting schedule explained: cliff, monthly vesting and examples (India)",
+    title: "ESOP Vesting Schedule in India: 1-Year Cliff, 4-Year Vesting and Examples",
     category: "Vesting",
   },
   {

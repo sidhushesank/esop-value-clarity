@@ -98,7 +98,7 @@ const guides: Guide[] = [
 
   {
     slug: "esop-exercise-cost",
-    title: "ESOP exercise price and cost: how much cash you need to exercise",
+    title: "ESOP Exercise Price (Strike Price): Meaning, Cost and Tax in India",
     summary:
       "What the exercise (strike) price is, how Indian companies set it, and how to work out the full cash needed, including the tax at exercise.",
     category: "Exercise",
@@ -158,7 +158,7 @@ const guides: Guide[] = [
 
   {
     slug: "what-is-an-esop",
-    title: "What is an ESOP? Meaning, how it works and how it is taxed in India",
+    title: "What Is an ESOP? Meaning, Full Form and How It Works in India",
     summary:
       "ESOP meaning in plain language: grant, vesting, exercise and sale, the key terms, how ESOPs are taxed twice in India, and what to ask before you accept.",
     category: "Foundation",
@@ -203,7 +203,7 @@ const guides: Guide[] = [
 
   {
     slug: "vesting-schedule",
-    title: "ESOP vesting schedule explained: cliff, monthly vesting and examples (India)",
+    title: "ESOP Vesting Schedule in India: 1-Year Cliff, 4-Year Vesting and Examples",
     summary:
       "The one-year cliff, monthly and yearly vesting, India's one-year minimum before vesting, a worked example, and what happens when you leave.",
     category: "Vesting",
