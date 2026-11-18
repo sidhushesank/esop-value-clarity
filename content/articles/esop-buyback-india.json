@@ -1,0 +1,298 @@
+{
+  "slug": "esop-buyback-india",
+  "publishedAt": "2026-11-18",
+  "updatedAt": "2026-11-18",
+  "category": "Buyback",
+  "stage": "Understand value",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "8 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP Buyback in India: How It Works and How It's Taxed (2026)",
+  "description": "How ESOP buybacks work in India, which route your company is using, and how the payout is taxed from 1 April 2026, with a worked rupee example.",
+  "keywords": [
+    "ESOP buyback",
+    "ESOP buyback tax",
+    "ESOP buyback India",
+    "ESOP liquidity",
+    "buyback of shares tax 2026",
+    "ESOP buyback capital gains",
+    "sell ESOP shares startup"
+  ],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "An ESOP buyback is a chance to turn vested ESOPs into cash before an IPO or acquisition. The buyer is the company, an ESOP trust or an investor.",
+    "How you are taxed depends on the route: selling exercised shares is taxed as capital gains; surrendering unexercised options for cash is taxed as salary.",
+    "For buybacks paid on or after 1 April 2026, the company buying back your shares is taxed as capital gains again, not as a deemed dividend. Your cost is the fair market value on the day you exercised.",
+    "Unlisted shares held for more than 24 months are long-term: 12.5% plus surcharge and cess on the gain. Held 24 months or less, the gain is taxed at your slab rate."
+  ],
+  "heroStats": [
+    {
+      "label": "Routes",
+      "value": "3"
+    },
+    {
+      "label": "Tax regime",
+      "value": "set by payment date"
+    },
+    {
+      "label": "Long-term after",
+      "value": "24 months"
+    },
+    {
+      "label": "LTCG rate",
+      "value": "12.5% + cess"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Sell shares",
+      "value": "capital gains"
+    },
+    {
+      "label": "Surrender options",
+      "value": "salary"
+    },
+    {
+      "label": "Cost basis",
+      "value": "FMV at exercise"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what",
+      "eyebrow": "What it is",
+      "title": "An ESOP buyback brings part of your equity payout forward.",
+      "body": [
+        "ESOPs usually pay out only at an exit: an IPO or an acquisition, which can be years away. A buyback, also called an ESOP liquidity event, lets you sell some of your vested ESOPs or shares for cash now.",
+        "The cash can come from the company itself, from an ESOP trust the company funds, or from an existing or incoming investor buying your shares. Many programmes cap how much you can sell. Some 2026 buybacks let employees sell up to 25% of their vested options.",
+        "The route matters more than the headline price, because it decides how your payout is taxed."
+      ]
+    },
+    {
+      "id": "routes",
+      "eyebrow": "Know your route",
+      "title": "Three ways a buyback can be structured.",
+      "body": [
+        "Read the buyback offer letter for one thing first: are you selling shares, or giving up options?"
+      ],
+      "cards": [
+        {
+          "label": "1. Company buys back shares",
+          "value": "You have exercised your options and hold shares. The company buys them back under Section 68 of the Companies Act, 2013, and cancels them."
+        },
+        {
+          "label": "2. Secondary sale",
+          "value": "You sell exercised shares to an investor, a promoter or the ESOP trust. The company is not the buyer."
+        },
+        {
+          "label": "3. Options surrendered for cash",
+          "value": "You never exercise. You give up vested options and the company pays you cash, usually the price minus your exercise price."
+        }
+      ],
+      "warning": "Routes 1 and 2 need you to exercise first, so you pay the exercise price and the perquisite tax on exercise before you sell. Check whether the company offers a cashless exercise or nets these off from the payout."
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax from 1 April 2026",
+      "title": "Selling shares is capital gains. Surrendering options is salary.",
+      "body": [
+        "Step one happens when you exercise. The difference between the fair market value (FMV) of the share on the exercise date and your exercise price is a perquisite, taxed as salary with TDS deducted by your employer. That FMV then becomes your cost for capital gains later.",
+        "Step two happens when you sell. For a company buyback or a secondary sale paid on or after 1 April 2026, your gain is the sale price minus that FMV at exercise. Unlisted shares held for more than 24 months are long-term and taxed at 12.5% without indexation. Held 24 months or less, the gain is short-term and taxed at your slab rate. Surcharge and 4% cess apply on top.",
+        "If you surrender options for cash instead (route 3), there is no capital gains step. The full payment is taxed as salary at your slab rate, with TDS, much like a bonus.",
+        "Finance Act 2026 added an extra tax for promoters selling in a company buyback. It is aimed at large holders, around 10% or more of the company, so it does not affect a typical employee."
+      ],
+      "bullets": [
+        "Holding period for unlisted shares: counted from the exercise date of each tranche.",
+        "Cost of acquisition: the FMV used for your perquisite tax, not the exercise price you paid.",
+        "Eligible-startup deferral: if your perquisite tax was deferred, a sale in the buyback makes it payable."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Same 2,000 options, two routes, very different tax.",
+      "body": [
+        "Illustrative numbers. Priya has 2,000 vested options with an exercise price of ₹10. She exercised all of them in June 2023, when the FMV was ₹400. Her perquisite was (₹400 − ₹10) × 2,000 = ₹7,80,000, taxed as salary in that year. Her cost for capital gains is ₹400 × 2,000 = ₹8,00,000.",
+        "In August 2026 the company buys back shares at ₹1,000. Priya sells all 2,000 for ₹20,00,000. She has held them for over 24 months, so the gain is long-term: ₹20,00,000 − ₹8,00,000 = ₹12,00,000. Tax at 12.5% is ₹1,50,000, or ₹1,56,000 with 4% cess, before any surcharge.",
+        "Her colleague Arjun never exercised. He surrenders 2,000 vested options in the same programme and receives (₹1,000 − ₹10) × 2,000 = ₹19,80,000 as cash. All of it is salary. At a 30% slab plus 4% cess, the tax is about ₹6,17,760.",
+        "Arjun paid nothing up front and took no risk on the shares, while Priya paid ₹20,000 to exercise and tax on ₹7,80,000 three years earlier. Compare the whole timeline, not just the buyback year."
+      ],
+      "cards": [
+        {
+          "label": "Priya: sale proceeds",
+          "value": "₹20,00,000"
+        },
+        {
+          "label": "Priya: tax at buyback",
+          "value": "≈ ₹1,56,000"
+        },
+        {
+          "label": "Arjun: cash for options",
+          "value": "₹19,80,000"
+        },
+        {
+          "label": "Arjun: tax (30% slab)",
+          "value": "≈ ₹6,17,760"
+        }
+      ]
+    },
+    {
+      "id": "older",
+      "eyebrow": "Older buybacks",
+      "title": "If your buyback was paid before April 2026, different rules apply.",
+      "body": [
+        "Buyback tax in India has changed twice since 2024, and the date of payment decides which rules apply, not the date of the offer.",
+        "Up to 30 September 2024, the company paid a buyback tax and the money you received was tax-free. From 1 October 2024 to 31 March 2026, the whole amount you received from a company buyback was treated as a deemed dividend and taxed at your slab rate, and your cost could only be claimed as a capital loss. From 1 April 2026, capital gains treatment is back.",
+        "These changes are about a company buying back its own shares. A secondary sale to an investor was taxed as capital gains throughout."
+      ]
+    },
+    {
+      "id": "decide",
+      "eyebrow": "Should you sell?",
+      "title": "Questions to answer before you accept the offer.",
+      "body": [
+        "A buyback price is often set close to the latest funding round, sometimes at a discount. Selling some shares turns paper wealth into money you can use, and lowers your risk if the company never reaches an IPO.",
+        "Keeping shares keeps the upside, but your salary and your savings would then both depend on one company. Many people sell a part, not all."
+      ],
+      "bullets": [
+        "How does the buyback price compare with the last round and with the FMV in your latest grant letter?",
+        "How much of your net worth is in this one company?",
+        "Will you cross 24 months of holding soon? Waiting can turn a slab-rate gain into a 12.5% gain.",
+        "If you have not exercised, do you have the cash to exercise, and does the offer pay you for options or for shares?",
+        "When is the next liquidity event likely, if any?"
+      ]
+    },
+    {
+      "id": "trend",
+      "eyebrow": "Context",
+      "title": "ESOP buybacks are back in 2026.",
+      "body": [
+        "Indian startups bought back about $220 million of employee stock in the first quarter of 2026, more than in all of 2024 or 2025. Large programmes included BrowserStack ($125 million), Innovaccer (about ₹600 crore) and CoinDCX (₹111 crore, over 500 current and former employees). Smaller startups such as Atlys and Plum ran buybacks too, each letting employees sell up to a quarter of their vested options.",
+        "If your company has raised a fresh round, ask HR whether a buyback is planned. Many include former employees with vested shares."
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "Find out whether you are selling shares or surrendering options, then model the tax both ways before you accept."
+    },
+    {
+      "label": "Founder",
+      "value": "Choose the route with employees' tax in mind, and publish a clear FAQ with worked examples."
+    },
+    {
+      "label": "HR",
+      "value": "Collect exercise dates and FMVs for every participant. They decide each person's holding period and cost."
+    },
+    {
+      "label": "CA",
+      "value": "Confirm the payment date to apply the right regime, and check for deferred perquisite tax that becomes payable."
+    }
+  ],
+  "checklist": [
+    "I know whether the offer buys shares or cancels options.",
+    "I have the exercise date and FMV for each tranche I would sell.",
+    "I know which tranches are past 24 months.",
+    "I have estimated tax under the route offered.",
+    "I know how much I can sell and the deadline to respond."
+  ],
+  "mistakes": [
+    "Using the exercise price as your cost, instead of the FMV at exercise.",
+    "Assuming the old deemed-dividend rules apply to a buyback paid after 1 April 2026.",
+    "Selling a tranche a few weeks before it crosses 24 months without checking the tax difference.",
+    "Forgetting that a deferred perquisite tax becomes payable when you sell.",
+    "Comparing buyback offers by price alone and ignoring the route."
+  ],
+  "faq": [
+    {
+      "question": "How is an ESOP buyback taxed in India in 2026?",
+      "answer": "If you sell exercised shares and the payment is on or after 1 April 2026, the gain over your FMV at exercise is capital gains: 12.5% if held over 24 months, slab rate otherwise, plus surcharge and cess. If you surrender options for cash, the full amount is salary."
+    },
+    {
+      "question": "Is an ESOP buyback taxed as a dividend?",
+      "answer": "Only for company buybacks paid between 1 October 2024 and 31 March 2026. From 1 April 2026, a company buyback is taxed as capital gains again."
+    },
+    {
+      "question": "What is my cost of acquisition for ESOP shares?",
+      "answer": "The fair market value on the exercise date, the same value used to calculate your perquisite tax, not the exercise price you paid."
+    },
+    {
+      "question": "Can former employees take part in an ESOP buyback?",
+      "answer": "Often yes, if they hold vested options or shares. It depends on the company's offer and ESOP scheme."
+    },
+    {
+      "question": "Do I have to exercise my options to take part?",
+      "answer": "Not always. Some buybacks pay cash for vested options without exercise, which is taxed as salary. Others buy only shares, so you must exercise first."
+    },
+    {
+      "question": "Does the promoter buyback tax apply to employees?",
+      "answer": "Generally no. The extra tax added by Finance Act 2026 targets promoters, roughly holders of 10% or more. A typical employee pays normal capital gains tax."
+    }
+  ],
+  "related": [
+    "esop-exercise-cost",
+    "leaving-startup-esop-options",
+    "esop-valuation-india"
+  ],
+  "sources": [
+    {
+      "title": "Treelife: Buyback tax in India, the three regimes and Finance Act 2026",
+      "url": "https://treelife.in/taxation/buyback-tax-in-india/"
+    },
+    {
+      "title": "Treelife: The Income Tax Act, 2025 is live",
+      "url": "https://treelife.in/taxation/the-income-tax-act-2025-is-live/"
+    },
+    {
+      "title": "CalcGuru: ESOP buyback in India, structures and tax (2026)",
+      "url": "https://calcguru.in/?p=7286"
+    },
+    {
+      "title": "EquityList: Tax on buy-back of shares in India",
+      "url": "https://www.equitylist.co/blog-post/buyback-shares-tax-india"
+    },
+    {
+      "title": "Entrackr via Pulse: Indian startup ESOP buybacks in Q1 2026",
+      "url": "https://www.pulse.bot/human-resources/news/indian-startup-esop-buybacks-in-q1-2026-beat-2024-and-2025-2-bn-liquidity-since-2020-cb9e0984-6dac-4c10-b008-37593e377e43/"
+    },
+    {
+      "title": "Entrepreneur India: Innovaccer completes ₹600 crore ESOP buyback",
+      "url": "https://india.entrepreneur.com/?p=92521"
+    },
+    {
+      "title": "Entrepreneur India: CoinDCX announces ₹111 crore ESOP buyback",
+      "url": "https://india.entrepreneur.com/?p=93951"
+    },
+    {
+      "title": "Entrepreneur India: Atlys announces ₹4 crore ESOP buyback",
+      "url": "https://india.entrepreneur.com/?p=95201"
+    },
+    {
+      "title": "Entrackr via Pulse: Plum launches ₹15 crore ESOP buyback",
+      "url": "https://www.pulse.bot/human-resources/news/plum-insurance-launches-rs-15-cr-esop-buyback-for-current-and-former-employees-ad59ea01-711a-42a7-8271-79c97af7e297/"
+    }
+  ],
+  "hub": {
+    "summary": "Which buyback route you're in, how the payout is taxed from April 2026, and a worked example comparing selling shares with surrendering options.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "Tax",
+      "CA"
+    ],
+    "tags": [
+      "buyback",
+      "liquidity",
+      "capital gains",
+      "ESOP tax",
+      "2026"
+    ],
+    "tools": "ESOP calculator"
+  }
+}

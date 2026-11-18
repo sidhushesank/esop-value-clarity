@@ -23,6 +23,13 @@ const privatePaths = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
 
+  // Blog articles in content/articles/*.json are read with fs at build time.
+  outputFileTracingIncludes: {
+    "/blog": ["./content/articles/**/*"],
+    "/blog/[slug]": ["./content/articles/**/*"],
+    "/sitemap.xml": ["./content/articles/**/*"],
+  },
+
   async headers() {
     return privatePaths.map((source) => ({ source, headers: NOINDEX }));
   },

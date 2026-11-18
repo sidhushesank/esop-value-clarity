@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Footer from "@/components/sections/Footer";
 import KnowledgeHubClient from "@/app/blog/KnowledgeHubClient";
+import { getContentArticles } from "@/lib/blog-content";
 
 const BASE_URL = "https://esopvalueclarity.com";
 const SITE_NAME = "ESOP Value Clarity";
@@ -69,7 +70,14 @@ export const metadata: Metadata = {
   },
 };
 
+const contentArticles = getContentArticles();
+
 const articles = [
+  ...contentArticles.map((a) => ({
+    slug: a.slug,
+    title: a.title,
+    category: a.category,
+  })),
   {
     slug: "startup-offered-25000-esops",
     title: "I received 25,000 ESOPs. Is that actually good?",
@@ -195,7 +203,21 @@ export default function BlogPage() {
         }}
       />
 
-      <KnowledgeHubClient />
+      <KnowledgeHubClient
+        extraGuides={contentArticles.map((a) => ({
+          slug: a.slug,
+          title: a.title,
+          summary: a.hub.summary,
+          category: a.category,
+          stage: a.stage,
+          audience: a.hub.audience,
+          tags: a.hub.tags,
+          readTime: a.readTime,
+          video: a.videoTime,
+          tools: a.hub.tools,
+          icon: a.icon,
+        }))}
+      />
 
       <Footer />
     </>

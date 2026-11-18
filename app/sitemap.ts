@@ -1,8 +1,11 @@
 import type { MetadataRoute } from "next";
 
+import { getContentArticles } from "@/lib/blog-content";
+
 const BASE_URL = "https://esopvalueclarity.com";
 
-// Keep in sync with the article list in app/blog/[slug]/page.tsx.
+// The original articles in app/blog/[slug]/page.tsx. New articles are JSON
+// files in content/articles/ and are added below automatically.
 const articles = [
   "startup-offered-25000-esops",
   "should-i-negotiate-esops",
@@ -44,5 +47,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    ...getContentArticles()
+      .filter((a) => !articles.includes(a.slug))
+      .map((a) => ({
+        url: `${BASE_URL}/blog/${a.slug}`,
+        lastModified: new Date(a.updatedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.8,
+      })),
   ];
 }

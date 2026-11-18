@@ -651,7 +651,7 @@ export default function Footer() {
             <Link href="/terms" className="fx-underline transition hover:text-white">Terms</Link>
             <Link href="/disclaimer" className="fx-underline transition hover:text-white">Disclaimer</Link>
             <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span>Made in India 🇮🇳</span>
+            <span>Uppal, Hyderabad, Telangana, India 🇮🇳</span>
             <button
               type="button"
               onClick={backToTop}

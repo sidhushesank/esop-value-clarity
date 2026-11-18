@@ -358,7 +358,42 @@ function formatINR(value: number) {
   }).format(value);
 }
 
-export default function KnowledgeHubClient() {
+/** A guide from content/articles/*.json, passed in by app/blog/page.tsx. */
+export type ExtraGuide = Omit<Guide, "icon" | "featured"> & { icon: string };
+
+const EXTRA_GUIDE_ICONS: Record<string, LucideIcon> = {
+  BriefcaseBusiness,
+  Calculator,
+  FileSearch,
+  Gauge,
+  Landmark,
+  Layers3,
+  LineChart,
+  Percent,
+  Scale,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  UsersRound,
+  WalletCards,
+};
+
+export default function KnowledgeHubClient({
+  extraGuides = [],
+}: {
+  extraGuides?: ExtraGuide[];
+}) {
+  const allGuides = useMemo<Guide[]>(
+    () => [
+      ...extraGuides.map((guide) => ({
+        ...guide,
+        icon: EXTRA_GUIDE_ICONS[guide.icon] ?? FileSearch,
+      })),
+      ...guides,
+    ],
+    [extraGuides],
+  );
+
   const [activeAudience, setActiveAudience] =
     useState<Audience>("All");
 
@@ -375,7 +410,7 @@ export default function KnowledgeHubClient() {
   const filteredGuides = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return guides.filter((guide) => {
+    return allGuides.filter((guide) => {
       const matchesAudience =
         activeAudience === "All" ||
         guide.audience.includes(
@@ -401,10 +436,10 @@ export default function KnowledgeHubClient() {
         matchesQuery
       );
     });
-  }, [activeAudience, activeDecision, query]);
+  }, [allGuides, activeAudience, activeDecision, query]);
 
   const featuredGuide =
-    guides.find((guide) => guide.featured) ?? guides[0];
+    allGuides.find((guide) => guide.featured) ?? allGuides[0];
 
   const exerciseCost =
     optionCount * strikePrice;

@@ -28,6 +28,11 @@ import {
 } from "lucide-react";
 
 import Footer from "@/components/sections/Footer";
+import {
+  getContentArticles,
+  type ContentArticle,
+  type ContentArticleIcon,
+} from "@/lib/blog-content";
 
 const BASE_URL = "https://esopvalueclarity.com";
 const SITE_NAME = "ESOP Value Clarity";
@@ -1828,10 +1833,72 @@ const articles = {
   },
 } satisfies Record<string, Article>;
 
-type Slug = keyof typeof articles;
+/* ============================================================
+   New articles: one JSON file each in content/articles/.
+   See lib/blog-content.ts. The articles above win on a clash.
+============================================================ */
+
+type ArticleWithMeta = Article & {
+  publishedAt?: string;
+  updatedAt?: string;
+  sources?: { title: string; url: string }[];
+};
+
+const CONTENT_ICONS: Record<ContentArticleIcon, LucideIcon> = {
+  BriefcaseBusiness,
+  Calculator,
+  FileSearch,
+  Gauge,
+  Landmark,
+  Layers3,
+  LineChart,
+  Percent,
+  Scale,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  UsersRound,
+  WalletCards,
+};
+
+function fromContentArticle(a: ContentArticle): ArticleWithMeta {
+  return {
+    category: a.category,
+    stage: a.stage,
+    audience: a.audience,
+    readTime: a.readTime,
+    videoTime: a.videoTime,
+    title: a.title,
+    description: a.description,
+    keywords: a.keywords,
+    icon: CONTENT_ICONS[a.icon] ?? BookOpen,
+    quickAnswer: a.quickAnswer,
+    heroStats: a.heroStats,
+    modelCards: a.modelCards,
+    sections: a.sections,
+    personaViews: a.personaViews,
+    checklist: a.checklist,
+    mistakes: a.mistakes,
+    faq: a.faq,
+    related: a.related,
+    publishedAt: a.publishedAt,
+    updatedAt: a.updatedAt,
+    sources: a.sources,
+  };
+}
+
+const allArticles: Record<string, ArticleWithMeta> = {
+  ...Object.fromEntries(
+    getContentArticles().map((a) => [a.slug, fromContentArticle(a)]),
+  ),
+  ...articles,
+};
+
+// Every article is known at build time; anything else is a 404.
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return Object.keys(articles).map((slug) => ({
+  return Object.keys(allArticles).map((slug) => ({
     slug,
   }));
 }
@@ -1842,7 +1909,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = articles[slug as Slug];
+  const article = allArticles[slug];
 
   if (!article) {
     return {
@@ -1875,8 +1942,8 @@ export async function generateMetadata({
       type: "article",
       url: canonicalUrl,
       siteName: SITE_NAME,
-      publishedTime: PUBLISHED_DATE,
-      modifiedTime: UPDATED_DATE,
+      publishedTime: article.publishedAt ?? PUBLISHED_DATE,
+      modifiedTime: article.updatedAt ?? UPDATED_DATE,
       authors: [AUTHOR_NAME],
 
       images: [
@@ -1918,7 +1985,7 @@ export default async function ArticlePage({
 }) {
   const { slug } = await params;
 
-  const article = articles[slug as Slug];
+  const article = allArticles[slug];
 
   if (!article) notFound();
 
@@ -1929,7 +1996,7 @@ export default async function ArticlePage({
       (relatedSlug) =>
         [
           relatedSlug,
-          articles[relatedSlug as Slug],
+          allArticles[relatedSlug],
         ] as const,
     )
     .filter(([, relatedArticle]) => Boolean(relatedArticle));
@@ -1942,8 +2009,8 @@ export default async function ArticlePage({
 
     description: article.description,
 
-    datePublished: PUBLISHED_DATE,
-    dateModified: UPDATED_DATE,
+    datePublished: article.publishedAt ?? PUBLISHED_DATE,
+    dateModified: article.updatedAt ?? UPDATED_DATE,
 
     inLanguage: "en-IN",
 
@@ -2355,6 +2422,10 @@ export default async function ArticlePage({
             items={article.faq}
           />
 
+          {article.sources && article.sources.length > 0 && (
+            <SourcesBlock items={article.sources} />
+          )}
+
           <EducationalNotice />
 
           <ProductCta
@@ -2717,6 +2788,35 @@ function FaqBlock({
   );
 }
 
+function SourcesBlock({
+  items,
+}: {
+  items: { title: string; url: string }[];
+}) {
+  return (
+    <section className="mt-16">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2563eb]">
+        Sources
+      </p>
+
+      <ol className="mt-5 list-decimal space-y-2 pl-5 text-sm leading-7 text-[#475569]">
+        {items.map((item) => (
+          <li key={item.url}>
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#2563eb] underline-offset-4 hover:underline"
+            >
+              {item.title}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function EducationalNotice() {
   return (
     <div className="mt-16 rounded-[24px] border border-[#93c5fd] bg-[#eff6ff] p-6">
@@ -2805,7 +2905,7 @@ function ProductCta({
 function RelatedArticles({
   articles: relatedArticles,
 }: {
-  articles: readonly (readonly [string, Article])[];
+  articles: readonly (readonly [string, ArticleWithMeta])[];
 }) {
   if (!relatedArticles.length) return null;
 
