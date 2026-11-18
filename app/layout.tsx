@@ -168,6 +168,16 @@ const jsonLd = {
       url: logoUrl,
     },
 
+    // City-level only: no street address is published.
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Hyderabad",
+      addressRegion: "Telangana",
+      addressCountry: "IN",
+    },
+
+    areaServed: "IN",
+
     sameAs: [linkedinUrl],
   },
 

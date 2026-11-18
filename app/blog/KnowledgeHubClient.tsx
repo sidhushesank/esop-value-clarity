@@ -263,6 +263,7 @@ const decisionFilters = [
   "I am leaving",
   "Funding happened",
   "I have two offers",
+  "Company news",
 ];
 
 const personaCards = [
