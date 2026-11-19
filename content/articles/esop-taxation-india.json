@@ -1,0 +1,205 @@
+{
+  "slug": "esop-taxation-india",
+  "publishedAt": "2026-11-19",
+  "updatedAt": "2026-11-19",
+  "category": "Tax",
+  "stage": "Exercise and sale",
+  "audience": ["Employees", "Founders", "HR", "CAs"],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP tax in India 2026: perquisite at exercise, capital gains at sale",
+  "description": "How ESOPs are taxed in India in 2026: perquisite tax when you exercise, capital gains when you sell, the startup deferral, and a worked rupee example.",
+  "keywords": [
+    "esop tax india",
+    "esop taxation india 2026",
+    "esop perquisite tax",
+    "esop capital gains tax",
+    "income-tax act 2025 esop",
+    "esop tax deferral startup",
+    "how are esops taxed in india",
+    "unlisted shares capital gains 24 months"
+  ],
+  "icon": "Percent",
+  "quickAnswer": [
+    "ESOPs in India are taxed twice: once as salary (a perquisite) when shares are allotted to you on exercise, and again as capital gains when you sell those shares.",
+    "The perquisite is the fair market value (FMV) on the exercise date minus the exercise price you pay, and your employer deducts TDS on it at your slab rate.",
+    "When you sell, your cost is the FMV used for the perquisite, and the holding period runs from allotment: unlisted shares held more than 24 months are long-term and taxed at 12.5%, otherwise at your slab rate.",
+    "Employees of eligible startups (DPIIT-recognised and certified under the Income-tax Act) can defer the perquisite tax until the earliest of sale, leaving the company or the end of the deferral window."
+  ],
+  "heroStats": [
+    { "label": "Tax events", "value": "2: exercise and sale" },
+    { "label": "Perquisite", "value": "FMV at exercise minus price paid" },
+    { "label": "Unlisted LTCG", "value": "12.5% after 24 months" },
+    { "label": "Law from 1 Apr 2026", "value": "Income-tax Act, 2025" }
+  ],
+  "modelCards": [
+    { "label": "Grant and vesting", "value": "No tax. You only have a right to buy shares later." },
+    { "label": "Exercise and allotment", "value": "Perquisite taxed as salary, TDS by employer" },
+    { "label": "Sale or buyback", "value": "Capital gains on sale price minus FMV at exercise" }
+  ],
+  "sections": [
+    {
+      "id": "two-tax-events",
+      "eyebrow": "The basics",
+      "title": "When ESOPs are taxed in India, and when they are not",
+      "body": [
+        "An ESOP is an option to buy company shares at a fixed exercise price. Receiving the grant does not create tax, and neither does vesting. At those stages you hold a right, not shares, and nothing has been paid to you.",
+        "Tax starts when you exercise and the company allots shares to you. The Income-tax Department's own guidance treats the gap between the share's fair market value and what you pay as a perquisite, which is part of your salary. Your employer deducts tax at source on it like any other salary.",
+        "The second tax event is the sale. When you sell the shares, whether to the company in a buyback, to an investor in a secondary sale or on a stock exchange after an IPO, the profit over your cost is a capital gain.",
+        "From 1 April 2026 the Income-tax Act, 2025 replaced the 1961 Act. Tax practitioners' summaries of the new Act say the ESOP framework was carried over largely unchanged, with new section numbers and the term \"tax year\" in place of \"previous year\". The structure below therefore applies to exercises and sales in tax year 2026-27 as well."
+      ],
+      "cards": [
+        { "label": "Grant", "value": "No tax" },
+        { "label": "Vesting", "value": "No tax" },
+        { "label": "Exercise", "value": "Salary perquisite" },
+        { "label": "Sale", "value": "Capital gains" }
+      ]
+    },
+    {
+      "id": "perquisite-at-exercise",
+      "eyebrow": "Stage 1",
+      "title": "Perquisite tax at exercise: how the taxable amount is worked out",
+      "body": [
+        "The formula is simple: (FMV per share on the exercise date minus exercise price per share) multiplied by the number of shares allotted. The Income-tax Department's guidance gives this example: FMV of ₹6,500, exercise price of ₹500 and 100 shares, which makes a perquisite of ₹6,00,000.",
+        "For listed shares, FMV is the average of the opening and closing price on the exercise date, taken from the exchange with the higher trading volume if the shares trade on more than one. For unlisted shares, which covers most startup ESOPs, FMV is the value set by a SEBI-registered Category I merchant banker as on the exercise date or a date up to 180 days earlier.",
+        "The perquisite is added to your salary and taxed at your slab rate, plus any surcharge and 4% cess. Your employer deducts TDS. If the perquisite is large and your monthly salary cannot absorb the TDS, the company will usually ask you to pay the tax amount in cash before or at allotment.",
+        "Under the Income-tax Act, 2025, practitioner summaries place the ESOP perquisite in section 17(1)(d) read with section 17(5)(h), replacing section 17(2)(vi) of the old Act, and salary TDS in section 392 in place of section 192. Valuation rules have moved to the Income-tax Rules, 2026."
+      ],
+      "warning": "Perquisite tax is due on paper gains. You pay it at exercise even if there is no buyer for your shares yet. In a private company, that cash can be stuck for years."
+    },
+    {
+      "id": "capital-gains-at-sale",
+      "eyebrow": "Stage 2",
+      "title": "Capital gains when you sell ESOP shares",
+      "body": [
+        "When you sell, the gain is the sale price minus your cost of acquisition. The Income-tax Department's guidance says the cost is the FMV on the exercise date, the same figure used for the perquisite, not the lower exercise price you paid. This stops the same rupees being taxed twice.",
+        "The holding period starts on the date of allotment, not the grant or vesting date. Whether your gain is short-term or long-term depends on how long you held the shares after allotment and on whether they are listed.",
+        "These rates have applied since 23 July 2024 and are carried into the new Act. Always check the rate for the date of your sale, because the label depends on the holding period on that day."
+      ],
+      "bullets": [
+        "Unlisted Indian shares (most startup ESOPs): long-term if held more than 24 months, taxed at 12.5% without indexation; otherwise short-term at your slab rate.",
+        "Listed Indian shares sold on an exchange with STT paid: long-term if held more than 12 months, taxed at 12.5% on gains above ₹1.25 lakh a year; otherwise short-term at 20%.",
+        "Foreign shares, listed or unlisted (common for employees of foreign-parent companies): long-term after 24 months at 12.5%, otherwise slab rate.",
+        "Losses: a capital loss can be set off against capital gains under the usual rules; it cannot be set off against your salary."
+      ]
+    },
+    {
+      "id": "worked-example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative example: ESOP tax on 1,000 options in an unlisted startup",
+      "body": [
+        "These numbers are illustrative only and are not from any real company. Assume you hold 1,000 vested options with an exercise price of ₹10, your marginal slab is 30%, your income is below the surcharge threshold, and cess is 4%.",
+        "Exercise: the merchant banker values the share at ₹510 on your exercise date. Perquisite = (₹510 − ₹10) × 1,000 = ₹5,00,000. Tax at 31.2% (30% plus 4% cess) = ₹1,56,000. You also pay the exercise price of ₹10 × 1,000 = ₹10,000. Cash out of your pocket: ₹1,66,000, before you have sold anything.",
+        "Sale after three years: the company runs a buyback at ₹1,010 per share. Sale value = ₹10,10,000. Cost = FMV at exercise, ₹510 × 1,000 = ₹5,10,000. Long-term capital gain = ₹5,00,000. Tax at 13% (12.5% plus 4% cess) = ₹65,000.",
+        "Sale after 18 months instead: the same ₹5,00,000 gain is short-term and taxed at your 31.2% slab rate, which is ₹1,56,000. Waiting past 24 months saves ₹91,000 in this example, if a sale window is still open then.",
+        "Total tax over the life of the ESOP in the three-year case: ₹1,56,000 + ₹65,000 = ₹2,21,000 on a total gain of ₹10,00,000 (₹10,10,000 received minus ₹10,000 paid). You can model your own numbers with the free ESOP calculator."
+      ],
+      "cards": [
+        { "label": "Perquisite", "value": "₹5,00,000" },
+        { "label": "Tax at exercise", "value": "₹1,56,000" },
+        { "label": "LTCG after 3 years", "value": "₹5,00,000" },
+        { "label": "Tax at sale", "value": "₹65,000" }
+      ]
+    },
+    {
+      "id": "startup-deferral",
+      "eyebrow": "Eligible startups",
+      "title": "The startup ESOP tax deferral: who qualifies and when tax becomes due",
+      "body": [
+        "To ease the cash problem, employees of an eligible startup can defer the perquisite tax. You still report the perquisite in the year of allotment, but the TDS and payment are pushed back until the earliest of three events: you sell the shares, you leave the company, or the deferral window ends. Tax is then computed at the rates in force for the year of allotment.",
+        "Eligible startup is a narrow test. The company needs DPIIT recognition and the separate inter-ministerial board certificate (section 80-IAC under the old Act, section 140 under the new one). Being DPIIT-recognised alone is not enough. Practitioner reports put the number of certified startups at only a few thousand, a small share of all recognised startups.",
+        "Under the 1961 Act the window was 48 months from the end of the assessment year of allotment. Several practitioner summaries of the Income-tax Act, 2025 report that section 392(3) sets a 60-month window from the end of the relevant tax year for allotments from 1 April 2026. Confirm the period with your CA against the Act's text before relying on it.",
+        "Employees of an Indian subsidiary who hold options in a foreign parent generally cannot use the deferral unless the conditions are met by the company that allots the shares."
+      ],
+      "warning": "Leaving the company ends the deferral. If you resign soon after exercising, the deferred tax is due within weeks, even if you still cannot sell the shares."
+    },
+    {
+      "id": "buybacks-and-other-exits",
+      "eyebrow": "Exits",
+      "title": "How buybacks, secondary sales and option surrenders are taxed",
+      "body": [
+        "A company buyback of shares you already hold is a sale. For buybacks paid from 1 April 2026, Budget 2026 changes mean the shareholder is taxed under capital gains, using the 24-month rule for unlisted shares. Between 1 October 2024 and 31 March 2026, buyback proceeds from Indian companies were taxed as deemed dividend at slab rates, and before that the company paid the buyback tax. The payment date decides which rule applies.",
+        "A secondary sale to an investor is also a capital gain on the difference between the price and your FMV at exercise.",
+        "Some companies buy back vested options without you exercising them, paying you the difference in cash. Companies often deduct TDS as salary on these payments. In September 2026 commentary, Trilegal discussed a Bangalore tribunal ruling that treated such a payment from a foreign group company as capital gains, not a perquisite, on its facts. That view is not settled law, so check with your CA before filing on that basis."
+      ],
+      "bullets": [
+        "Shares sold in a buyback paid on or after 1 April 2026: capital gains.",
+        "Shares sold in a buyback paid between 1 October 2024 and 31 March 2026: deemed dividend in the shareholder's hands.",
+        "Cash for surrendered or cancelled options: usually withheld as salary; the capital gains view is contested."
+      ]
+    },
+    {
+      "id": "filing",
+      "eyebrow": "Filing",
+      "title": "Reporting ESOPs in your income tax return",
+      "body": [
+        "The perquisite appears in your Form 16 as part of salary. Check that the FMV and number of shares match your allotment letter. When you sell, report the gain in the capital gains schedule with the allotment date and FMV at exercise as your cost.",
+        "If your shares or options are in a foreign company, resident taxpayers must also disclose them in Schedule FA (foreign assets) for each year they are held, even when nothing was sold. Missing this can attract penalties under the black money law.",
+        "Keep the merchant banker valuation report or exercise statement, the allotment letter, proof of payment of the exercise price and the buyback or sale documents. Your CA will need all four."
+      ]
+    }
+  ],
+  "personaViews": [
+    { "label": "Employee", "value": "Budget for perquisite tax before you exercise, and check whether a sale window is likely within 24 months of allotment." },
+    { "label": "Founder", "value": "If you qualify as an eligible startup, the deferral can make exercise affordable. Tell employees whether you have the certificate." },
+    { "label": "HR", "value": "Publish the latest FMV and the TDS method before any exercise window opens, so employees can plan cash." },
+    { "label": "CA", "value": "Map old-Act sections to the Income-tax Act, 2025 for tax year 2026-27 filings and confirm the deferral window for each allotment date." }
+  ],
+  "checklist": [
+    "Get the latest FMV per share and the date of the valuation report.",
+    "Work out the perquisite and tax at your slab before exercising.",
+    "Ask whether your company is an eligible startup with the inter-ministerial board certificate.",
+    "Note the allotment date; it starts your capital gains holding period.",
+    "Keep the valuation, allotment, payment and sale documents for your ITR."
+  ],
+  "mistakes": [
+    "Using the exercise price instead of FMV at exercise as the cost when calculating capital gains.",
+    "Counting the holding period from the grant or vesting date rather than allotment.",
+    "Assuming DPIIT recognition alone gives the tax deferral.",
+    "Exercising a large grant without cash set aside for the perquisite TDS.",
+    "Forgetting Schedule FA when the shares are in a foreign parent company."
+  ],
+  "faq": [
+    {
+      "question": "Are ESOPs taxed at grant or vesting in India?",
+      "answer": "No. There is no tax at grant or vesting. Tax first arises when you exercise and shares are allotted, and again when you sell."
+    },
+    {
+      "question": "How is ESOP perquisite tax calculated?",
+      "answer": "Multiply the number of shares allotted by the difference between the FMV on the exercise date and the exercise price. That amount is taxed as salary at your slab rate, with TDS by your employer."
+    },
+    {
+      "question": "What is the capital gains tax on ESOP shares of an unlisted company?",
+      "answer": "If you hold the shares for more than 24 months from allotment, the gain is long-term and taxed at 12.5% without indexation. If you sell sooner, it is short-term and taxed at your slab rate."
+    },
+    {
+      "question": "Did the Income-tax Act, 2025 change ESOP tax?",
+      "answer": "The two-stage structure is the same. Section numbers changed from 1 April 2026, and practitioner summaries report that the startup deferral window is now 60 months for allotments from that date. Confirm details with a CA."
+    },
+    {
+      "question": "Is an ESOP buyback taxed as salary or capital gains?",
+      "answer": "If you sell shares you already hold, it is capital gains for payments from 1 April 2026. Cash paid for unexercised options is usually withheld as salary, though one tribunal ruling treated it as capital gains on its facts."
+    },
+    {
+      "question": "Can I avoid paying tax when I exercise ESOPs?",
+      "answer": "Only employees of eligible startups can defer it, and only until sale, leaving the company or the end of the window. Otherwise the perquisite tax is due in the year of allotment."
+    }
+  ],
+  "related": ["esop-exercise-cost", "esop-buyback-india", "esop-valuation-india"],
+  "sources": [
+    { "title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-" },
+    { "title": "Treelife: ESOP taxation in India (updated June 2026)", "url": "https://treelife.in/taxation/esop-taxation-in-india/" },
+    { "title": "TaxSocial: ESOP taxation under the Income-tax Act, 2025", "url": "https://taxsocial.pro/article/esop-taxation-two-stage-perquisite-capital-gains-income-tax-act-2025" },
+    { "title": "CAclubindia: ESOP tax deferral extended to 60 months in 2026", "url": "https://www.caclubindia.com/articles/esop-for-foreign-owned-indian-subsidiaries-tax-deferral-extended-to-60-months-in-2026-55829.asp" },
+    { "title": "TaxHeal: TDS on salary under section 392 of the Income-tax Act, 2025", "url": "https://www.taxheal.com/tds-on-salary-under-section-392-of-income-tax-act.html" },
+    { "title": "Vinod Kothari: Buyback taxation rationalised (Budget 2026)", "url": "https://vinodkothari.com/2026/02/buyback-taxation-rationalised-with-limited-relief-to-promoter-shareholders/" },
+    { "title": "Business Today: Buyback tax, how India changed the rules three times in 18 months", "url": "https://www.businesstoday.in/markets/story/buyback-tax-how-india-changed-the-rules-three-times-in-18-months-and-what-investors-need-to-know-553004-2026-09-03" },
+    { "title": "Trilegal: ITAT holds buyback of vested but unexercised ESOPs taxable as capital gains", "url": "https://trilegal.com/knowledge-repository/analysis/itat-holds-buyback-of-vested-but-unexercised-esops-taxable-as-capital-gains-not-perquisite/" }
+  ],
+  "hub": {
+    "summary": "The two ESOP tax events in India, perquisite at exercise and capital gains at sale, under the Income-tax Act, 2025, with the startup deferral and a worked ₹ example.",
+    "audience": ["Employee", "Founder", "HR", "CA", "Tax"],
+    "tags": ["esop tax", "perquisite", "capital gains", "income-tax act 2025", "startup deferral", "buyback tax"],
+    "tools": "ESOP calculator"
+  }
+}

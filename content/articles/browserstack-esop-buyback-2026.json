@@ -1,0 +1,178 @@
+{
+  "slug": "browserstack-esop-buyback-2026",
+  "publishedAt": "2026-11-19",
+  "updatedAt": "2026-11-19",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": ["Employees", "Founders", "HR", "CAs"],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "BrowserStack ESOP buyback 2026: $125M program, what employees get",
+  "description": "BrowserStack's $125M ESOP and share buyback of January 2026: who it covers, how it was funded, and how Indian employees may be taxed on the payout.",
+  "keywords": [
+    "browserstack esop buyback",
+    "browserstack buyback 2026",
+    "browserstack $125 million buyback",
+    "esop buyback india 2026",
+    "foreign parent esop tax india",
+    "esop buyback tax"
+  ],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "On 12 January 2026, BrowserStack announced a $125 million ESOP and share buyback program for more than 500 current and former employees and its early investors.",
+    "The company said it was BrowserStack's third buyback, taking total payouts across its three programs to over $275 million, and that it was funded entirely from internal accruals.",
+    "Entrepreneur India reported that nearly half of the amount was meant for employees and the rest for early backers, led mainly by Accel.",
+    "For Indian employees, the tax depends on whether they sold vested options or shares already held, and when they were paid; this post covers both routes with an illustrative example."
+  ],
+  "heroStats": [
+    { "label": "Program size", "value": "$125 million" },
+    { "label": "Employees covered", "value": "500+ current and former" },
+    { "label": "Buyback number", "value": "Third" },
+    { "label": "Announced", "value": "12 January 2026" }
+  ],
+  "modelCards": [
+    { "label": "Funding", "value": "Internal accruals, per the company" },
+    { "label": "Total across three programs", "value": "Over $275 million" },
+    { "label": "Employee share", "value": "Nearly half, per Entrepreneur India" }
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What BrowserStack announced in January 2026",
+      "body": [
+        "This post covers an announcement from 12 January 2026; it is not new news. BrowserStack, the software testing platform founded in 2011 by Ritesh Arora and Nakul Aggarwal, said in a press release datelined Dublin that it would run a $125 million ESOP and share buyback program. The company said the program would give liquidity to more than 500 current and former employees as well as early investors, and that participants would receive details directly from the company as the rollout began in the following weeks.",
+        "BrowserStack described this as its third buyback and said total payouts across the three programs had crossed $275 million. It said the program was funded entirely from internal accruals, which it attributed to profitable operations, rather than from a new funding round.",
+        "Entrepreneur India, reporting the same day, said nearly half of the amount was set aside for about 500 employees, with the remainder going to early backers led primarily by Accel. It also reported that employees would be able to sell vested stock options back to the company."
+      ]
+    },
+    {
+      "id": "company-context",
+      "eyebrow": "Background",
+      "title": "BrowserStack's funding, ownership and size, as reported",
+      "body": [
+        "According to Entrepreneur India, BrowserStack was bootstrapped until 2018, when it raised $50 million from Accel and angel investors at a $500 million valuation. In 2021 it raised $200 million in a round led by Bond Capital at a $4 billion valuation.",
+        "The same report, citing Tracxn data, said the two co-founders together hold about 78% of the company, Accel close to 10%, and that roughly 10% is reserved for the employee stock option pool. It reported that the company is domiciled in Ireland, does not publicly disclose consolidated financials, and that its Indian entity reported standalone revenue of ₹771 crore in FY2025. The company expected to cross $300 million in revenue in calendar 2026, according to the report.",
+        "The press release did not give a per-share buyback price or a valuation for the program, so this post does not estimate one."
+      ],
+      "cards": [
+        { "label": "2018 round", "value": "$50M at $500M valuation" },
+        { "label": "2021 round", "value": "$200M at $4B valuation" },
+        { "label": "ESOP pool (Tracxn, via Entrepreneur India)", "value": "About 10%" },
+        { "label": "Domicile (reported)", "value": "Ireland" }
+      ]
+    },
+    {
+      "id": "what-it-means",
+      "eyebrow": "For employees",
+      "title": "What a profit-funded, repeat buyback means for ESOP holders",
+      "body": [
+        "Most ESOP buybacks in India are tied to a funding round. A buyback paid from the company's own cash, and repeated three times, is a different signal: liquidity does not depend on raising new money. Employees elsewhere can use this as a benchmark question for their own employer.",
+        "Including former employees matters too. Many schemes let people who have left keep vested options, but they are often left out of liquidity events. The company said this program covers both current and former employees.",
+        "The release did not say what share of each person's vested holding they could sell. That cap is usually the single biggest factor in how much cash an individual receives."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How the BrowserStack buyback payout is likely taxed in India",
+      "body": [
+        "Entrepreneur India reports that BrowserStack is domiciled in Ireland. If an Indian employee's grant is from a foreign parent, the Indian-company buyback rules (deemed dividend from 1 October 2024 to 31 March 2026, capital gains from 1 April 2026) are not the main reference point. The usual rules on foreign shares and option payouts apply instead. Your grant letter tells you which entity issued your options.",
+        "Route 1, selling vested options you never exercised: employers commonly withhold TDS on this cash as salary. In a 2026 Trilegal analysis, a Bangalore tribunal treated a foreign group company's repurchase of a Flipkart employee's vested, unexercised options as capital gains rather than a perquisite. The question is not settled, and the cost base in that view may be nil.",
+        "Route 2, selling shares you already hold after exercising: this is a capital gain. Your cost is the FMV on the exercise date. Foreign shares held for more than 24 months from allotment are long-term and taxed at 12.5%; if held for a shorter period, the gain is taxed at your slab rate. Shares in a foreign company must also be reported in Schedule FA of your ITR for each year you hold them.",
+        "Payment date: a payment received before 1 April 2026 falls in FY 2025-26 under the Income-tax Act, 1961. Payments from 1 April 2026 fall in tax year 2026-27 under the Income-tax Act, 2025. The two-stage structure is the same under both Acts."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustration",
+      "title": "Illustrative example: option buyback vs selling exercised shares",
+      "body": [
+        "These numbers are illustrative only. They are not BrowserStack's price or any employee's actual holding. Assume a 30% slab, 4% cess, no surcharge, and amounts converted to rupees.",
+        "Route 1: you sell 200 vested options with an exercise price of ₹100 at a buyback price of ₹4,000. Cash received = (₹4,000 − ₹100) × 200 = ₹7,80,000. If it is taxed as salary at 31.2%, the tax is ₹2,43,360 and you keep ₹5,36,640.",
+        "Route 2: you exercised 300 shares three years earlier when the FMV was ₹2,500 and paid the perquisite tax then. You now sell them at ₹4,000. Sale value = ₹12,00,000; cost = ₹7,50,000; long-term gain = ₹4,50,000. Tax at 13% (12.5% plus cess) = ₹58,500.",
+        "Route 2 looks cheaper only because the perquisite tax was already paid at exercise. Compare total tax across both stages before deciding whether to exercise early. You can model both with the free ESOP calculator."
+      ],
+      "cards": [
+        { "label": "Route 1 cash", "value": "₹7,80,000" },
+        { "label": "Route 1 tax at 31.2%", "value": "₹2,43,360" },
+        { "label": "Route 2 gain", "value": "₹4,50,000" },
+        { "label": "Route 2 tax at 13%", "value": "₹58,500" }
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Ask your employer",
+      "title": "Questions to ask if your company announces a buyback",
+      "body": [
+        "Use these questions whether or not you work at BrowserStack. The answers decide how much you receive and how it is taxed."
+      ],
+      "bullets": [
+        "Which entity issued my options: the Indian company or a foreign parent?",
+        "Is the buyback of unexercised options, shares, or both, and what share of my vested holding can I sell?",
+        "What is the price per share and the valuation behind it?",
+        "How will TDS be deducted: as salary or as capital gains?",
+        "Are former employees eligible, and on the same terms?",
+        "Is this a one-off, or does the company plan regular liquidity?"
+      ],
+      "warning": "Do not file on the capital gains view for an option buyback without written advice from a CA. If tax was deducted as salary, the department's records will show salary."
+    }
+  ],
+  "personaViews": [
+    { "label": "Employee", "value": "Find out whether you are selling options or shares, and which company issued them, before estimating your take-home." },
+    { "label": "Founder", "value": "A repeat buyback funded from profits shows employees that liquidity does not depend on the next fundraise." },
+    { "label": "HR", "value": "Tell participants the price, the cap per person and the TDS treatment in writing before the window opens." },
+    { "label": "CA", "value": "Check whether the payout is for options or shares, the issuing entity's residence, the payment date and Schedule FA reporting." }
+  ],
+  "checklist": [
+    "Confirm the issuing entity from your grant letter.",
+    "Confirm whether you are selling options or exercised shares.",
+    "Note the payment date and which tax year it falls in.",
+    "Check how TDS was deducted on the payout.",
+    "Report any foreign shares held in Schedule FA."
+  ],
+  "mistakes": [
+    "Applying Indian-company buyback tax rules to a payout from a foreign parent without checking.",
+    "Treating an option buyback as capital gains without professional advice.",
+    "Using the exercise price as cost instead of FMV at exercise.",
+    "Forgetting that former employees may be eligible and missing the window.",
+    "Not reporting foreign shares in Schedule FA."
+  ],
+  "faq": [
+    {
+      "question": "How big is BrowserStack's ESOP buyback?",
+      "answer": "BrowserStack announced a $125 million ESOP and share buyback program on 12 January 2026. The company said it covers more than 500 current and former employees and early investors."
+    },
+    {
+      "question": "Is this BrowserStack's first ESOP buyback?",
+      "answer": "No. The company called it its third buyback and said total payouts across the three programs are over $275 million."
+    },
+    {
+      "question": "How was the BrowserStack buyback funded?",
+      "answer": "The company said it was funded entirely from internal accruals. Entrepreneur India reported it was not funded through secondary sales to new investors."
+    },
+    {
+      "question": "How much of the BrowserStack buyback goes to employees?",
+      "answer": "Entrepreneur India reported that nearly half goes to about 500 employees, with the rest going to early backers led mainly by Accel."
+    },
+    {
+      "question": "How is an ESOP buyback from a foreign company taxed in India?",
+      "answer": "Cash for unexercised options is usually withheld as salary, though one tribunal ruling treated it as capital gains. Selling foreign shares you hold gives a capital gain, long-term at 12.5% after 24 months. Check with a CA."
+    }
+  ],
+  "related": ["esop-buyback-india", "unacademy-esop-buyback-2026", "leaving-startup-esop-options"],
+  "sources": [
+    { "title": "BrowserStack press release: $125 million ESOP and share buyback program", "url": "https://www.browserstack.com/press/browserstack-announces-125-million-esop-and-share-buyback-program-creating-wealth-for-over-500-employees" },
+    { "title": "Entrepreneur India: BrowserStack announces USD 125 Mn ESOP and share buyback programme", "url": "https://india.entrepreneur.com/news-and-trends/browserstack-announces-usd-125-mn-esop-and-share-buyback/501794" },
+    { "title": "Trilegal: ITAT holds buyback of vested but unexercised ESOPs taxable as capital gains", "url": "https://trilegal.com/knowledge-repository/analysis/itat-holds-buyback-of-vested-but-unexercised-esops-taxable-as-capital-gains-not-perquisite/" },
+    { "title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-" },
+    { "title": "Treelife: ESOP taxation in India (capital gains rates for foreign shares)", "url": "https://treelife.in/taxation/esop-taxation-in-india/" },
+    { "title": "Business Today: Buyback tax, how India changed the rules three times in 18 months", "url": "https://www.businesstoday.in/markets/story/buyback-tax-how-india-changed-the-rules-three-times-in-18-months-and-what-investors-need-to-know-553004-2026-09-03" }
+  ],
+  "hub": {
+    "summary": "BrowserStack's $125M ESOP and share buyback (January 2026): what was announced, what it means for employees, and how Indian holders may be taxed.",
+    "audience": ["Employee", "Founder", "HR", "CA", "Tax"],
+    "tags": ["company news", "BrowserStack", "esop buyback", "foreign parent esop", "buyback tax"],
+    "tools": "ESOP calculator"
+  }
+}
