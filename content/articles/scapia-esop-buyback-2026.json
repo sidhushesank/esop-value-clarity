@@ -1,0 +1,247 @@
+{
+  "slug": "scapia-esop-buyback-2026",
+  "publishedAt": "2026-11-20",
+  "updatedAt": "2026-11-20",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR"
+  ],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "Scapia ESOP buyback 2026: what the ₹20 crore plan means",
+  "description": "Scapia announced a ₹20 crore ESOP buyback in July 2026, letting eligible staff sell up to 10% of options. What it means and how payouts are taxed.",
+  "keywords": [
+    "Scapia ESOP buyback",
+    "Scapia ESOP",
+    "ESOP buyback 2026",
+    "startup ESOP buyback India",
+    "ESOP buyback tax 2026",
+    "company news"
+  ],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "Scapia, the Bengaluru travel fintech, announced a ₹20 crore ESOP buyback on 20 July 2026, as reported by Entrackr and Inc42.",
+    "Eligible employees could sell up to 10% of their stock options; the per-share price, employee count and payment dates were not reported.",
+    "The buyback came soon after Scapia's $63 million Series C led by General Catalyst, with Peak XV Partners and Z47 participating.",
+    "How an employee is taxed depends on the route: exercise-then-buyback creates salary tax at exercise plus capital gains, while cash for surrendered options is usually treated as salary."
+  ],
+  "heroStats": [
+    {
+      "label": "Buyback size",
+      "value": "₹20 crore"
+    },
+    {
+      "label": "Cap per employee",
+      "value": "Up to 10% of options"
+    },
+    {
+      "label": "Announced",
+      "value": "20 July 2026"
+    },
+    {
+      "label": "Preceding round",
+      "value": "$63M Series C"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Illustrative options sold",
+      "value": "400 of 4,000 vested"
+    },
+    {
+      "label": "Illustrative gross payout",
+      "value": "₹4,00,000"
+    },
+    {
+      "label": "Illustrative net after 30% slab",
+      "value": "₹2,77,200"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What Scapia announced",
+      "body": [
+        "On 20 July 2026, Entrackr and Inc42 reported that Scapia, a travel-focused fintech founded in 2022 that issues co-branded credit cards with Federal Bank and Bank of Baroda, had announced an ESOP buyback programme worth ₹20 crore. This post is written in November 2026, so the event is about four months old; we cover it because it is one of the larger 2026 buybacks by a young startup.",
+        "Both outlets reported that eligible employees could liquidate up to 10% of their stock options. Entrackr described this as up to 10% of vested options. Neither report gave the price per option, the valuation used, the number of employees taking part, whether former employees were eligible, or the dates of the window and payment.",
+        "Inc42 reported that founder and CEO Anil Goteti described the buyback as a recognition of the team's contribution and said he hoped it would be the first of many such moments."
+      ]
+    },
+    {
+      "id": "context",
+      "eyebrow": "Context",
+      "title": "Why it came now",
+      "body": [
+        "Entrackr reported that the buyback came soon after Scapia's $63 million Series C, led by General Catalyst with existing investors Peak XV Partners and Z47 participating. Inc42 put Scapia's total funding at over $135 million, with backers including Elevation Capital and Binny Bansal's 3STATE Capital.",
+        "Entrackr also reported Scapia's FY25 numbers: operating revenue up 71% to ₹29 crore from ₹17 crore, and net loss narrowing to ₹83 crore from ₹88 crore. Scapia was one of several Indian startups running ESOP buybacks in 2026; Inc42 named Plum, Innovaccer, Emversity, CoinDCX, Atlys, Unacademy and Tractor Junction among those that had announced one earlier in the year."
+      ],
+      "cards": [
+        {
+          "label": "Founded",
+          "value": "2022"
+        },
+        {
+          "label": "FY25 operating revenue",
+          "value": "₹29 crore (Entrackr)"
+        },
+        {
+          "label": "FY25 net loss",
+          "value": "₹83 crore (Entrackr)"
+        }
+      ]
+    },
+    {
+      "id": "employees",
+      "eyebrow": "For employees",
+      "title": "What a 10% cap means in practice",
+      "body": [
+        "A cap of up to 10% means the buyback is a partial liquidity event, not an exit. An employee keeps at least 90% of their options and stays exposed to the company's future value, good or bad. For many people the main benefit is turning a slice of paper value into cash without waiting for an IPO or acquisition.",
+        "Selling is usually optional. The real choice is whether the price on offer, after tax, is worth more to you than the chance that the remaining options grow in value. Someone with a home loan or other near-term needs may weigh cash today more heavily than someone who can wait."
+      ],
+      "bullets": [
+        "Check whether the 10% applies to vested options only, or to your total grant.",
+        "Check whether you must exercise first, or whether the company pays cash for surrendered options.",
+        "Ask what valuation the price is based on and how it compares with the latest round."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How a payout like this is likely taxed",
+      "body": [
+        "Scapia has not publicly said how its buyback is structured, so the following covers the general routes under Indian tax law, not Scapia's specific plan.",
+        "Route 1, exercise then buyback of shares: when you exercise, the gap between fair market value (FMV) and your exercise price is a perquisite taxed as salary, usually with TDS through payroll. When the company then buys the shares back, buybacks paid from 1 April 2026 are taxed as capital gains under the Finance Act 2026 changes. Your cost is the FMV at exercise, so if the buyback price equals that FMV, the capital gain is close to zero. Shares held 24 months or less are short-term and taxed at slab rates.",
+        "Route 2, cash for surrendering vested options without exercise: practitioners commonly treat this as salary income, because no shares were ever issued. A recent ITAT Bangalore ruling, Pramod Kumar Jain v. DCIT, took a different view and treated such a payment as capital gains. The position is not settled, so check with a CA before filing."
+      ],
+      "warning": "Payments made between 1 October 2024 and 31 March 2026 for a share buyback followed the older deemed-dividend rule. Payment date, not announcement date, decides which rule applies."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative rupee example (not Scapia's numbers)",
+      "body": [
+        "These numbers are made up to show the arithmetic. They are not Scapia's price, valuation or grant terms.",
+        "Say you hold 4,000 vested options with an exercise price of ₹10, and the company offers ₹1,000 a share, which is also the FMV at exercise. A 10% cap lets you sell 400.",
+        "Gross payout: 400 × ₹1,000 = ₹4,00,000. Exercise cost: 400 × ₹10 = ₹4,000. Perquisite taxed as salary: 400 × (₹1,000 − ₹10) = ₹3,96,000. At a 30% slab (ignoring surcharge and cess), tax is ₹1,18,800. Capital gain on the buyback is nil because the price equals FMV. Cash in hand: ₹4,00,000 − ₹4,000 − ₹1,18,800 = ₹2,77,200.",
+        "You can model your own grant in EVC's free ESOP calculator before deciding how much to sell."
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Elsewhere",
+      "title": "Questions to ask if your company announces a buyback",
+      "body": [
+        "Whether you work at Scapia or anywhere else, get these answered in writing before the window closes."
+      ],
+      "bullets": [
+        "Is it a share buyback after exercise, or cash for cancelling options?",
+        "What is the price per option or share, and what valuation is it based on?",
+        "Who is eligible: current staff only, or former employees too, and is there a tenure cut-off?",
+        "When exactly will payment be made, and how much TDS will be deducted?",
+        "Does selling now affect my remaining options, vesting or future buyback eligibility?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "A 10% partial sale lets you lock in some cash while keeping most of your upside. Ask for the route and payment date first, because they decide the tax."
+    },
+    {
+      "label": "Founder",
+      "value": "Small, capped buybacks after a round are a common way to show options can turn into cash. Spell out the structure, price basis and TDS treatment in the offer letter."
+    },
+    {
+      "label": "HR",
+      "value": "Expect questions on eligibility, tax and timing. A one-page FAQ with an illustrative calculation cuts down repeat queries."
+    },
+    {
+      "label": "CA",
+      "value": "Confirm whether the payout is a share buyback or option surrender, and the payment date relative to 1 April 2026, before advising on capital gains versus salary treatment."
+    }
+  ],
+  "checklist": [
+    "Confirm how many of your options are vested today.",
+    "Get the buyback price and the valuation basis in writing.",
+    "Find out whether you must exercise first or will be paid for surrendering options.",
+    "Note the expected payment date and the TDS the company will deduct.",
+    "Run your numbers in an ESOP calculator before accepting."
+  ],
+  "mistakes": [
+    "Assuming the announcement date, not the payment date, decides the tax rule.",
+    "Ignoring the salary tax at exercise when estimating cash in hand.",
+    "Treating a partial buyback price as a guaranteed value for the rest of your options.",
+    "Not checking whether the cap applies to vested options or the full grant.",
+    "Filing an ITR without the Form 16 or buyback statement showing how the payout was classified."
+  ],
+  "faq": [
+    {
+      "question": "How much is the Scapia ESOP buyback?",
+      "answer": "Entrackr and Inc42 reported on 20 July 2026 that Scapia's ESOP buyback programme was worth ₹20 crore."
+    },
+    {
+      "question": "How many ESOPs can Scapia employees sell?",
+      "answer": "Eligible employees could sell up to 10% of their stock options, according to the reports. The price per option and the number of participating employees were not disclosed."
+    },
+    {
+      "question": "Is an ESOP buyback taxed as capital gains in 2026?",
+      "answer": "For a buyback of shares paid on or after 1 April 2026, yes, under the Finance Act 2026 changes. If you exercised just before, the exercise itself is still taxed as salary on the FMV minus exercise price."
+    },
+    {
+      "question": "Is cash for surrendering unexercised ESOPs taxed as salary?",
+      "answer": "It is commonly treated as salary, but an ITAT Bangalore ruling in Pramod Kumar Jain v. DCIT treated it as capital gains. The question is not settled, so ask a CA."
+    },
+    {
+      "question": "Should I sell my ESOPs in a company buyback?",
+      "answer": "It depends on your cash needs, the price offered versus your view of the company's future, and your tax. A partial sale reduces risk while keeping most of your upside."
+    }
+  ],
+  "related": [
+    "esop-buyback-india",
+    "unacademy-esop-buyback-2026",
+    "esop-exercise-cost"
+  ],
+  "sources": [
+    {
+      "title": "Entrackr: Travel fintech startup Scapia announces Rs 20 Cr ESOP buyback (20 Jul 2026)",
+      "url": "https://entrackr.com/news/travel-fintech-startup-scapia-announces-rs-20-cr-esop-buyback-12181445"
+    },
+    {
+      "title": "Inc42: Scapia announces ₹20 Cr ESOP buyback (20 Jul 2026)",
+      "url": "https://inc42.com/buzz/scapia-announces-%e2%82%b920-cr-esop-buyback/"
+    },
+    {
+      "title": "Business Today: New share buyback rule from April 1 is less taxing for shareholders (1 Apr 2026)",
+      "url": "https://www.businesstoday.in/markets/story/bt-explainer-new-share-buyback-rule-from-april-1-is-less-taxing-for-shareholders-heres-how-523556-2026-04-01"
+    },
+    {
+      "title": "Khurana & Khurana: Taxation of ESOP liquidity, buybacks and beyond (Aug 2026)",
+      "url": "https://www.khuranaandkhurana.com/taxation-of-esop-liquidity-buybacks-beyond"
+    },
+    {
+      "title": "Qapita: ESOP buyback, how it is taxed (ITAT Bangalore, Pramod Kumar Jain v. DCIT)",
+      "url": "https://www.qapita.com/in/blog/esop-buyback-how-its-taxed"
+    }
+  ],
+  "hub": {
+    "summary": "Scapia's ₹20 crore ESOP buyback from July 2026: what was reported, what a 10% cap means, likely tax by route, and an illustrative payout.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "Tax"
+    ],
+    "tags": [
+      "company news",
+      "Scapia",
+      "ESOP buyback",
+      "tax",
+      "liquidity"
+    ],
+    "tools": "ESOP calculator"
+  }
+}

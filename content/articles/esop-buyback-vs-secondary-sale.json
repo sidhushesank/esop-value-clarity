@@ -1,0 +1,261 @@
+{
+  "slug": "esop-buyback-vs-secondary-sale",
+  "publishedAt": "2026-11-20",
+  "updatedAt": "2026-11-20",
+  "category": "Liquidity",
+  "stage": "Liquidity",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP buyback vs secondary sale: which is better in India 2026",
+  "description": "ESOP buyback, secondary sale or option surrender? How each route works in India, who pays, and how each is taxed in 2026, with a worked rupee example.",
+  "keywords": [
+    "ESOP buyback vs secondary sale",
+    "ESOP secondary sale India",
+    "ESOP surrender tax",
+    "ESOP liquidity India",
+    "sell ESOP shares private company",
+    "ESOP buyback tax 2026"
+  ],
+  "icon": "Scale",
+  "quickAnswer": [
+    "A company buyback means the company itself buys your shares or options; a secondary sale means an investor or other buyer buys shares you already own; an option surrender means the company pays you cash to cancel options you never exercised.",
+    "Buybacks of shares paid from 1 April 2026 are taxed in your hands as capital gains, the same basic treatment as a secondary sale.",
+    "In both share routes you first pay salary tax on exercise (FMV minus exercise price), and your capital gain is the sale price minus that FMV; unlisted shares held over 24 months are long-term at 12.5%.",
+    "Cash for surrendered options is commonly treated as salary, though an ITAT Bangalore ruling treated it as capital gains, so the route and its paperwork matter."
+  ],
+  "heroStats": [
+    {
+      "label": "Routes to liquidity",
+      "value": "3"
+    },
+    {
+      "label": "Buyback tax from 1 Apr 2026",
+      "value": "Capital gains"
+    },
+    {
+      "label": "Unlisted LTCG",
+      "value": "12.5% after 24 months"
+    },
+    {
+      "label": "Short-term gains",
+      "value": "Slab rate"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Illustrative gross payout",
+      "value": "₹12,00,000"
+    },
+    {
+      "label": "Taxable income (exercise + sale)",
+      "value": "₹11,80,000"
+    },
+    {
+      "label": "Net at 30% slab",
+      "value": "₹8,26,000"
+    }
+  ],
+  "sections": [
+    {
+      "id": "three-routes",
+      "eyebrow": "Basics",
+      "title": "The three ways ESOP holders in India get cash",
+      "body": [
+        "Until a startup lists or is acquired, there is no open market for its shares. Employees get liquidity in one of three ways, and they look similar in a company email but are different transactions in law and in tax.",
+        "A company buyback is the company using its own money to buy back shares from shareholders, including employees who have exercised. A secondary sale is a buyer, usually a new or existing investor, buying shares from existing holders; the company receives no money. An option surrender, sometimes loosely called an ESOP buyback, is the company paying cash to cancel vested options that were never exercised, so no shares change hands."
+      ],
+      "cards": [
+        {
+          "label": "Company buyback",
+          "value": "Company pays; shares cancelled"
+        },
+        {
+          "label": "Secondary sale",
+          "value": "Investor pays; shares transferred"
+        },
+        {
+          "label": "Option surrender",
+          "value": "Company pays; options cancelled"
+        }
+      ]
+    },
+    {
+      "id": "how-buyback-works",
+      "eyebrow": "Route 1",
+      "title": "How a company share buyback works",
+      "body": [
+        "In a share buyback, the company offers to buy a set number of shares at a fixed price, usually for a set window. Employees who want to take part normally exercise their vested options first, pay the exercise price and the tax on exercise, and then tender the shares.",
+        "Private company buybacks follow the Companies Act rules on limits and approvals, and the price is usually tied to a recent valuation or funding round. The company has to have the cash, which is why buybacks often follow a fresh round."
+      ],
+      "bullets": [
+        "Pros: one buyer, one price, a simple process run by the company.",
+        "Cons: limited size and timing, often capped at a percentage of vested holdings, and you may need cash to exercise first unless the company offers a cashless route."
+      ]
+    },
+    {
+      "id": "how-secondary-works",
+      "eyebrow": "Route 2",
+      "title": "How a secondary sale works",
+      "body": [
+        "In a secondary sale, an investor buys shares from existing holders. In startups this usually happens alongside a funding round, when a new investor wants a bigger stake than the fresh issue gives them, or through structured programmes where an investor buys a block of employee shares.",
+        "Because these are shares, you must have exercised first. Private company articles of association often give the company or investors a right of first refusal and require board approval for transfers, so employees rarely find buyers on their own. The price is negotiated and is often at a discount to the latest round, though it can be higher in hot rounds."
+      ],
+      "bullets": [
+        "Pros: can be larger than a company buyback because investor money, not company cash, funds it.",
+        "Cons: depends on investor demand, needs transfer approvals and paperwork, and the price can be lower than the headline valuation."
+      ]
+    },
+    {
+      "id": "how-surrender-works",
+      "eyebrow": "Route 3",
+      "title": "How an option surrender works",
+      "body": [
+        "Some companies pay the difference between the offer price and the exercise price for each vested option, and cancel the options. You never pay to exercise and never hold shares, which makes it simple and avoids a cash outlay.",
+        "Many news reports call this an ESOP buyback too, so read the offer document to see whether you are tendering shares or surrendering options."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax in 2026",
+      "title": "How each route is taxed in India",
+      "body": [
+        "Exercise, for both share routes: the gap between the fair market value (FMV) on the exercise date and your exercise price is a perquisite, taxed as salary at your slab rate. For unlisted shares, the FMV is set by a merchant banker valuation. Your employer usually deducts TDS. Employees of eligible DPIIT-recognised startups may be able to defer this tax.",
+        "Company buyback of shares: the rule depends on when you are paid. Before 1 October 2024 the company paid a buyback tax and the proceeds were tax-free for you. From 1 October 2024 to 31 March 2026, the whole payout was taxed as deemed dividend at your slab rate, with no deduction for your cost. From 1 April 2026, under the Finance Act 2026, buyback proceeds are taxed as capital gains, so you are taxed only on the gain over your cost. The Income-tax Act, 2025, which replaced the 1961 Act from 1 April 2026, carries this forward. Separate, higher rules apply to promoters, not ordinary employees.",
+        "Secondary sale: taxed as capital gains. Your cost is the FMV at exercise, the amount already taxed as salary. Unlisted shares held more than 24 months from allotment are long-term and taxed at 12.5%; otherwise the gain is short-term and taxed at your slab rate.",
+        "Option surrender: practitioners commonly treat cash paid to cancel unexercised options as salary, because no shares existed. In Pramod Kumar Jain v. DCIT, the ITAT Bangalore held that such a payment was a capital receipt taxable as capital gains, not a perquisite. Until higher courts settle this, expect most employers to deduct TDS as salary, and discuss any different filing position with a CA."
+      ],
+      "warning": "From 1 April 2026, a share buyback and a secondary sale at the same price and holding period now produce roughly the same tax. The bigger differences are now timing, price and whether you need cash to exercise."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative rupee example: the same 2,000 options, three ways",
+      "body": [
+        "All numbers are illustrative. Say you have 2,000 vested options with an exercise price of ₹10. The FMV at exercise is ₹500 and the offer price is ₹600 a share. Assume a 30% slab, ignore surcharge and cess, and assume payment after 1 April 2026.",
+        "Company buyback (exercise now, tender now): perquisite = 2,000 × (₹500 − ₹10) = ₹9,80,000, taxed as salary. Capital gain = 2,000 × (₹600 − ₹500) = ₹2,00,000, short-term at slab. Total taxable = ₹11,80,000; tax at 30% = ₹3,54,000. Gross payout ₹12,00,000 minus exercise cost ₹20,000 minus tax ₹3,54,000 = ₹8,26,000 in hand.",
+        "Secondary sale at the same price, same day: the tax is the same as the buyback above, ₹3,54,000, because both are now capital gains. If instead you had exercised over 24 months earlier at an FMV of ₹200, the gain would be 2,000 × (₹600 − ₹200) = ₹8,00,000, long-term, and taxed at 12.5% = ₹1,00,000, with the salary tax already paid in the year you exercised.",
+        "Option surrender: the company pays 2,000 × (₹600 − ₹10) = ₹11,80,000 to cancel the options. Taxed as salary at 30%, that is ₹3,54,000, leaving ₹8,26,000. The total is the same here, but you never needed ₹20,000 or the exercise-year tax upfront.",
+        "Use EVC's free ESOP calculator to plug in your own grant, exercise price and offer price."
+      ]
+    },
+    {
+      "id": "choosing",
+      "eyebrow": "Decision",
+      "title": "Which route is better for you",
+      "body": [
+        "Most employees do not get to choose, because the company or investor decides the route. When you do have a choice, or are deciding whether to take part, weigh four things."
+      ],
+      "bullets": [
+        "Price: compare the offer with the latest round and any discount.",
+        "Cash needed upfront: share routes need the exercise price and exercise tax; a surrender usually does not.",
+        "Holding period: shares you exercised over 24 months ago get 12.5% long-term rates in a buyback or secondary sale.",
+        "Certainty: a company-run buyback is usually simpler and more certain than finding a secondary buyer."
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "Read the offer to see whether you are selling shares or surrendering options. That decides whether you need cash to exercise and how the payout is taxed."
+    },
+    {
+      "label": "Founder",
+      "value": "Choose the route with your cap table and cash in mind: buybacks use company cash, secondaries use investor money, and surrenders avoid issuing new shares."
+    },
+    {
+      "label": "HR",
+      "value": "Name the route clearly in the employee note and show one worked example with the tax treatment you will apply in payroll."
+    },
+    {
+      "label": "CA",
+      "value": "Check the payment date against 1 April 2026, the FMV at exercise for cost, and the holding period. Flag the unsettled option-surrender position."
+    }
+  ],
+  "checklist": [
+    "Confirm whether the offer is a share buyback, a secondary sale or an option surrender.",
+    "Find your FMV on the exercise date; it is your cost for capital gains.",
+    "Check the payment date against 1 April 2026.",
+    "Work out whether you have held shares over 24 months from allotment.",
+    "Plan cash for exercise price and exercise-year tax if a share route is used."
+  ],
+  "mistakes": [
+    "Calling every liquidity event a buyback and assuming the same tax.",
+    "Forgetting the salary tax at exercise when comparing net payouts.",
+    "Using the exercise price instead of FMV at exercise as your cost.",
+    "Relying on pre-April 2026 deemed-dividend articles for a payout made now.",
+    "Taking a capital gains position on an option surrender without advice."
+  ],
+  "faq": [
+    {
+      "question": "What is the difference between ESOP buyback and secondary sale?",
+      "answer": "In a buyback the company buys your shares or options with its own cash. In a secondary sale an investor buys shares you already own, and the company gets no money."
+    },
+    {
+      "question": "Is ESOP buyback taxed as capital gains or dividend in 2026?",
+      "answer": "A buyback of shares paid on or after 1 April 2026 is taxed as capital gains. Between 1 October 2024 and 31 March 2026 it was taxed as deemed dividend."
+    },
+    {
+      "question": "How is a secondary sale of ESOP shares taxed in India?",
+      "answer": "As capital gains on the sale price minus the FMV at exercise. Unlisted shares held over 24 months are taxed at 12.5%; otherwise at your slab rate."
+    },
+    {
+      "question": "Do I have to exercise my ESOPs before a buyback?",
+      "answer": "For a share buyback or secondary sale, yes. If the company is paying cash to cancel options, you do not exercise at all."
+    },
+    {
+      "question": "Is cash for surrendering ESOPs taxable as salary?",
+      "answer": "It is usually treated as salary, but the ITAT Bangalore in Pramod Kumar Jain v. DCIT treated it as capital gains. The point is not settled."
+    },
+    {
+      "question": "Which is better, ESOP buyback or secondary sale?",
+      "answer": "After April 2026 their tax is similar. Compare price, how much you can sell, whether you need cash upfront and how certain the deal is."
+    }
+  ],
+  "related": [
+    "esop-buyback-india",
+    "esop-exercise-cost",
+    "leaving-startup-esop-options"
+  ],
+  "sources": [
+    {
+      "title": "Khurana & Khurana: Taxation of ESOP liquidity, buybacks and beyond (Aug 2026)",
+      "url": "https://www.khuranaandkhurana.com/taxation-of-esop-liquidity-buybacks-beyond"
+    },
+    {
+      "title": "Qapita: ESOP buyback, how it is taxed (ITAT Bangalore, Pramod Kumar Jain v. DCIT)",
+      "url": "https://www.qapita.com/in/blog/esop-buyback-how-its-taxed"
+    },
+    {
+      "title": "Business Today: New share buyback rule from April 1 is less taxing for shareholders (1 Apr 2026)",
+      "url": "https://www.businesstoday.in/markets/story/bt-explainer-new-share-buyback-rule-from-april-1-is-less-taxing-for-shareholders-heres-how-523556-2026-04-01"
+    },
+    {
+      "title": "Business Today: Budget 2026, I-T Dept explains why share buybacks will now be taxed as capital gains (1 Feb 2026)",
+      "url": "https://www.businesstoday.in/amp/union-budget/story/budget-2026-i-t-dept-explains-why-share-buybacks-will-now-be-taxed-as-capital-gains-514091-2026-02-01"
+    }
+  ],
+  "hub": {
+    "summary": "Buyback, secondary sale or option surrender: how each ESOP liquidity route works in India, how each is taxed from April 2026, and a worked example.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "CA",
+      "Tax"
+    ],
+    "tags": [
+      "ESOP buyback",
+      "secondary sale",
+      "liquidity",
+      "tax",
+      "capital gains"
+    ],
+    "tools": "ESOP calculator"
+  }
+}
