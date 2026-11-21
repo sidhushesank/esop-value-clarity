@@ -1,0 +1,278 @@
+{
+  "slug": "esop-tax-deferral-startups",
+  "publishedAt": "2026-11-21",
+  "updatedAt": "2026-11-21",
+  "category": "Tax",
+  "stage": "Exercise",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "8 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP tax deferral for startups: who qualifies and when tax is due",
+  "description": "How startup employees in India can defer ESOP perquisite tax, which startups qualify, the three events that end deferral and a worked rupee example.",
+  "keywords": [
+    "ESOP tax deferral",
+    "ESOP tax deferral startups India",
+    "eligible startup ESOP tax",
+    "80-IAC ESOP deferral",
+    "ESOP TDS deferral 48 months",
+    "IMB certificate ESOP",
+    "perquisite tax deferral"
+  ],
+  "icon": "Percent",
+  "quickAnswer": [
+    "Employees of an eligible startup can postpone paying the perquisite tax on ESOPs instead of having it deducted from salary in the year the shares are allotted.",
+    "Eligible means the startup holds a certificate of eligible business from the Inter-Ministerial Board; DPIIT recognition on its own is not enough.",
+    "The tax becomes payable within 14 days of the earliest of three events: the end of the deferral period (48 months, counted from the end of the year after allotment under the old wording), selling the shares, or leaving the company.",
+    "Deferral changes when you pay, not how much: the income is still fixed at exercise, taxed at the rates of the allotment year, and must be reported in that year's return."
+  ],
+  "heroStats": [
+    {
+      "label": "Tax due after trigger",
+      "value": "Within 14 days"
+    },
+    {
+      "label": "Deferral period (ITD page)",
+      "value": "48 months"
+    },
+    {
+      "label": "Events that end deferral",
+      "value": "3"
+    },
+    {
+      "label": "Who qualifies",
+      "value": "IMB-certified startups"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "What is deferred",
+      "value": "Payment of perquisite tax on exercise"
+    },
+    {
+      "label": "What is not deferred",
+      "value": "The income itself, valued at exercise"
+    },
+    {
+      "label": "Biggest trap",
+      "value": "Leaving the job ends the deferral"
+    }
+  ],
+  "sections": [
+    {
+      "id": "the-problem",
+      "eyebrow": "Why it exists",
+      "title": "The dry tax problem deferral solves",
+      "body": [
+        "When you exercise ESOPs in India, the difference between the share's fair market value on the exercise date and your exercise price is taxed as salary, called a perquisite. In an unlisted startup there is usually no way to sell shares to pay that tax, so employees end up paying tax in cash on paper gains. This is often called dry tax.",
+        "To ease this, the Finance Act 2020 let employees of eligible startups postpone the tax. Instead of the employer deducting it through payroll in the year of allotment, the tax is paid later, when one of three events happens. The Income Tax Department's ESOP page, which says it reflects the law as amended by the Finance Act, 2026, still describes this relief."
+      ]
+    },
+    {
+      "id": "who-qualifies",
+      "eyebrow": "Eligibility",
+      "title": "Which startups qualify",
+      "body": [
+        "Only an eligible startup as defined for the startup profit deduction qualifies. Under the 1961 Act that was section 80-IAC. Under the Income-tax Act, 2025, which applies from 1 April 2026, the matching provision is section 140. The Income Tax Department's text of section 140 defines an eligible startup as a company or LLP that:"
+      ],
+      "bullets": [
+        "was incorporated on or after 1 April 2016 and before 1 April 2030;",
+        "meets the turnover limit in the Act (the department's current text of section 140 shows ₹300 crore; older guidance cites ₹100 crore, so check the year that applies);",
+        "holds a certificate of eligible business from the Inter-Ministerial Board of Certification (IMB)."
+      ],
+      "warning": "DPIIT recognition is the first step, but it does not by itself make a startup eligible. Only a small share of DPIIT-recognised startups hold the IMB certificate. Ask HR or finance for the certificate before you assume deferral applies."
+    },
+    {
+      "id": "triggers",
+      "eyebrow": "When tax is due",
+      "title": "The three events that end deferral",
+      "body": [
+        "The employer must deduct, or the employee must pay, the deferred tax within 14 days of whichever of these happens first:"
+      ],
+      "bullets": [
+        "Expiry of 48 months from the end of the relevant assessment year (under the 1961 Act wording, the year after the financial year of allotment), so roughly five years after allotment;",
+        "the date you sell the shares, including in a company buyback or a secondary sale;",
+        "the date you stop being an employee of the company."
+      ],
+      "cards": [
+        {
+          "label": "Clock trigger",
+          "value": "48 months"
+        },
+        {
+          "label": "Sale trigger",
+          "value": "Any sale of the shares"
+        },
+        {
+          "label": "Exit trigger",
+          "value": "Last day of employment"
+        }
+      ],
+      "warning": "Some 2026 commentary says the period is 60 months for shares allotted from 1 April 2026 under the new Act. The Income Tax Department's ESOP page still says 48 months, and we could not confirm a change in the statute. Treat 48 months as the safe assumption and confirm with your CA."
+    },
+    {
+      "id": "what-doesnt-change",
+      "eyebrow": "Fine print",
+      "title": "What deferral does not change",
+      "body": [
+        "The amount of income is fixed on the exercise date: fair market value minus exercise price. A later rise or fall in the share price does not change it. The tax is calculated at the rates in force for the year of allotment, not the year you finally pay.",
+        "The perquisite is still income of the allotment year. It is shown in Form 16 and reported in your return for that year; the return has a schedule for tax deferred on ESOPs from eligible startups. If the employer does not deduct the tax when a trigger happens, for example after you have left, you pay it yourself as self-assessment tax.",
+        "Capital gains are separate. When you sell, your cost is the fair market value used for the perquisite. Unlisted shares held more than 24 months from allotment give long-term gains taxed at 12.5%; shorter holdings are taxed at slab rates. Buybacks paid on or after 1 April 2026 are taxed as capital gains."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "A rupee example (illustrative numbers)",
+      "body": [
+        "These numbers are made up for illustration. Say Priya, at an IMB-certified startup, exercises 10,000 options in the 2026-27 year at an exercise price of ₹10, when the fair market value is ₹410.",
+        "Perquisite: 10,000 × (₹410 − ₹10) = ₹40,00,000. At an assumed 31.2% marginal rate (30% slab plus 4% cess, ignoring surcharge, which would apply at this income), the tax is ₹12,48,000. Without deferral the employer deducts that from her salary in 2026-27. With deferral, nothing is deducted then; she still reports the ₹40 lakh in that year's return.",
+        "In June 2028 she resigns. Leaving is a trigger, so the ₹12,48,000 is due within 14 days of her last day, even though she has not sold a share. If she later sells in a buyback at ₹600 a share after holding more than 24 months, her capital gain is 10,000 × (₹600 − ₹410) = ₹19,00,000, taxed at 12.5% = ₹2,37,500 before surcharge and cess."
+      ],
+      "cards": [
+        {
+          "label": "Perquisite income",
+          "value": "₹40,00,000"
+        },
+        {
+          "label": "Deferred tax at 31.2%",
+          "value": "₹12,48,000"
+        },
+        {
+          "label": "Later LTCG tax at 12.5%",
+          "value": "₹2,37,500"
+        }
+      ]
+    },
+    {
+      "id": "planning",
+      "eyebrow": "Planning",
+      "title": "How to use deferral well",
+      "body": [
+        "Deferral is most useful if you plan to stay until a liquidity event, because the sale and the tax then land together. It helps least if you might leave soon: resigning brings the full bill due within two weeks, often with no way to sell.",
+        "Before exercising, set aside the deferred tax as a liability, not as spare cash. Our free ESOP calculator can show the perquisite and the exit value side by side so you can see the cash gap."
+      ],
+      "bullets": [
+        "Ask for the IMB certificate number and date, not just DPIIT recognition.",
+        "Check your Form 16 shows the perquisite and the deferred tax.",
+        "Before resigning, plan cash for the tax due within 14 days.",
+        "Before a buyback, remember the sale is also a trigger."
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "Deferral delays the bill, it does not cancel it. Keep the tax amount aside and plan for it before you resign."
+    },
+    {
+      "label": "Founder",
+      "value": "The IMB certificate is what unlocks deferral for your team; DPIIT recognition alone does not."
+    },
+    {
+      "label": "HR",
+      "value": "Track every deferred-tax holder and their three trigger dates; on exit, deduct within 14 days or tell the employee to pay."
+    },
+    {
+      "label": "CA",
+      "value": "Report the perquisite in the allotment year, apply that year's rates at payment and confirm the period under the 2025 Act wording."
+    }
+  ],
+  "checklist": [
+    "Confirm the company holds an IMB certificate of eligible business.",
+    "Record exercise date, fair market value and exercise price.",
+    "Calculate the perquisite and the tax at the allotment year's rates.",
+    "Note the three trigger dates and the 14-day deadline.",
+    "Keep cash or a plan to fund the tax before you leave or sell."
+  ],
+  "mistakes": [
+    "Assuming DPIIT recognition is enough for deferral.",
+    "Thinking deferral reduces the tax or recalculates it at a lower future price.",
+    "Resigning without cash set aside for the deferred tax.",
+    "Leaving the perquisite out of the allotment-year return.",
+    "Using exercise price instead of fair market value as the cost for capital gains."
+  ],
+  "faq": [
+    {
+      "question": "Can I defer tax on ESOPs in India?",
+      "answer": "Yes, if your employer is an eligible startup holding an Inter-Ministerial Board certificate. The perquisite tax is then paid within 14 days of the earliest of the deferral period ending, selling the shares or leaving the company."
+    },
+    {
+      "question": "Is DPIIT recognition enough for ESOP tax deferral?",
+      "answer": "No. The startup must also hold a certificate of eligible business from the Inter-Ministerial Board under the startup deduction provision (80-IAC in the old Act, section 140 in the Income-tax Act, 2025)."
+    },
+    {
+      "question": "What happens to deferred ESOP tax if I resign?",
+      "answer": "Leaving the company is a trigger. The tax becomes payable within 14 days of your last day, whether or not you have sold the shares."
+    },
+    {
+      "question": "Is the ESOP tax deferral 48 months or 60 months?",
+      "answer": "The Income Tax Department's ESOP page says 48 months from the end of the relevant assessment year. Some 2026 commentary says 60 months for shares allotted from 1 April 2026. Confirm with your CA before relying on the longer period."
+    },
+    {
+      "question": "Does deferral change the amount of ESOP tax?",
+      "answer": "No. The income is fixed at exercise and taxed at the rates of the year of allotment. Only the payment date moves."
+    },
+    {
+      "question": "Do I still show deferred ESOP income in my ITR?",
+      "answer": "Yes. The perquisite is income of the allotment year and is reported in that year's return, which has a schedule for tax deferred on ESOPs from eligible startups."
+    }
+  ],
+  "related": [
+    "esop-exercise-cost",
+    "leaving-startup-esop-options",
+    "esop-valuation-india"
+  ],
+  "sources": [
+    {
+      "title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)",
+      "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"
+    },
+    {
+      "title": "Income Tax Department: Section 140, Income-tax Act, 2025",
+      "url": "https://www.incometaxindia.gov.in/w/section-140-91"
+    },
+    {
+      "title": "Income Tax Department: Schedule ESOP (tax deferred on ESOP)",
+      "url": "https://www.incometaxindia.gov.in/w/schedulde_esop"
+    },
+    {
+      "title": "TaxGuru: Deferring TDS or tax payment on income pertaining to ESOP of start-ups (Finance Bill 2020)",
+      "url": "https://taxguru.in/income-tax/deferring-tds-tax-payment-income-pertaining-esop-start-ups.html"
+    },
+    {
+      "title": "King Stubb & Kasiva: ESOP Taxation in India",
+      "url": "https://ksandk.com/labour-employment/esop-taxation-in-india/"
+    },
+    {
+      "title": "EquityList: Perquisite tax deferral for startups",
+      "url": "https://equitylist.co/blog-post/perquisite-tax-deferral-startups"
+    },
+    {
+      "title": "CAclubindia: ESOP for foreign-owned Indian subsidiaries, tax deferral (60-month claim)",
+      "url": "https://www.caclubindia.com/articles/esop-for-foreignowned-indian-subsidiaries-tax-deferral-extended-to-60-months-in-2026-55829.asp"
+    }
+  ],
+  "hub": {
+    "summary": "How employees of IMB-certified startups can defer ESOP perquisite tax, the three triggers and a worked rupee example.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "CA",
+      "Tax"
+    ],
+    "tags": [
+      "ESOP tax",
+      "tax deferral",
+      "80-IAC",
+      "IMB certificate",
+      "startups"
+    ],
+    "tools": "ESOP calculator"
+  }
+}

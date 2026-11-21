@@ -1,0 +1,262 @@
+{
+  "slug": "gokwik-esop-non-compete-2026",
+  "publishedAt": "2026-11-21",
+  "updatedAt": "2026-11-21",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "GoKwik ESOP non-compete: vested options tied to 9 rivals",
+  "description": "GoKwik amended its ESOP Plan 2021 so options can be forfeited if holders join nine named rivals. What was reported, the tax angle and what to ask.",
+  "keywords": [
+    "GoKwik ESOP",
+    "GoKwik ESOP non-compete",
+    "ESOP forfeiture competitor",
+    "vested options forfeited India",
+    "ESOP non-compete clause India",
+    "ESOP policy change employees"
+  ],
+  "icon": "ShieldCheck",
+  "quickAnswer": [
+    "Inc42 reported on 11 November 2026 that GoKwik amended its ESOP Plan 2021 with a non-compete clause naming nine companies, including Razorpay, Shiprocket, CRED, Cashfree Payments and Pine Labs.",
+    "According to Inc42, the board or nomination and remuneration committee can cancel unvested and vested-but-unexercised options if a holder joins, advises, invests in or otherwise associates with those companies.",
+    "Inc42 reports the restriction covers existing grants and former employees, runs until two years after the last working day, and does not reach options already exercised into shares.",
+    "Forfeited options carry no tax because nothing was exercised, but exercising early to protect options triggers perquisite tax on the spread, so the decision needs numbers, not panic."
+  ],
+  "heroStats": [
+    {
+      "label": "Rivals named in the clause",
+      "value": "9"
+    },
+    {
+      "label": "Restriction runs after exit",
+      "value": "2 years"
+    },
+    {
+      "label": "Options at risk (as reported)",
+      "value": "Unvested + vested unexercised"
+    },
+    {
+      "label": "Reported by Inc42",
+      "value": "11 Nov 2026"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "What changed",
+      "value": "A competitor clause added to an existing ESOP plan"
+    },
+    {
+      "label": "Who it reaches",
+      "value": "Current and former option holders"
+    },
+    {
+      "label": "What is outside it",
+      "value": "Options already exercised into shares"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What GoKwik changed in its ESOP plan",
+      "body": [
+        "On 11 November 2026 Inc42 published an investigation saying GoKwik, the Bengaluru e-commerce checkout and enablement company founded in 2020, had added a non-compete clause to its ESOP Plan 2021. Inc42 said it had seen the internal document and that the change was communicated to employees in August 2026, including to former employees who still hold options. Inc42 followed up in its 12 November newsletter.",
+        "The clause names nine companies. Under it, an option holder who joins, renders services to, advises, invests in or otherwise associates with any of them risks losing options. Inc42 reports the company's board or its nomination and remuneration committee can decide there has been a competitive breach and cancel unvested and vested-but-unexercised options. Inc42 describes that power as discretionary rather than automatic, and notes the phrase about associating with a rival is not defined."
+      ],
+      "bullets": [
+        "Razorpay",
+        "Shiprocket",
+        "CRED",
+        "Cashfree Payments",
+        "BiteSpeed",
+        "Snapmint",
+        "WebEngage",
+        "Shopflo (acquired by Pine Labs)",
+        "Pine Labs"
+      ]
+    },
+    {
+      "id": "scope",
+      "eyebrow": "Scope",
+      "title": "Who and what the clause covers, as reported",
+      "body": [
+        "Inc42 reports that the restriction applies to options granted before and after the change, and binds former employees who still hold vested options. It reports that a special resolution passed at GoKwik's September 2025 annual general meeting sets the period: from the grant date until two years after the employee's last day with the company or its affiliates.",
+        "Two limits matter. First, Inc42 says shares already obtained by exercising options are not covered by the forfeiture provision. Second, passive investment in listed shares appears to be carved out, and the board can approve exceptions in writing on request.",
+        "GoKwik did not answer Inc42's questions before publication, according to the report. Inc42 says the company instead issued a press release saying former employees could see about 9x average returns on ESOPs and that it turned EBITDA positive in October 2026. Inc42 separately reported layoffs of about 120 employees earlier and named several senior departures."
+      ]
+    },
+    {
+      "id": "legal-view",
+      "eyebrow": "The legal question",
+      "title": "Why lawyers quoted by Inc42 called it unusual",
+      "body": [
+        "Siddharth Manchanda, a partner at JSA Advocates & Solicitors, told Inc42, speaking generally and not about GoKwik, that naming competitors in an ESOP plan and tying vested-but-unexercised options to them is unusual. Non-compete terms usually sit in employment contracts, and changing forfeiture terms after grant to employees' disadvantage could be open to question. He pointed to Rule 12(8) of the Companies (Share Capital and Debentures) Rules, 2014, under which unvested options normally lapse on exit while vested options can be exercised within the period the scheme sets.",
+        "A second lawyer quoted without a name said the enforceability of such clauses, and of cancelling options on that basis, is unsettled in India. No court or regulator has ruled on GoKwik's clause, as far as the reporting shows."
+      ],
+      "warning": "This post reports what Inc42 published. It is not a legal opinion on GoKwik's plan. Anyone affected should read their own grant letter and plan and speak to a lawyer."
+    },
+    {
+      "id": "employee-impact",
+      "eyebrow": "What it means",
+      "title": "What it means for option holders",
+      "body": [
+        "Vested options are often treated as earned. A clause like this turns unexercised vested options into something that can still be lost, depending on where the holder works next. That changes the value of an outside offer from one of the named companies: the new salary has to be weighed against the options at stake.",
+        "Exercising is the obvious way to move value outside the clause, since Inc42 says exercised shares are not covered. But exercise costs cash twice: the exercise price, and income tax on the gap between fair market value and exercise price, which is taxed as a salary perquisite in the year of exercise. The shares are then unlisted and may stay illiquid until a buyback, secondary sale or IPO."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How tax works in each route",
+      "body": [
+        "If options are forfeited, nothing was exercised, so there is no perquisite and no tax. The loss is economic, not a tax event.",
+        "If options are exercised, the spread (fair market value on exercise date minus exercise price) is taxed as salary at slab rates, with TDS through payroll or, for a former employee, paid directly. Employees of a startup that holds an Inter-Ministerial Board certificate can defer that tax, but leaving the company is one of the events that ends the deferral. Whether GoKwik holds such a certificate was not reported.",
+        "When the shares are later sold, the gain over the fair market value used for the perquisite is a capital gain. For unlisted shares held more than 24 months from allotment it is long-term and taxed at 12.5%; otherwise at slab rates. Company buybacks paid on or after 1 April 2026 are taxed as capital gains in the holder's hands."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "A rupee example (not GoKwik's numbers)",
+      "body": [
+        "These numbers are made up to show the trade-off. They are not GoKwik's exercise price, valuation or any employee's holding.",
+        "Say a former employee holds 8,000 vested options with an exercise price of ₹20 and the latest fair market value is ₹300 a share. The spread at risk is 8,000 × ₹280 = ₹22,40,000.",
+        "To exercise, they pay 8,000 × ₹20 = ₹1,60,000 to the company. The ₹22,40,000 spread is taxed as salary. At an assumed 31.2% marginal rate (30% slab plus 4% cess, before any surcharge) that is ₹6,98,880. So protecting the options costs about ₹8.6 lakh in cash now for shares that may not be sellable soon. Not exercising costs nothing now, but the ₹22.4 lakh spread is exposed if they take a job the clause covers."
+      ],
+      "cards": [
+        {
+          "label": "Spread at risk",
+          "value": "₹22,40,000"
+        },
+        {
+          "label": "Exercise price payable",
+          "value": "₹1,60,000"
+        },
+        {
+          "label": "Perquisite tax at 31.2%",
+          "value": "₹6,98,880"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Elsewhere",
+      "title": "Questions employees at any startup should ask",
+      "body": [
+        "GoKwik's case is a reminder that an ESOP plan can be amended after you sign. Before you count options as part of your pay, ask:"
+      ],
+      "bullets": [
+        "Can the plan be amended for existing grants, and does it need my consent if a change hurts me?",
+        "Can vested options be cancelled for any reason other than fraud or misconduct? Is there a competitor clause?",
+        "How long do I have to exercise vested options after I leave?",
+        "Is the company IMB-certified, so perquisite tax on exercise can be deferred?",
+        "Has the company done a buyback, and at what share of vested options?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "List your vested and unvested options, price and latest fair market value, then work out the cash and tax needed to exercise before deciding anything."
+    },
+    {
+      "label": "Founder",
+      "value": "Retroactive changes to forfeiture terms carry legal and trust risk; competition concerns usually sit in employment contracts and confidentiality terms."
+    },
+    {
+      "label": "HR",
+      "value": "Put any plan amendment in writing to every holder, including alumni, with the effective date, scope and how exceptions are requested."
+    },
+    {
+      "label": "CA",
+      "value": "For clients weighing early exercise, model perquisite tax, deferral eligibility and the 24-month holding period before cash goes out."
+    }
+  ],
+  "checklist": [
+    "Read your grant letter and the latest version of the ESOP plan, not just the offer letter.",
+    "Note how many options are vested, unvested and exercised.",
+    "Get the latest fair market value from the company to size the spread.",
+    "Work out exercise cost plus perquisite tax before committing cash.",
+    "Take legal advice before accepting a role at a company named in any restriction."
+  ],
+  "mistakes": [
+    "Assuming vested options can never be cancelled.",
+    "Exercising in a hurry without budgeting the perquisite tax.",
+    "Forgetting that leaving a startup ends any tax deferral.",
+    "Relying on an informal assurance instead of a written exception.",
+    "Treating a press-release return figure as your own expected payout."
+  ],
+  "faq": [
+    {
+      "question": "What did GoKwik change in its ESOP policy?",
+      "answer": "Inc42 reported on 11 November 2026 that GoKwik added a non-compete clause to its ESOP Plan 2021 naming nine companies, under which unvested and vested-but-unexercised options can be cancelled if a holder joins or associates with them."
+    },
+    {
+      "question": "Which companies are on GoKwik's ESOP restricted list?",
+      "answer": "As reported by Inc42: Razorpay, Shiprocket, CRED, Cashfree Payments, BiteSpeed, Snapmint, WebEngage, Shopflo and Pine Labs."
+    },
+    {
+      "question": "Can a company cancel vested ESOPs in India?",
+      "answer": "It depends on the plan and the grant terms. Lawyers quoted by Inc42 said cancelling vested options for joining a competitor is unusual and that enforceability of such clauses is unsettled. Get legal advice on your own documents."
+    },
+    {
+      "question": "Are exercised ESOP shares affected by the GoKwik clause?",
+      "answer": "Inc42 reports that shares already obtained by exercising options are not covered by the forfeiture provision."
+    },
+    {
+      "question": "Is there tax if my ESOPs are forfeited?",
+      "answer": "No. Tax arises when you exercise (perquisite) and when you sell (capital gains). Forfeited options were never exercised, so there is no tax, only the lost value."
+    },
+    {
+      "question": "How long does the GoKwik restriction last?",
+      "answer": "Inc42 reports it runs from grant until two years after the employee's last working day, as set by a special resolution at the company's September 2025 AGM."
+    }
+  ],
+  "related": [
+    "leaving-startup-esop-options",
+    "esop-exercise-cost",
+    "esop-buyback-india"
+  ],
+  "sources": [
+    {
+      "title": "Inc42: GoKwik's Golden Handcuffs: Non-Compete Clause Puts Vested ESOPs In Jeopardy (11 Nov 2026)",
+      "url": "https://inc42.com/features/gokwiks-golden-handcuffs-non-compete-clause-puts-vested-esops-in-jeopardy/"
+    },
+    {
+      "title": "Inc42: GoKwik's ESOP Twist, New CEO At Unacademy & More (12 Nov 2026)",
+      "url": "https://inc42.com/buzz/gokwiks-esop-twist-new-ceo-at-unacademy-more/"
+    },
+    {
+      "title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)",
+      "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"
+    },
+    {
+      "title": "King Stubb & Kasiva: ESOP Taxation in India",
+      "url": "https://ksandk.com/labour-employment/esop-taxation-in-india/"
+    }
+  ],
+  "hub": {
+    "summary": "GoKwik added a nine-company non-compete to its ESOP plan, per Inc42. What was reported, the tax angle and what to ask your employer.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "CA"
+    ],
+    "tags": [
+      "company news",
+      "GoKwik",
+      "ESOP forfeiture",
+      "non-compete",
+      "vested options"
+    ],
+    "tools": "ESOP calculator"
+  }
+}
