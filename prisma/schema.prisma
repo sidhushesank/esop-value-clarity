@@ -1721,3 +1721,25 @@ enum UsOptionType {
   ISO
   NSO
 }
+enum ChangeScope {
+  COMPANY
+  ADVISOR
+}
+model ChangeLog {
+  id          String      @id @default(cuid())
+  scope       ChangeScope
+  workspaceId String?
+  firmId      String?
+  clientId    String?
+  actorUserId String?
+  actorLabel  String
+  action      String
+  entityType  String
+  entityId    String?
+  summary     String
+  details     Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([firmId, clientId, createdAt])
+}

@@ -13,6 +13,7 @@ import {
   removeLetter,
   storeLetter,
 } from "@/lib/company/grant-letter-storage";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,14 +23,14 @@ type Ctx = { params: Promise<{ grantId: string }> };
 async function findGrant(workspaceId: string, grantId: string) {
   return prisma.optionGrant.findFirst({
     where: { id: grantId, workspaceId },
-    select: { id: true, status: true, letterStorageKey: true, letterFileName: true },
+    select: { id: true, status: true, employeeName: true, letterStorageKey: true, letterFileName: true },
   });
 }
 
 /** POST (multipart, field "file"): upload or replace the signed grant letter PDF. */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);
@@ -68,6 +69,13 @@ export async function POST(request: Request, { params }: Ctx) {
       await removeLetter(grant.letterStorageKey);
     }
 
+    await logCompanyChange({ user, workspace }, {
+      action: grant.letterStorageKey ? "grant.letter_replaced" : "grant.letter_uploaded",
+      entityType: "grant",
+      entityId: grant.id,
+      summary: `${grant.letterStorageKey ? "Replaced" : "Uploaded"} the grant letter for ${grant.employeeName} (${updated.letterFileName}).`,
+      details: { file: updated.letterFileName, bytes: updated.letterFileSize },
+    });
     return NextResponse.json({ success: true, letter: updated }, { status: 201 });
   } catch (error) {
     return companyErrorResponse(error);
@@ -96,7 +104,7 @@ export async function GET(_request: Request, { params }: Ctx) {
 /** DELETE: remove the uploaded letter. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);
@@ -113,6 +121,12 @@ export async function DELETE(_request: Request, { params }: Ctx) {
         letterDownloadedAt: null,
         letterDownloadCount: 0,
       },
+    });
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.letter_removed",
+      entityType: "grant",
+      entityId: grant.id,
+      summary: `Removed the grant letter for ${grant.employeeName} (${grant.letterFileName ?? "file"}).`,
     });
     await removeLetter(grant.letterStorageKey);
 

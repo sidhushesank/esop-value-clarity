@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { shareholderSchema } from "@/lib/company/schemas";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ holderId: string }> };
 
@@ -14,7 +15,7 @@ async function findHolder(workspaceId: string, holderId: string) {
 /** PATCH: edit a shareholder. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { holderId } = await params;
 
     const existing = await findHolder(workspace.id, holderId);
@@ -34,6 +35,13 @@ export async function PATCH(request: Request, { params }: Ctx) {
       },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "holder.updated",
+      entityType: "holder",
+      entityId: holder.id,
+      summary: `Edited "${holder.name}".`,
+      details: { before: existing.name, after: holder.name, type: holder.type },
+    });
     return NextResponse.json({ success: true, holder });
   } catch (error) {
     return companyErrorResponse(error);
@@ -43,7 +51,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a shareholder with no movements can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { holderId } = await params;
 
     const existing = await findHolder(workspace.id, holderId);
@@ -64,6 +72,12 @@ export async function DELETE(_request: Request, { params }: Ctx) {
       );
     }
 
+    await logCompanyChange({ user, workspace }, {
+      action: "holder.deleted",
+      entityType: "holder",
+      entityId: existing.id,
+      summary: `Removed "${existing.name}" from the cap table.`,
+    });
     await prisma.shareholder.delete({ where: { id: existing.id } });
     return NextResponse.json({ success: true });
   } catch (error) {

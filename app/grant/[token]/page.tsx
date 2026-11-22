@@ -16,7 +16,7 @@ import { buildEmployeeView } from "@/lib/company/employee-view-data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Your ESOP grant",
+  title: "Your equity grant",
   robots: { index: false, follow: false, nocache: true },
   referrer: "no-referrer",
 };
@@ -63,7 +63,7 @@ export default async function EmployeeGrantPage({ params }: PageProps) {
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600">
               <LockKeyhole size={20} />
             </span>
-            <h1 className="mt-5 text-lg font-black text-slate-950">Your ESOP grant</h1>
+            <h1 className="mt-5 text-lg font-black text-slate-950">Your equity grant</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500">
               {link.grant.workspace.name} protected this page. Enter the passcode they gave you.
             </p>

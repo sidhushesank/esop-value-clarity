@@ -9,6 +9,7 @@ import {
   parseKind,
   readImportForm,
 } from "@/lib/company/import/server";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ const IMPORT_NOTE = "Imported opening balance";
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace, holderLimit, isEvcOwner } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
     const kind = parseKind((await params).kind);
     const { form, sheet, mapping, missing } = await readImportForm(request, kind);
 
@@ -88,6 +89,12 @@ export async function POST(request: Request, { params }: Ctx) {
         };
       }, { timeout: 30_000 });
 
+      await logCompanyChange({ user, workspace }, {
+        action: "import.captable",
+        entityType: "import",
+        summary: `Imported the cap table from a file: ${result.movements} holdings, ${result.newHolders} new holders, ${result.newClasses} new classes.`,
+        details: result,
+      });
       return NextResponse.json({ success: true, kind, ...result });
     }
 
@@ -135,6 +142,12 @@ export async function POST(request: Request, { params }: Ctx) {
       })),
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "import.grants",
+      entityType: "import",
+      summary: `Imported ${created.count} grants from a file into "${scheme.name}".`,
+      details: { grants: created.count, plan: scheme.name },
+    });
     return NextResponse.json({ success: true, kind, grants: created.count, scheme: scheme.name });
   } catch (error) {
     return companyErrorResponse(error);

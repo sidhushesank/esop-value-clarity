@@ -10,6 +10,7 @@ import {
   valuationInputSchema,
   validationFailure,
 } from "@/lib/advisor-schemas";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -34,7 +35,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
     await requireClientInFirm(firm.id, clientId);
 
@@ -52,6 +53,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       data: { ...parsed.data, clientId },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "valuation.created",
+      entityType: "valuation",
+      entityId: valuation.id,
+      summary: `Recorded a valuation of Rs. ${valuation.fmvPerShare.toLocaleString("en-IN")} per share dated ${valuation.valuationDate.toISOString().slice(0, 10)}${valuation.valuerName ? ` by ${valuation.valuerName}` : ""}.`,
+      details: { fmvPerShare: valuation.fmvPerShare, valuationDate: valuation.valuationDate, valuer: valuation.valuerName },
+    });
     return NextResponse.json({ success: true, valuation }, { status: 201 });
   } catch (error) {
     return advisorErrorResponse(error);

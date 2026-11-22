@@ -7,6 +7,7 @@ import {
 } from "@/lib/advisor-access";
 import { advisorErrorResponse } from "@/lib/advisor-http";
 import { clientInputSchema } from "@/lib/advisor-schemas";
+import { logAdvisorChange } from "@/lib/change-log";
 
 export async function GET() {
   try {
@@ -35,7 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { firm, isFounder, clientLimit } = await requireAdvisorFirm();
+    const { firm, isFounder, clientLimit, user } = await requireAdvisorFirm();
 
     const body = await request.json().catch(() => null);
     const parsed = clientInputSchema.safeParse(body);
@@ -57,6 +58,12 @@ export async function POST(request: Request) {
       data: { ...parsed.data, firmId: firm.id },
     });
 
+    await logAdvisorChange({ user, firm }, client.id, {
+      action: "client.created",
+      entityType: "client",
+      entityId: client.id,
+      summary: `Added client company "${client.name}".`,
+    });
     return NextResponse.json({ success: true, client }, { status: 201 });
   } catch (error) {
     return advisorErrorResponse(error);

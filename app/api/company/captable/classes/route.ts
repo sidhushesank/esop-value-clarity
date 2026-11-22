@@ -5,11 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { securityClassSchema } from "@/lib/company/schemas";
+import { logCompanyChange } from "@/lib/change-log";
 
 /** POST /api/company/captable/classes: add a class (Equity, Series A CCPS, iSAFE...). */
 export async function POST(request: Request) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
 
     const body = await request.json().catch(() => null);
     const parsed = securityClassSchema.safeParse(body);
@@ -18,6 +19,12 @@ export async function POST(request: Request) {
     try {
       const created = await prisma.securityClass.create({
         data: { ...parsed.data, workspaceId: workspace.id },
+      });
+      await logCompanyChange({ user, workspace }, {
+        action: "class.created",
+        entityType: "class",
+        entityId: created.id,
+        summary: `Added share class "${created.name}" (${created.kind}).`,
       });
       return NextResponse.json({ success: true, class: created }, { status: 201 });
     } catch (e) {

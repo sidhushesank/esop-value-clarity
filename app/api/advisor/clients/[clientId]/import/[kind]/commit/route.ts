@@ -14,6 +14,7 @@ import {
   parseKind,
   parseOtherMapping,
 } from "@/lib/advisor/import-other";
+import { logAdvisorChange } from "@/lib/change-log";
 
 export const runtime = "nodejs";
 
@@ -30,7 +31,7 @@ function failure(message: string, code: string, extra?: object) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId, kind: kindParam } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -125,6 +126,12 @@ export async function POST(request: Request, { params }: RouteContext) {
       });
     }
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: `import.${kind}`,
+      entityType: "import",
+      summary: `Imported ${analysis.valid.length} ${kind === "captable" ? "cap table" : kind} row${analysis.valid.length === 1 ? "" : "s"} (${mode === "replace" ? "replaced existing data" : "added to existing data"})${analysis.invalid.length ? `, skipped ${analysis.invalid.length}` : ""}.`,
+      details: { kind, imported: analysis.valid.length, skipped: analysis.invalid.length, mode },
+    });
     return NextResponse.json({
       success: true,
       kind,

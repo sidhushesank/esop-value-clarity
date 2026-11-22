@@ -12,6 +12,7 @@ import {
 } from "@/lib/advisor-schemas";
 import { validateEventOwnership } from "@/lib/advisor/tax/event-validation";
 import { computeClientLedger, dayStart } from "@/lib/advisor/tax/ledger-data";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -37,7 +38,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -61,6 +62,13 @@ export async function POST(request: Request, { params }: RouteContext) {
     // Store the audit record for the new state of the ledger.
     await computeClientLedger(clientId, dayStart(new Date()), { persist: true });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_event.created",
+      entityType: "tax_event",
+      entityId: event.id,
+      summary: `Recorded a ${event.type.toLowerCase()} of ${event.shares.toLocaleString("en-IN")} shares dated ${event.eventDate.toISOString().slice(0, 10)}.`,
+      details: { type: event.type, shares: event.shares, eventDate: event.eventDate, exercisePrice: event.exercisePrice, pricePerShare: event.pricePerShare },
+    });
     return NextResponse.json({ success: true, event }, { status: 201 });
   } catch (error) {
     return advisorErrorResponse(error);

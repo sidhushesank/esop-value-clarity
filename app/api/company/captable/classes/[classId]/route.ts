@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { securityClassSchema } from "@/lib/company/schemas";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ classId: string }> };
 
@@ -15,7 +16,7 @@ async function findClass(workspaceId: string, classId: string) {
 /** PATCH: edit a class's terms. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { classId } = await params;
 
     const existing = await findClass(workspace.id, classId);
@@ -29,6 +30,13 @@ export async function PATCH(request: Request, { params }: Ctx) {
       const updated = await prisma.securityClass.update({
         where: { id: existing.id },
         data: parsed.data,
+      });
+      await logCompanyChange({ user, workspace }, {
+        action: "class.updated",
+        entityType: "class",
+        entityId: updated.id,
+        summary: `Edited share class "${updated.name}".`,
+        details: { before: existing.name, after: updated.name, kind: updated.kind },
       });
       return NextResponse.json({ success: true, class: updated });
     } catch (e) {
@@ -45,7 +53,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a class with no movements can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { classId } = await params;
 
     const existing = await findClass(workspace.id, classId);
@@ -66,6 +74,12 @@ export async function DELETE(_request: Request, { params }: Ctx) {
       );
     }
 
+    await logCompanyChange({ user, workspace }, {
+      action: "class.deleted",
+      entityType: "class",
+      entityId: existing.id,
+      summary: `Deleted share class "${existing.name}".`,
+    });
     await prisma.securityClass.delete({ where: { id: existing.id } });
     return NextResponse.json({ success: true });
   } catch (error) {

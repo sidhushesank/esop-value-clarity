@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse } from "@/lib/company-http";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ grantId: string }> };
 
@@ -13,7 +14,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
  */
 export async function POST(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await prisma.optionGrant.findFirst({
@@ -31,6 +32,13 @@ export async function POST(_request: Request, { params }: Ctx) {
       },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.lapsed",
+      entityType: "grant",
+      entityId: updated.id,
+      summary: `Lapsed the remaining ${updated.optionsLapsed.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options of ${updated.employeeName}; they return to the pool.`,
+      details: { optionsLapsed: updated.optionsLapsed, statusBefore: grant.status },
+    });
     return NextResponse.json({ success: true, grant: updated });
   } catch (error) {
     return companyErrorResponse(error);

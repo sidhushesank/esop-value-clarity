@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse } from "@/lib/company-http";
 import { termsOf, warningsFor } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ grantId: string }> };
 
@@ -14,7 +15,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
  */
 export async function POST(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await prisma.optionGrant.findFirst({
@@ -40,6 +41,17 @@ export async function POST(_request: Request, { params }: Ctx) {
       data: { status: "ISSUED", issuedAt: new Date() },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.issued",
+      entityType: "grant",
+      entityId: updated.id,
+      summary: `Issued ${updated.options.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options to ${updated.employeeName}.`,
+      details: {
+        options: updated.options,
+        exercisePrice: updated.exercisePrice,
+        openWarnings: warnings.filter((w) => w.severity !== "INFO").map((w) => w.code),
+      },
+    });
     return NextResponse.json({ success: true, grant: updated, warnings });
   } catch (error) {
     return companyErrorResponse(error);

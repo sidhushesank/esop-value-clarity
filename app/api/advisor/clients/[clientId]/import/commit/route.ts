@@ -13,6 +13,7 @@ import {
   parseMappingField,
   readSheet,
 } from "@/lib/advisor/import-parse";
+import { logAdvisorChange } from "@/lib/change-log";
 
 export const runtime = "nodejs";
 
@@ -29,7 +30,7 @@ function failure(message: string, code: string, extra?: object) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -112,6 +113,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       return batch;
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "import.register",
+      entityType: "import",
+      entityId: result.id,
+      summary: `Imported ${valid.length} ESOP register row${valid.length === 1 ? "" : "s"} (${mode === "replace" ? "replaced existing data" : "added to existing data"})${invalid.length ? `, skipped ${invalid.length}` : ""}.`,
+      details: { imported: valid.length, skipped: invalid.length, mode },
+    });
     return NextResponse.json({
       success: true,
       batchId: result.id,

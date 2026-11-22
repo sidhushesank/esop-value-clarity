@@ -10,6 +10,7 @@ import {
   taxEmployeeInputSchema,
   validationFailure,
 } from "@/lib/advisor-schemas";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -35,7 +36,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -63,6 +64,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_employee.created",
+      entityType: "tax_employee",
+      entityId: employee.id,
+      summary: `Added employee "${employee.name}" to the Tax-Event Ledger.`,
+      details: { regime: employee.regime },
+    });
     return NextResponse.json({ success: true, employee }, { status: 201 });
   } catch (error) {
     return advisorErrorResponse(error);

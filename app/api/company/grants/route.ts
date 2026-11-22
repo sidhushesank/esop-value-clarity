@@ -9,6 +9,7 @@ import {
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { optionGrantSchema } from "@/lib/company/schemas";
 import { listGrants, termsOf, warningsFor } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const { workspace, holderLimit, isEvcOwner } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
 
     const body = await request.json().catch(() => null);
     const parsed = optionGrantSchema.safeParse(body);
@@ -80,6 +81,20 @@ export async function POST(request: Request) {
       { usOptionType: grant.usOptionType, holderKey: grant.holderKey }
     );
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.created",
+      entityType: "grant",
+      entityId: grant.id,
+      summary: `Created a draft grant of ${grant.options.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options for ${grant.employeeName} at ${grant.exercisePrice} per option.`,
+      details: {
+        employee: grant.employeeName,
+        options: grant.options,
+        exercisePrice: grant.exercisePrice,
+        grantDate: grant.grantDate,
+        optionType: grant.usOptionType,
+        warnings: warnings.length,
+      },
+    });
     return NextResponse.json({ success: true, grant, warnings }, { status: 201 });
   } catch (error) {
     return companyErrorResponse(error);

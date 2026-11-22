@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Download, FileUp, Loader2, Trash2 } from "lucide-react";
 
 import { BTN_DARK, BTN_LIGHT, fmtDate, readJson } from "@/components/company/ui";
+import { useJurisdiction } from "@/components/company/JurisdictionContext";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -33,6 +34,8 @@ export default function GrantLetterCard({
   downloadCount: number;
   onChanged: () => void;
 }) {
+  const us = useJurisdiction() === "US";
+  const doc = us ? "grant agreement" : "grant letter";
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<"" | "upload" | "delete">("");
   const [error, setError] = useState("");
@@ -52,10 +55,10 @@ export default function GrantLetterCard({
         body,
       });
       const json = await readJson(res);
-      if (!res.ok || !json?.success) return setError(json?.message ?? "We could not upload the letter.");
+      if (!res.ok || !json?.success) return setError(json?.message ?? `We could not upload the ${doc}.`);
       onChanged();
     } catch {
-      setError("We could not upload the letter. Please retry.");
+      setError(`We could not upload the ${doc}. Please retry.`);
     } finally {
       setBusy("");
       if (input.current) input.current.value = "";
@@ -63,13 +66,13 @@ export default function GrantLetterCard({
   }
 
   async function remove() {
-    if (!window.confirm("Remove the uploaded grant letter? The employee will no longer be able to download it.")) return;
+    if (!window.confirm(`Remove the uploaded ${doc}? The employee will no longer be able to download it.`)) return;
     setBusy("delete");
     setError("");
     try {
       const res = await fetch(`/api/company/grants/${grantId}/letter`, { method: "DELETE", credentials: "include" });
       const json = await readJson(res);
-      if (!res.ok || !json?.success) return setError(json?.message ?? "We could not remove the letter.");
+      if (!res.ok || !json?.success) return setError(json?.message ?? `We could not remove the ${doc}.`);
       onChanged();
     } finally {
       setBusy("");
@@ -84,9 +87,9 @@ export default function GrantLetterCard({
             <FileUp size={18} />
           </span>
           <div>
-            <h4 className="text-sm font-black">Grant letter</h4>
+            <h4 className="text-sm font-black">{us ? "Grant agreement" : "Grant letter"}</h4>
             <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
-              Upload the signed grant letter your CS or lawyer prepared (PDF, up to 10 MB). The employee
+              Upload the signed {doc} your {us ? "lawyer" : "CS or lawyer"} prepared (PDF, up to 10 MB). The employee
               can download it from their grant page. Stored privately.
             </p>
           </div>
@@ -127,7 +130,7 @@ export default function GrantLetterCard({
           </div>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-slate-500">No letter uploaded yet.</p>
+        <p className="mt-4 text-sm text-slate-500">No {doc} uploaded yet.</p>
       )}
 
       {error && <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>}

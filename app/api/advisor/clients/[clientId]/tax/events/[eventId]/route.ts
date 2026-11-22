@@ -13,6 +13,7 @@ import {
 import { ProAccessError } from "@/lib/pro-access";
 import { validateEventOwnership } from "@/lib/advisor/tax/event-validation";
 import { computeClientLedger, dayStart } from "@/lib/advisor/tax/ledger-data";
+import { logAdvisorChange } from "@/lib/change-log";
 
 
 type RouteContext = {
@@ -32,7 +33,7 @@ async function requireEvent(clientId: string, eventId: string) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId, eventId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -57,6 +58,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     await computeClientLedger(clientId, dayStart(new Date()), { persist: true });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_event.updated",
+      entityType: "tax_event",
+      entityId: event.id,
+      summary: `Edited a ${event.type.toLowerCase()} of ${event.shares.toLocaleString("en-IN")} shares dated ${event.eventDate.toISOString().slice(0, 10)}.`,
+      details: { type: event.type, shares: event.shares, eventDate: event.eventDate },
+    });
     return NextResponse.json({ success: true, event });
   } catch (error) {
     return advisorErrorResponse(error);
@@ -65,7 +73,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId, eventId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -79,6 +87,12 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
 
     await prisma.taxEvent.delete({ where: { id: eventId } });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_event.deleted",
+      entityType: "tax_event",
+      entityId: eventId,
+      summary: "Deleted a tax event. Sales linked to it now use oldest-lot-first.",
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return advisorErrorResponse(error);

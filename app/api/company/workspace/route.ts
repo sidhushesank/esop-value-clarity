@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { companyDetailsSchema } from "@/lib/company/schemas";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ async function hasEquityRecords(workspaceId: string): Promise<boolean> {
 /** PATCH /api/company/workspace: edit company details (country, name, IDs, dates, FMV). */
 export async function PATCH(request: Request) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
 
     const body = await request.json().catch(() => null);
     const parsed = companyDetailsSchema.safeParse(body);
@@ -96,6 +97,22 @@ export async function PATCH(request: Request) {
       },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "company.details_updated",
+      entityType: "company",
+      entityId: workspace.id,
+      summary:
+        data.jurisdiction && data.jurisdiction !== workspace.jurisdiction
+          ? `Set the company country to ${data.jurisdiction === "US" ? "United States" : "India"} and updated company details.`
+          : "Updated company details.",
+      details: {
+        name: updated.name,
+        country: updated.jurisdiction,
+        valuePerShare: updated.currentFmvPerShare,
+        valuationDate: updated.fmvValuationDate,
+        previousValuePerShare: workspace.currentFmvPerShare,
+      },
+    });
     return NextResponse.json({ success: true, workspace: updated });
   } catch (error) {
     return companyErrorResponse(error);

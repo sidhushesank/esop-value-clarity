@@ -385,8 +385,8 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
               <h2 className="text-base font-black">Your documents</h2>
               <p className="mt-1 text-sm leading-6 text-slate-500">
                 {data.letter
-                  ? "Your grant letter from the company, and a one-page summary of this grant."
-                  : "Your company has not uploaded your grant letter here yet. You can download a summary of this grant."}
+                  ? `Your ${us ? "grant agreement" : "grant letter"} from the company, and a one-page summary of this grant.`
+                  : `Your company has not uploaded your ${us ? "grant agreement" : "grant letter"} here yet. You can download a summary of this grant.`}
               </p>
             </div>
           </div>
@@ -396,7 +396,7 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
                 href={`/api/grant/${token}/letter`}
                 className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-slate-800"
               >
-                <Download size={14} /> Download grant letter
+                <Download size={14} /> Download {us ? "grant agreement" : "grant letter"}
               </a>
             )}
             <a
@@ -419,6 +419,7 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
           employeeName={data.employeeName}
           status={status}
           acceptedAt={accepted}
+          legalDoc={us ? "grant agreement" : "grant letter"}
           onAccepted={(at) => setAccepted(at)}
         />
 
@@ -452,12 +453,14 @@ function AcceptCard({
   status,
   acceptedAt,
   onAccepted,
+  legalDoc = "grant letter",
 }: {
   token: string;
   employeeName: string;
   status: string;
   acceptedAt: string | null;
   onAccepted: (at: string) => void;
+  legalDoc?: string;
 }) {
   const [name, setName] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -470,7 +473,7 @@ function AcceptCard({
         <CheckCircle2 size={20} className="mt-0.5 shrink-0" />
         <div>
           <p className="font-black">You accepted this grant{acceptedAt ? ` on ${fmtDate(acceptedAt)}` : ""}.</p>
-          <p>Your company can see this. Keep your grant letter for your records.</p>
+          <p>Your company can see this. Keep your {legalDoc} for your records.</p>
         </div>
       </section>
     );
@@ -506,7 +509,7 @@ function AcceptCard({
         <div>
           <h2 className="text-base font-black">Accept your grant</h2>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Confirms to your company that you have received and read your grant. Your grant letter from
+            Confirms to your company that you have received and read your grant. Your {legalDoc} from
             the company is the legal document.
           </p>
         </div>

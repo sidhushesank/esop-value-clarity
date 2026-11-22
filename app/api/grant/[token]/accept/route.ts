@@ -8,6 +8,7 @@ import {
   resolveGrantLink,
   verifyGrantCookie,
 } from "@/lib/company/grant-links";
+import { logEmployeeAction } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ token: string }> };
 
@@ -81,5 +82,12 @@ export async function POST(request: Request, { params }: Ctx) {
     );
   }
 
+  await logEmployeeAction(link.grant.workspace.id, grant.employeeName, {
+    action: "grant.accepted",
+    entityType: "grant",
+    entityId: grant.id,
+    summary: `${grant.employeeName} accepted the grant of ${grant.options.toLocaleString(link.grant.workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options on their grant page.`,
+    details: { typedName: parsed.data.fullName },
+  });
   return NextResponse.json({ success: true, acceptedAt: new Date() });
 }

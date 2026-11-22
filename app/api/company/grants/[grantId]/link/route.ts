@@ -11,6 +11,7 @@ import {
   hashGrantToken,
   hashPasscode,
 } from "@/lib/company/grant-links";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
 async function findGrant(workspaceId: string, grantId: string) {
   return prisma.optionGrant.findFirst({
     where: { id: grantId, workspaceId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, employeeName: true },
   });
 }
 
@@ -69,7 +70,7 @@ export async function GET(_request: Request, { params }: Ctx) {
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);
@@ -102,6 +103,13 @@ export async function POST(request: Request, { params }: Ctx) {
       });
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.link_created",
+      entityType: "grant",
+      entityId: grant.id,
+      summary: `Created a new employee page link for ${grant.employeeName}${parsed.data.passcode ? " with a passcode" : ""}, valid ${parsed.data.expiresInDays} days. Older links stopped working.`,
+      details: { expiresInDays: parsed.data.expiresInDays, passcode: Boolean(parsed.data.passcode) },
+    });
     return NextResponse.json(
       {
         success: true,
@@ -118,7 +126,7 @@ export async function POST(request: Request, { params }: Ctx) {
 /** DELETE: stop every link for this grant working immediately. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);
@@ -129,6 +137,12 @@ export async function DELETE(_request: Request, { params }: Ctx) {
       data: { revokedAt: new Date() },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.link_revoked",
+      entityType: "grant",
+      entityId: grant.id,
+      summary: `Turned off the employee page link for ${grant.employeeName}.`,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return companyErrorResponse(error);

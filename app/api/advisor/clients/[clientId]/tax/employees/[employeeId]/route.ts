@@ -11,6 +11,7 @@ import {
   validationFailure,
 } from "@/lib/advisor-schemas";
 import { ProAccessError } from "@/lib/pro-access";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string; employeeId: string }>;
@@ -31,7 +32,7 @@ async function loadEmployee(clientId: string, employeeId: string) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId, employeeId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -60,6 +61,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_employee.updated",
+      entityType: "tax_employee",
+      entityId: employee.id,
+      summary: `Edited employee "${employee.name}" in the Tax-Event Ledger.`,
+      details: { regime: employee.regime },
+    });
     return NextResponse.json({ success: true, employee });
   } catch (error) {
     return advisorErrorResponse(error);
@@ -69,7 +77,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 // Archive, not delete: the employee's events and audit trail are kept.
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId, employeeId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -80,6 +88,12 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       data: { archivedAt: new Date() },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "tax_employee.archived",
+      entityType: "tax_employee",
+      entityId: employeeId,
+      summary: "Archived an employee in the Tax-Event Ledger. Their events are kept.",
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return advisorErrorResponse(error);

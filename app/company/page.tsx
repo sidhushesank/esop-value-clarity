@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Building2,
   Gift,
+  History as HistoryIcon,
   Layers,
   PieChart,
   RefreshCw,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 import CapTablePanel from "@/components/company/CapTablePanel";
+import ChangeHistoryPanel from "@/components/history/ChangeHistoryPanel";
 import CompanyDetailsPanel from "@/components/company/CompanyDetailsPanel";
 import EsopPoolPanel from "@/components/company/EsopPoolPanel";
 import GrantsPanel from "@/components/company/GrantsPanel";
@@ -33,13 +35,14 @@ type WorkspaceResponse = {
   message?: string;
 };
 
-type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "DETAILS";
+type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "DETAILS" | "HISTORY";
 
 const TABS: { id: Tab; label: string; icon: ReactNode; soon?: boolean }[] = [
   { id: "CAPTABLE", label: "Cap table", icon: <PieChart size={15} /> },
   { id: "POOL", label: "ESOP pool", icon: <Layers size={15} /> },
   { id: "GRANTS", label: "Grants", icon: <Gift size={15} /> },
   { id: "DETAILS", label: "Company details", icon: <Building2 size={15} /> },
+  { id: "HISTORY", label: "History", icon: <HistoryIcon size={15} /> },
 ];
 
 export default function CompanyHomePage() {
@@ -235,6 +238,22 @@ export default function CompanyHomePage() {
             {tab === "CAPTABLE" && <CapTablePanel />}
             {tab === "POOL" && <EsopPoolPanel />}
             {tab === "GRANTS" && <GrantsPanel companyName={ws.name} onChanged={() => void load()} />}
+            {tab === "HISTORY" && (
+              <ChangeHistoryPanel
+                endpoint="/api/company/history"
+                exportHref="/api/company/history/export"
+                intro="Every change to the cap table, plans, grants, letters, links and company details: who made it and when. Employee acceptances are included."
+                filters={[
+                  { value: "grant", label: "Grants" },
+                  { value: "scheme", label: jurisdiction === "US" ? "Plans" : "Schemes" },
+                  { value: "class", label: "Share classes" },
+                  { value: "holder", label: jurisdiction === "US" ? "Stockholders" : "Shareholders" },
+                  { value: "movement", label: "Share movements" },
+                  { value: "import", label: "Imports" },
+                  { value: "company", label: "Company details" },
+                ]}
+              />
+            )}
             {tab === "DETAILS" && (
               <CompanyDetailsPanel
                 workspace={ws}

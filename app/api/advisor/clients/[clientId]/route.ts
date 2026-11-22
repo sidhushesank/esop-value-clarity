@@ -7,6 +7,7 @@ import {
 } from "@/lib/advisor-access";
 import { advisorErrorResponse } from "@/lib/advisor-http";
 import { clientInputSchema } from "@/lib/advisor-schemas";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -37,7 +38,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -61,6 +62,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       data: parsed.data,
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "client.updated",
+      entityType: "client",
+      entityId: clientId,
+      summary: `Edited company details of "${client.name}".`,
+      details: { fields: Object.keys(parsed.data) },
+    });
     return NextResponse.json({ success: true, client });
   } catch (error) {
     return advisorErrorResponse(error);
@@ -70,7 +78,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 // Archive, not hard delete: the firm's history and reports stay intact.
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -80,6 +88,12 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       data: { archivedAt: new Date() },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "client.archived",
+      entityType: "client",
+      entityId: clientId,
+      summary: "Archived this client company. Its reports and history are kept.",
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return advisorErrorResponse(error);

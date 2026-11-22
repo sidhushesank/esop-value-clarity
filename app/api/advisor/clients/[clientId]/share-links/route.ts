@@ -13,6 +13,7 @@ import {
   hashPasscode,
   hashShareToken,
 } from "@/lib/advisor/share";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -74,7 +75,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
     await requireClientInFirm(firm.id, clientId);
 
@@ -149,6 +150,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "sharelink.created",
+      entityType: "sharelink",
+      entityId: link.id,
+      summary: `Created a client share link${link.label ? ` "${link.label}"` : ""}${passcode ? " with a passcode" : ""}, valid until ${link.expiresAt.toISOString().slice(0, 10)}.`,
+      details: { label: link.label, passcode: Boolean(passcode), expiresAt: link.expiresAt },
+    });
     // The token is shown once and cannot be recovered.
     const url = `${new URL(request.url).origin}/share/${token}`;
 

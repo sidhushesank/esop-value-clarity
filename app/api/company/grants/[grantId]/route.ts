@@ -9,6 +9,7 @@ import {
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { optionGrantSchema } from "@/lib/company/schemas";
 import { grantDetail } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export async function GET(_request: Request, { params }: Ctx) {
 /** PATCH: edit a grant while it is still a draft. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace, holderLimit, isEvcOwner } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const existing = await findGrant(workspace.id, grantId);
@@ -94,6 +95,18 @@ export async function PATCH(request: Request, { params }: Ctx) {
       include: { scheme: true },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.updated",
+      entityType: "grant",
+      entityId: updated.id,
+      summary: `Edited the draft grant for ${updated.employeeName}.`,
+      details: {
+        optionsBefore: existing.options,
+        optionsAfter: updated.options,
+        priceBefore: existing.exercisePrice,
+        priceAfter: updated.exercisePrice,
+      },
+    });
     return NextResponse.json({ success: true, ...(await grantDetail(updated, workspace)) });
   } catch (error) {
     return companyErrorResponse(error);
@@ -103,7 +116,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only drafts can be deleted. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const existing = await findGrant(workspace.id, grantId);
@@ -113,6 +126,13 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     }
 
     await prisma.optionGrant.delete({ where: { id: existing.id } });
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.deleted",
+      entityType: "grant",
+      entityId: existing.id,
+      summary: `Deleted the draft grant of ${existing.options.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options for ${existing.employeeName}.`,
+      details: { employee: existing.employeeName, options: existing.options },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return companyErrorResponse(error);

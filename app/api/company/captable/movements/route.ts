@@ -7,6 +7,7 @@ import { shareMovementSchema } from "@/lib/company/schemas";
 import { findNegativeBalance } from "@/lib/company/captable";
 import { loadMovements } from "@/lib/company/captable-data";
 import { describeNegative } from "@/lib/company/movement-errors";
+import { logCompanyChange } from "@/lib/change-log";
 
 /**
  * POST /api/company/captable/movements
@@ -15,7 +16,7 @@ import { describeNegative } from "@/lib/company/movement-errors";
  */
 export async function POST(request: Request) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
 
     const body = await request.json().catch(() => null);
     const parsed = shareMovementSchema.safeParse(body);
@@ -84,6 +85,19 @@ export async function POST(request: Request) {
       },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "movement.created",
+      entityType: "movement",
+      entityId: movement.id,
+      summary: `Recorded ${movement.kind.toLowerCase()} of ${movement.quantity.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} units dated ${movement.date.toISOString().slice(0, 10)}.`,
+      details: {
+        kind: movement.kind,
+        date: movement.date,
+        quantity: movement.quantity,
+        toQuantity: movement.toQuantity,
+        pricePerShare: movement.pricePerShare,
+      },
+    });
     return NextResponse.json({ success: true, movement }, { status: 201 });
   } catch (error) {
     return companyErrorResponse(error);

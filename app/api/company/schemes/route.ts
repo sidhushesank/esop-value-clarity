@@ -5,6 +5,7 @@ import { requireCompanyWorkspace } from "@/lib/company-access";
 import { companyErrorResponse, validationError } from "@/lib/company-http";
 import { esopSchemeSchema } from "@/lib/company/schemas";
 import { listSchemes } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export async function GET() {
 /** POST /api/company/schemes: record an ESOP scheme and its pool. */
 export async function POST(request: Request) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
 
     const body = await request.json().catch(() => null);
     const parsed = esopSchemeSchema.safeParse(body);
@@ -31,6 +32,13 @@ export async function POST(request: Request) {
       data: { ...parsed.data, workspaceId: workspace.id },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "scheme.created",
+      entityType: "scheme",
+      entityId: scheme.id,
+      summary: `Added plan "${scheme.name}" with a pool of ${scheme.poolSize.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options.`,
+      details: { poolSize: scheme.poolSize, boardApprovedOn: scheme.boardApprovedOn, shareholderApprovedOn: scheme.shareholderApprovedOn },
+    });
     return NextResponse.json({ success: true, scheme }, { status: 201 });
   } catch (error) {
     return companyErrorResponse(error);

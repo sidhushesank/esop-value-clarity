@@ -376,7 +376,7 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
           {!isAmount && (
             <label className="block">
               <span className={LABEL}>{words.faceValue} ({sym})</span>
-              <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.faceValue} placeholder="10" onChange={(e) => setForm({ ...form, faceValue: e.target.value })} />
+              <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.faceValue} placeholder={us ? "0.0001" : "10"} onChange={(e) => setForm({ ...form, faceValue: e.target.value })} />
             </label>
           )}
           {isPref && (

@@ -9,6 +9,7 @@ import {
 import { advisorErrorResponse } from "@/lib/advisor-http";
 import { runDiligence } from "@/lib/advisor/engine";
 import { syncRules } from "@/lib/advisor/rules";
+import { logAdvisorChange } from "@/lib/change-log";
 
 type RouteContext = {
   params: Promise<{ clientId: string }>;
@@ -32,7 +33,7 @@ function todayIst(): Date {
 
 export async function POST(_request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm();
     const { clientId } = await params;
 
     const client = await requireClientInFirm(firm.id, clientId);
@@ -105,6 +106,13 @@ export async function POST(_request: Request, { params }: RouteContext) {
       include: { findings: true },
     });
 
+    await logAdvisorChange({ user, firm }, clientId, {
+      action: "diligence.run",
+      entityType: "diligence",
+      entityId: run.id,
+      summary: `Ran the ESOP Diligence check: score ${run.score}, ${run.findings.length} finding${run.findings.length === 1 ? "" : "s"}.`,
+      details: { score: run.score, findings: run.findings.length },
+    });
     run.findings.sort(
       (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
     );

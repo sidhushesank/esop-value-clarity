@@ -6,6 +6,7 @@ import { badRequest, companyErrorResponse, validationError } from "@/lib/company
 import { grantLeftSchema } from "@/lib/company/schemas";
 import { vestedOn } from "@/lib/company/grants";
 import { termsOf } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ grantId: string }> };
 
@@ -16,7 +17,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { grantId } = await params;
 
     const body = await request.json().catch(() => null);
@@ -48,6 +49,13 @@ export async function POST(request: Request, { params }: Ctx) {
       data: { status: "LEFT", leftOn, optionsLapsed: unvested },
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "grant.left",
+      entityType: "grant",
+      entityId: updated.id,
+      summary: `Marked ${updated.employeeName} as left on ${leftOn.toISOString().slice(0, 10)}: ${vested.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} vested, ${unvested.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} unvested options lapsed.`,
+      details: { leftOn, vested, lapsed: unvested },
+    });
     return NextResponse.json({ success: true, grant: updated, vestedAtLeaving: vested, lapsed: unvested });
   } catch (error) {
     return companyErrorResponse(error);

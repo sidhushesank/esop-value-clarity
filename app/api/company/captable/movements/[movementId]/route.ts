@@ -6,6 +6,7 @@ import { badRequest, companyErrorResponse } from "@/lib/company-http";
 import { findNegativeBalance } from "@/lib/company/captable";
 import { loadMovements } from "@/lib/company/captable-data";
 import { describeNegative } from "@/lib/company/movement-errors";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ movementId: string }> };
 
@@ -16,12 +17,12 @@ type Ctx = { params: Promise<{ movementId: string }> };
  */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { movementId } = await params;
 
     const target = await prisma.shareMovement.findFirst({
       where: { id: movementId, workspaceId: workspace.id },
-      select: { id: true },
+      select: { id: true, kind: true, quantity: true, date: true },
     });
 
     if (!target) return badRequest("Entry not found.", "NOT_FOUND", 404);
@@ -39,6 +40,13 @@ export async function DELETE(_request: Request, { params }: Ctx) {
       );
     }
 
+    await logCompanyChange({ user, workspace }, {
+      action: "movement.deleted",
+      entityType: "movement",
+      entityId: target.id,
+      summary: `Deleted a ${target.kind.toLowerCase()} entry of ${target.quantity.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} units dated ${target.date.toISOString().slice(0, 10)}.`,
+      details: { kind: target.kind, quantity: target.quantity, date: target.date },
+    });
     await prisma.shareMovement.delete({ where: { id: target.id } });
     return NextResponse.json({ success: true });
   } catch (error) {

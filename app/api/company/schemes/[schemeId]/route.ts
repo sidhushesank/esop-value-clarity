@@ -5,6 +5,7 @@ import { requireCompanyWorkspace } from "@/lib/company-access";
 import { badRequest, companyErrorResponse, validationError } from "@/lib/company-http";
 import { esopSchemeSchema } from "@/lib/company/schemas";
 import { poolUsed } from "@/lib/company/grants-data";
+import { logCompanyChange } from "@/lib/change-log";
 
 type Ctx = { params: Promise<{ schemeId: string }> };
 
@@ -17,7 +18,7 @@ async function findScheme(workspaceId: string, schemeId: string) {
 /** PATCH: edit a scheme. The pool cannot shrink below options already issued. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { schemeId } = await params;
 
     const scheme = await findScheme(workspace.id, schemeId);
@@ -41,6 +42,21 @@ export async function PATCH(request: Request, { params }: Ctx) {
       data: parsed.data,
     });
 
+    await logCompanyChange({ user, workspace }, {
+      action: "scheme.updated",
+      entityType: "scheme",
+      entityId: updated.id,
+      summary:
+        updated.poolSize !== scheme.poolSize
+          ? `Changed the pool of "${updated.name}" from ${scheme.poolSize.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} to ${updated.poolSize.toLocaleString(workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options.`
+          : `Edited plan "${updated.name}".`,
+      details: {
+        poolBefore: scheme.poolSize,
+        poolAfter: updated.poolSize,
+        boardApprovedOn: updated.boardApprovedOn,
+        shareholderApprovedOn: updated.shareholderApprovedOn,
+      },
+    });
     return NextResponse.json({ success: true, scheme: updated });
   } catch (error) {
     return companyErrorResponse(error);
@@ -50,7 +66,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a scheme with no grants can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace();
     const { schemeId } = await params;
 
     const scheme = await findScheme(workspace.id, schemeId);
@@ -61,6 +77,12 @@ export async function DELETE(_request: Request, { params }: Ctx) {
       return badRequest("This scheme has grants. Delete or keep them first.", "IN_USE", 409);
     }
 
+    await logCompanyChange({ user, workspace }, {
+      action: "scheme.deleted",
+      entityType: "scheme",
+      entityId: scheme.id,
+      summary: `Deleted plan "${scheme.name}".`,
+    });
     await prisma.esopScheme.delete({ where: { id: scheme.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
