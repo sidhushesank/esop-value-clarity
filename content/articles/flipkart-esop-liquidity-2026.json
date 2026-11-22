@@ -1,0 +1,149 @@
+{
+  "slug": "flipkart-esop-liquidity-2026",
+  "publishedAt": "2026-11-22",
+  "updatedAt": "2026-11-22",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": ["Employees", "Former employees", "Founders", "HR"],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "Flipkart ESOP Liquidity 2026: Ex-Employees Seek an Exit",
+  "description": "Former Flipkart staff asked Walmart for ESOP liquidity in October 2026. What was reported, how payouts are taxed, and what option holders should ask.",
+  "keywords": ["Flipkart ESOP", "Flipkart ESOP buyback 2026", "Flipkart ESOP liquidity", "former employees ESOP", "ESOP liquidity India", "Walmart Flipkart ESOP"],
+  "icon": "UsersRound",
+  "quickAnswer": [
+    "In October 2026, former Flipkart executives and a group of more than 1,000 former Flipkart group employees separately wrote to Walmart asking for a way to sell their vested ESOPs, according to Inc42, Outlook Business and HR Katha.",
+    "Their main complaint is that recent liquidity events, including the July 2026 event at a reported ₹713.4 per option, were open only to current employees and capped at up to 5% of vested options.",
+    "Reports say Flipkart's IPO has been pushed back, possibly to 2028, so these holders have no public market to sell into yet, and Walmart has not announced a programme for former employees.",
+    "For employees anywhere, the lesson is to read who can join a buyback, how much can be sold, how long the exercise window lasts after you leave, and how the payout is taxed."
+  ],
+  "heroStats": [
+    {"label": "Former staff in the 11 Oct memo", "value": "1,000+ (reported)"},
+    {"label": "July 2026 price per option", "value": "₹713.4 (reported)"},
+    {"label": "July 2026 sale cap", "value": "Up to 5% of vested options"},
+    {"label": "Reported value held by current and former staff", "value": "About $4 billion"}
+  ],
+  "modelCards": [
+    {"label": "What happened", "value": "Letters to Walmart from ex-CXOs (1 Oct) and 1,000+ former employees (11 Oct 2026)"},
+    {"label": "What they want", "value": "Access to liquidity, a longer post-exit exercise window and a written response"},
+    {"label": "Status", "value": "No programme for former employees announced as of the reports"}
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What was reported in October 2026",
+      "body": [
+        "This post covers events from early October 2026. We found no new Indian company ESOP announcement in the past week, so we are covering this story, which is still open, in more detail.",
+        "Outlook Business reported on 7 October 2026 that at least eight former Flipkart CXOs and senior executives wrote to Walmart chairman Gregory B Penner and other senior executives in a letter dated 1 October. Named signatories included Mukesh Bansal, Ankit Nagori, Amod Malviya, Ravi Garikipati, Mekin Maheshwari and Anuj Chowdhary. They asked for a full exit opportunity for all eligible former employees who hold vested options, and for a written reply from Walmart's board. Inc42 reported the same letter, citing The Economic Times, and also named former CFO Sanjay Baweja.",
+        "On 12 October, HR Katha reported a separate memo dated 11 October from more than 1,000 former employees across Flipkart, Myntra, Cleartrip, Shopsy and Supermoney. They asked for access to the same liquidity programmes as current staff, an exercise window after exit that stays open until the next liquidity event, a named point of contact, a meeting, and a written response from Walmart's board."
+      ]
+    },
+    {
+      "id": "background",
+      "eyebrow": "Background",
+      "title": "Why former employees are asking now",
+      "body": [
+        "StartupFeed reported that Flipkart's board approved a second discretionary ESOP liquidity event for 2026 on 6 July, citing an internal email from group CEO Kalyan Krishnamurthy. It was priced at ₹713.4 per option, open to staff who were active on 15 July 2026, and capped at up to 5% of vested options, with payment in August 2026. Inc42 put the implied valuation at about $38.2 billion.",
+        "Many former employees received their options between 2008 and 2016, according to Outlook Business and HR Katha. Citing Moneycontrol, both reported that more than 30,000 current and former employees together hold options worth about $4 billion (about ₹38,000 crore), roughly half of it with former employees.",
+        "Inc42 and StartupFeed reported that Flipkart's IPO has been pushed back, possibly to 2028, while Walmart focuses on profitability. Flipkart has completed its move of its holding company back to India, but no listing date has been given. Without an IPO or a buyback, holders of unlisted options have few ways to sell."
+      ],
+      "bullets": [
+        "Inc42 quoted a Walmart spokesperson saying the company values feedback from current and former employees and that an IPO remains part of its plans for when the timing is right.",
+        "Ventura Securities wrote on 1 October that Flipkart is reportedly weighing a larger programme for current employees, letting them sell 20–25% of vested holdings in early 2027. This has not been confirmed or finalised."
+      ]
+    },
+    {
+      "id": "what-it-means",
+      "eyebrow": "For employees",
+      "title": "What this means for option holders",
+      "body": [
+        "A buyback is decided by the company. The scheme rules and the board decide who can take part, how much they can sell and at what price. Being a former employee with vested options does not by itself give you a right to take part in a buyback. This is why the letters ask for a longer exercise window: if options lapse before the next liquidity event, they may be worth nothing.",
+        "A small cap like 5% also means most of the value stays locked in. Using the reported numbers, an employee with 10,000 vested options could have sold up to 500 in July 2026. The rest still depends on later buybacks or an IPO."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How a payout like this is likely taxed",
+      "body": [
+        "The reports do not say exactly how Flipkart structures its payouts, so the tax depends on the route. In general, under Indian law today:"
+      ],
+      "bullets": [
+        "Cash for options that were never exercised (the company or a trust cancels them and pays you the difference): usually taxed as salary at your slab rate, with TDS deducted through payroll.",
+        "Exercise, then sell the shares to the company in a buyback: the difference between fair market value and exercise price is a salary perquisite when you exercise. For buybacks paid on or after 1 April 2026, any further gain is taxed as capital gains. Between 1 October 2024 and 31 March 2026, buyback money was taxed as a deemed dividend.",
+        "Exercise, then sell to an investor (a secondary sale): perquisite at exercise, then capital gains. Unlisted shares held more than 24 months are long-term and taxed at 12.5%. Shares held for a shorter period are taxed at your slab rate.",
+        "If the options are in a foreign parent company, ask your CA whether foreign asset reporting in your ITR applies for the years you held them."
+      ],
+      "warning": "From 1 April 2026 the Income-tax Act, 2025 replaced the 1961 Act. Section numbers have changed, but these concepts carry over. Confirm your own case with a CA."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative example (not Flipkart's numbers)",
+      "body": [
+        "Priya, a hypothetical employee, holds 4,000 vested options with an exercise price of ₹100. Her company runs a buyback at ₹800 per option and lets employees sell 25% of vested options.",
+        "Route 1, cash for options: 1,000 options × (₹800 − ₹100) = ₹7,00,000, taxed as salary. At a 30% slab plus 4% cess, the tax is ₹2,18,400 (surcharge ignored), leaving her about ₹4,81,600.",
+        "Route 2, exercise and sell in the same window at ₹800: the perquisite is the same ₹7,00,000 and is taxed as salary. Her cost for capital gains becomes ₹800 per share, so selling at ₹800 creates no further gain. She still has to pay the ₹1,00,000 exercise price, which comes back to her in the sale price.",
+        "Her other 3,000 options (about ₹21,00,000 of spread at ₹800) stay unsold until the next liquidity event. You can try your own numbers in the free ESOP calculator."
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Ask your employer",
+      "title": "Questions to ask about any ESOP buyback",
+      "body": [
+        "Whether you are at Flipkart or another startup, the October letters point to the clauses worth checking before the next liquidity event:"
+      ],
+      "bullets": [
+        "Are former employees with vested options eligible, or only current staff?",
+        "How long is the exercise window after I leave, and can it be extended?",
+        "What percentage of vested options can I sell, and how is the price set?",
+        "Is the payout cash for options or a purchase of exercised shares, and how much TDS will be deducted?",
+        "Which company issued the options (Indian or foreign), and what does that mean for reporting in my ITR?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Employee", "value": "Find your scheme's post-exit exercise window and buyback eligibility rules before you resign, not after."},
+    {"label": "Founder", "value": "Buybacks only for current staff keep people from leaving. But when an IPO is delayed for years, the former employees left out can turn the scheme into a reputational problem."},
+    {"label": "HR", "value": "Publish eligibility, caps and the tax route for each liquidity event in plain language, and name a contact person for former employees."},
+    {"label": "CA", "value": "Find out whether the payout is cash for options (salary) or a share buyback (perquisite, then capital gains from April 2026), and check any foreign-asset reporting."}
+  ],
+  "checklist": [
+    "Find your grant letters and the current scheme document.",
+    "Note your vested options, exercise price and exercise deadline after exit.",
+    "Ask HR whether former employees can join future liquidity events.",
+    "Ask how the payout will be structured and how much TDS will be deducted.",
+    "Model the after-tax cash with a CA before accepting."
+  ],
+  "mistakes": [
+    "Assuming vested options guarantee a place in every buyback.",
+    "Letting the post-exit exercise window lapse while waiting for an IPO.",
+    "Treating the reported per-option price as cash in hand without subtracting the exercise price and tax.",
+    "Ignoring that most vested options stay unsold when a buyback is capped.",
+    "Believing unconfirmed reports of future programmes before the company announces them."
+  ],
+  "faq": [
+    {"question": "Did Flipkart announce an ESOP buyback for former employees in 2026?", "answer": "No such programme had been announced in the reports from October 2026. Former employees and ex-executives wrote to Walmart asking for one, and Inc42 reported Walmart saying it values their feedback."},
+    {"question": "What was the Flipkart ESOP buyback price in July 2026?", "answer": "StartupFeed reported ₹713.4 per option for the second 2026 liquidity event, open to active employees and capped at up to 5% of vested options."},
+    {"question": "Can former employees sell ESOPs in a company buyback?", "answer": "Only if the scheme and the board's terms for that buyback include them. Many buybacks are limited to current employees."},
+    {"question": "How is an ESOP buyback taxed in India in 2026?", "answer": "Cash paid for cancelling options is usually taxed as salary. If you exercise first, the spread is a salary perquisite, and from 1 April 2026 the share buyback itself is taxed as capital gains."},
+    {"question": "When is the Flipkart IPO?", "answer": "No date has been announced. Inc42 and StartupFeed reported it has been deferred, possibly to 2028, while Walmart said an IPO remains part of its plans."}
+  ],
+  "related": ["esop-buyback-india", "leaving-startup-esop-options", "unacademy-esop-buyback-2026"],
+  "sources": [
+    {"title": "Inc42: Mukesh Bansal, Ankit Nagori seek ESOP buyback from Flipkart amid IPO uncertainty (7 Oct 2026)", "url": "https://inc42.com/buzz/mukesh-bansal-ankit-nagori-seek-esop-buyback-from-flipkart-amid-ipo-uncertainty/"},
+    {"title": "Outlook Business: Flipkart's former CXOs seek fair and equitable treatment in ESOPs (7 Oct 2026)", "url": "https://www.outlookbusiness.com/corporate/flipkarts-former-cxos-seek-fair-and-equitable-treatment-in-esops-amid-ipo-uncertainty"},
+    {"title": "HR Katha: Over 1,000 former Flipkart employees seek equal access to ESOP liquidity (12 Oct 2026)", "url": "https://www.hrkatha.com/news/over-1000-former-flipkart-employees-seek-equal-access-to-esop-liquidity/"},
+    {"title": "StartupFeed: Flipkart ESOP liquidity 2026 (7 Jul 2026)", "url": "https://startupfeed.in/flipkart-esop-liquidity-2026/"},
+    {"title": "Ventura Securities: Flipkart weighs fresh ESOP buyback as IPO timeline stretches (1 Oct 2026)", "url": "https://www.venturasecurities.com/news/ipo/flipkart-weighs-fresh-esop-buyback-as-ipo-timeline-stretches/"},
+    {"title": "Income Tax Department: Taxation of ESOPs", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"}
+  ],
+  "hub": {
+    "summary": "What former Flipkart employees asked Walmart for in October 2026, the July 2026 liquidity terms, and how buyback payouts are taxed.",
+    "audience": ["Employee", "Founder", "HR", "Tax"],
+    "tags": ["company news", "Flipkart", "ESOP buyback", "former employees", "liquidity"],
+    "tools": "ESOP calculator"
+  }
+}

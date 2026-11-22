@@ -1,0 +1,155 @@
+{
+  "slug": "esops-at-ipo",
+  "publishedAt": "2026-11-22",
+  "updatedAt": "2026-11-22",
+  "category": "ESOP exits",
+  "stage": "IPO",
+  "audience": ["Employees", "Founders", "HR", "CAs"],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOPs at IPO in India: What Happens to Your Options",
+  "description": "What happens to your ESOPs when your startup lists in India: pre-IPO schemes, lock-in, exercise timing, perquisite tax and capital gains in 2026.",
+  "keywords": ["ESOPs at IPO", "what happens to ESOPs after IPO India", "ESOP lock-in after IPO", "ESOP tax after listing", "pre-IPO ESOP", "sell ESOP after IPO"],
+  "icon": "TrendingUp",
+  "quickAnswer": [
+    "Your vested and unvested options usually carry on after an Indian IPO under the same scheme. SEBI rules say a pre-IPO scheme must be ratified by shareholders after listing before the company can make fresh grants under it.",
+    "Shares allotted to current employees under an ESOP before the IPO are generally exempt from the lock-in that applies to other pre-IPO shareholders. SEBI has said this exemption does not cover former employees.",
+    "After listing, the taxable perquisite at exercise is based on the average of the day's opening and closing price on the exchange. Before listing, it is based on a merchant banker's valuation.",
+    "Listed shares you sell after more than 12 months, counted from allotment, are taxed at 12.5% on long-term gains above ₹1.25 lakh a year. Shares sold within 12 months are taxed at 20% as short-term gains."
+  ],
+  "heroStats": [
+    {"label": "Perquisite basis after listing", "value": "Average of open and close on the exercise date"},
+    {"label": "Long-term threshold (listed)", "value": "More than 12 months from allotment"},
+    {"label": "Long-term capital gains rate", "value": "12.5% above ₹1.25 lakh a year"},
+    {"label": "Short-term capital gains rate (listed, STT paid)", "value": "20%"}
+  ],
+  "modelCards": [
+    {"label": "Before the IPO", "value": "Options may be exercised at merchant banker FMV, with no market to sell into"},
+    {"label": "At listing", "value": "Pre-IPO ESOP shares of current staff are generally not locked in"},
+    {"label": "After listing", "value": "Exercise at market-linked FMV, then sell on the exchange"}
+  ],
+  "sections": [
+    {
+      "id": "what-changes",
+      "eyebrow": "The basics",
+      "title": "What actually changes for your ESOPs at an IPO",
+      "body": [
+        "An IPO does not cancel your options. You keep the same grant letter, vesting schedule and exercise price. What changes is the value: your shares now have a market price every trading day, and you have a way to sell them other than waiting for a company buyback or a secondary sale.",
+        "SEBI's Share Based Employee Benefits and Sweat Equity Regulations, 2021 (the SBEB Regulations) apply once the company is listed. Three rules matter most to employees:"
+      ],
+      "bullets": [
+        "Regulation 12(1): the company cannot make fresh grants under a scheme formulated before its IPO unless the scheme follows the SBEB Regulations and shareholders ratify it after the IPO. Ratification can happen any time before the next grant.",
+        "Regulation 12(2): changing the terms of options already granted before the IPO, such as repricing or a different vesting period, needs a special resolution of shareholders, except for adjustments for corporate actions.",
+        "Regulation 11: shares that come from exercising pre-IPO options after listing must be listed straight away, so you can sell them on the exchange."
+      ]
+    },
+    {
+      "id": "lock-in",
+      "eyebrow": "Lock-in",
+      "title": "Are ESOP shares locked in after the IPO?",
+      "body": [
+        "SEBI's ICDR Regulations lock in the shares that existing non-promoter shareholders held before the IPO for a period after listing. Shares allotted to employees under an ESOP scheme before the IPO have long been exempt from this lock-in, provided the offer document makes the required disclosures.",
+        "There are two catches. First, SEBI's informal guidance (reported by Nishith Desai Associates in August 2012) said the exemption covers only people who are still employees, so a former employee holding pre-IPO ESOP shares may be locked in like other investors. Second, shares you get by exercising after listing are not pre-issue capital, so this lock-in does not apply to them.",
+        "Even if no lock-in applies, you may still be limited by your company's insider-trading code and trading-window closures around results. Check the red herring prospectus (RHP) and your employer's policy before you plan a sale."
+      ],
+      "warning": "The current lock-in period and exemption wording are in the ICDR Regulations, 2018 and the company's RHP. Confirm them for your company before you rely on them."
+    },
+    {
+      "id": "founders",
+      "eyebrow": "Founders",
+      "title": "Founder ESOPs before an IPO",
+      "body": [
+        "As Bar & Bench explained, SEBI's 2025 amendment to the SBEB Regulations (notified on 8 September 2025) added Regulation 9A. It lets someone named as a promoter in the draft offer document keep and exercise options granted at least one year before the DRHP was filed, if those options were granted before the person became a promoter. For founders, this means ESOPs need to be granted well before filing, not in the run-up to the IPO."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How ESOPs are taxed before and after listing",
+      "body": [
+        "Your ESOPs are taxed at two points: when you exercise and when you sell. An IPO changes how the first is measured and which rules apply to the second.",
+        "At exercise: fair market value minus the exercise price is taxed as salary (a perquisite) and TDS is deducted through payroll. For unlisted shares, FMV comes from a merchant banker's valuation dated on the exercise date or up to 180 days before it. For listed shares, FMV is the average of the opening and closing price on the exercise date, on the exchange with the highest trading volume that day. If the shares did not trade that day, the closing price on the nearest earlier trading day is used.",
+        "At sale: your cost is the FMV used for the perquisite, and your holding period starts on the allotment date, not the grant date. For listed equity sold on the exchange with STT paid, gains on shares held more than 12 months are long-term and taxed at 12.5% above ₹1.25 lakh a year. Gains on shares held 12 months or less are short-term and taxed at 20%. Unlisted shares have a 24-month threshold and slab-rate short-term tax, so it matters whether the shares are listed when you sell.",
+        "Eligible DPIIT-recognised startups can let employees defer the perquisite tax. The Income Tax Department's guidance says the tax becomes due within 14 days of the earliest of: 48 months from the end of the assessment year of allotment, leaving the company, or selling the shares. Selling after the IPO triggers payment of the deferred tax."
+      ],
+      "warning": "From 1 April 2026 the Income-tax Act, 2025 replaced the 1961 Act. Section numbers have changed, for example the perquisite rule moves from section 17(2)(vi), but the treatment above carries over. Some commentators report a longer deferral window for allotments from 1 April 2026, so confirm with a CA."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative example: exercise before or after listing",
+      "body": [
+        "Arjun, a hypothetical employee, holds 2,000 vested options at an exercise price of ₹10. These numbers are illustrative and do not come from any company.",
+        "Option A, exercise before the IPO: the merchant banker values the shares at ₹400. The perquisite is 2,000 × (₹400 − ₹10) = ₹7,80,000, taxed as salary. At a 30% slab plus 4% cess, the tax is ₹2,43,360 (surcharge ignored). After listing he sells at ₹600, more than 12 months after allotment: the long-term gain is 2,000 × (₹600 − ₹400) = ₹4,00,000. After the ₹1,25,000 exemption, ₹2,75,000 is taxed at 12.5%, which is ₹34,375 plus cess. If he sells within 12 months, the short-term tax is 20% of ₹4,00,000 = ₹80,000.",
+        "Option B, exercise after listing: on the exercise date the average of the opening and closing price is ₹550. The perquisite is 2,000 × (₹550 − ₹10) = ₹10,80,000, and the tax at the same rate is ₹3,36,960. If he sells the same day at about ₹550, there is almost no capital gain.",
+        "Exercising early locked in a lower perquisite in Option A, but Arjun paid ₹2,43,360 of tax and ₹20,000 of exercise price on shares he could not sell until listing, and took the risk that the IPO might be delayed or priced lower. Our free ESOP calculator lets you compare both paths with your own numbers."
+      ]
+    },
+    {
+      "id": "decisions",
+      "eyebrow": "Your decisions",
+      "title": "Decisions to make when your company files for an IPO",
+      "body": [
+        "Once the DRHP is public, read the section on employee stock options. It shows options outstanding, exercise prices and the scheme terms. Then decide:"
+      ],
+      "bullets": [
+        "Whether to exercise before listing (lower FMV, but cash out of pocket and IPO risk) or after (market FMV, but you can sell the same day to cover tax).",
+        "Whether you are still an employee on the dates that matter, because leaving can affect lock-in exemptions and exercise windows.",
+        "When to sell compared with the 12-month mark from allotment, the trading window and your own cash needs.",
+        "How to cover TDS on exercise. Some listed companies offer cashless exercise through a trust or broker."
+      ]
+    },
+    {
+      "id": "after-ipo",
+      "eyebrow": "After listing",
+      "title": "Common situations after the listing",
+      "body": [
+        "Unvested options keep vesting on the original schedule. SBEB Regulation 18 sets a minimum one-year vesting period for ESOS grants, except on death or permanent incapacity. New grants under a pre-IPO scheme wait until shareholders ratify it. If the share price falls below your exercise price, your options have no intrinsic value until it recovers, and changing their terms needs shareholder approval under Regulation 12(2).",
+        "Price swings after listing can be large, so many employees sell in stages instead of all at once. Plan for tax in the year you exercise. That bill is fixed when you exercise, whatever the share price does afterwards."
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Employee", "value": "Read the ESOP section of the DRHP and work out the tax on exercising before and after listing before you decide."},
+    {"label": "Founder", "value": "Get the pre-IPO scheme SBEB-compliant early, plan shareholder ratification after listing, and make founder grants at least a year before filing the DRHP."},
+    {"label": "HR", "value": "Explain lock-in, trading windows and TDS on exercise to employees well before listing day. Questions peak in the first week of trading."},
+    {"label": "CA", "value": "Check that the FMV method switches correctly at listing, that the holding period runs from allotment, and that any deferred perquisite tax is paid after a post-IPO sale."}
+  ],
+  "checklist": [
+    "Download the DRHP or RHP and read the employee stock option disclosures.",
+    "List your vested and unvested options, exercise price and exercise deadline.",
+    "Model the tax of exercising before and after listing.",
+    "Check lock-in, the insider-trading code and trading-window dates before planning a sale.",
+    "Set aside cash for TDS on exercise, or ask about cashless exercise."
+  ],
+  "mistakes": [
+    "Assuming the IPO price is what you will get, without allowing for listing-day swings and trading windows.",
+    "Counting the 12-month holding period from the grant or vesting date instead of the allotment date.",
+    "Exercising a large block before listing without the cash to pay TDS.",
+    "Leaving the company around the IPO without checking how that affects lock-in and exercise windows.",
+    "Forgetting that deferred perquisite tax becomes payable once you sell."
+  ],
+  "faq": [
+    {"question": "What happens to my ESOPs when the company goes public in India?", "answer": "They continue under the existing scheme on the same terms. The company needs shareholders to ratify the pre-IPO scheme after listing before it can make fresh grants under it."},
+    {"question": "Are ESOP shares locked in after an IPO in India?", "answer": "Shares allotted to current employees under an ESOP before the IPO are generally exempt from the pre-IPO lock-in. SEBI guidance says former employees do not get this exemption. Shares from exercising after listing are not pre-issue capital."},
+    {"question": "How is ESOP tax calculated after the company is listed?", "answer": "The perquisite is the average of the opening and closing price on the exercise date minus your exercise price, taxed as salary. When you sell, gains are taxed at 12.5% (above ₹1.25 lakh) if held more than 12 months, or 20% if not."},
+    {"question": "Should I exercise my ESOPs before or after the IPO?", "answer": "Exercising before may lower the perquisite but costs cash and carries IPO risk. Exercising after lets you sell straight away to cover tax. Run both scenarios with your CA."},
+    {"question": "When can I sell my ESOP shares after an IPO?", "answer": "Once your shares are free of any lock-in and your company's trading window is open. Check the RHP and your insider-trading policy."},
+    {"question": "Is the holding period for ESOP shares counted from grant or allotment?", "answer": "From allotment, the date the shares are issued to you after exercise."}
+  ],
+  "related": ["esop-exercise-cost", "esop-valuation-india", "leaving-startup-esop-options"],
+  "sources": [
+    {"title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"},
+    {"title": "SEBI (Share Based Employee Benefits and Sweat Equity) Regulations, 2021 (text)", "url": "https://www.thc.nic.in/Central%20Governmental%20Regulations/Securities%20&%20Exchange%20Board%20of%20India(%20Share%20Based%20Employee%20Benefits%20&%20%20Sweat%20Enquity)%20Regulations,2021.pdf"},
+    {"title": "SBEB Regulations 2021, Regulation 12 (pre-IPO schemes)", "url": "https://www.taxmanagementindia.com/visitor/detail_act.asp?ID=40187"},
+    {"title": "Bar & Bench: SEBI's clarification on treatment of founder ESOPs in IPO-bound startups (5 Feb 2026)", "url": "https://www.barandbench.com/law-firms/view-point/sebis-clarification-on-treatment-of-founder-esops-in-case-of-ipo-bound-startups"},
+    {"title": "Nishith Desai Associates: SEBI clarifies ex-employee not eligible for lock-in exemption post listing", "url": "https://nishithdesai.com/research-and-articles/hotline/corpsec-hotline/sebi-clarifies-that-an-ex-employee-shall-not-be-eligible-for-exemption-from-lock-in-post-listing-5959"},
+    {"title": "Treelife: ESOP taxation in India, complete guide (18 Jun 2026)", "url": "https://treelife.in/taxation/esop-taxation-in-india/"}
+  ],
+  "hub": {
+    "summary": "What happens to ESOPs when an Indian startup lists: SEBI rules for pre-IPO schemes, lock-in, FMV at exercise and capital gains on sale.",
+    "audience": ["Employee", "Founder", "HR", "CA", "Tax"],
+    "tags": ["IPO", "ESOP tax", "lock-in", "listed shares", "capital gains"],
+    "tools": "ESOP calculator"
+  }
+}
