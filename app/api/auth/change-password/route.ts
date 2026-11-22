@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
+  RATE_LIMITS,
+  checkRateLimit,
+  tooManyRequests,
+} from "@/lib/rate-limit";
+import {
   getUserIdFromToken,
   verifyPassword,
   hashPassword,
@@ -34,6 +39,16 @@ export async function POST(request: NextRequest) {
           status: 401,
         }
       );
+    }
+
+    // Stops guessing the current password from a stolen session.
+    const limit = await checkRateLimit(
+      RATE_LIMITS.changePasswordUser,
+      userId
+    );
+
+    if (!limit.allowed) {
+      return tooManyRequests(limit.resetAt);
     }
 
     const { currentPassword, newPassword } = await request.json();

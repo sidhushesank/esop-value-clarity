@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "super-secret-development-key";
+import { generatePasswordResetToken } from "@/lib/auth";
+import {
+  RATE_LIMITS,
+  firstBlocked,
+  getClientIp,
+  tooManyRequests,
+} from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
@@ -28,11 +31,28 @@ export async function POST(req: Request) {
       );
     }
 
+    // Stops someone flooding a user's inbox with reset emails.
+    const blocked = await firstBlocked([
+      [RATE_LIMITS.forgotIp, getClientIp(req)],
+      [RATE_LIMITS.forgotEmail, email],
+    ]);
+
+    if (blocked) {
+      return tooManyRequests(
+        blocked.resetAt,
+        "Too many reset requests. Please check your inbox (and spam) or try again in an hour."
+      );
+    }
+
     console.log("[FORGOT_PASSWORD] Request received.");
 
-    const user = await prisma.user.findUnique({
+    // Case-insensitive: accounts created as "Name@x.com" can still reset.
+    const user = await prisma.user.findFirst({
       where: {
-        email,
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
       },
     });
 
@@ -119,14 +139,10 @@ export async function POST(req: Request) {
     /* CREATE PASSWORD RESET TOKEN                             */
     /* ======================================================= */
 
-    const token = jwt.sign(
-      {
-        userId: user.id,
-      },
-      JWT_SECRET,
-      {
-        expiresIn: "15m",
-      }
+    // Single-use, 15 minutes, and can never be used as a login.
+    const token = generatePasswordResetToken(
+      user.id,
+      user.passwordHash
     );
 
     const resetLink =
@@ -309,9 +325,12 @@ export async function POST(req: Request) {
       info.messageId
     );
 
+    // Same message as the "no account" case, so this endpoint
+    // never reveals who has an account.
     return NextResponse.json({
       success: true,
-      message: "Password reset email sent successfully.",
+      message:
+        "If an account exists, a password reset email has been sent.",
     });
   } catch (error) {
     console.error(

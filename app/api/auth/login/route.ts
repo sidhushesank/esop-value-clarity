@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 
@@ -8,43 +9,60 @@ import { verifyPassword, generateToken } from "@/lib/auth";
 
 import { recordLoginActivity } from "@/lib/activity";
 
+import {
+  RATE_LIMITS,
+  firstBlocked,
+  getClientIp,
+  tooManyRequests,
+} from "@/lib/rate-limit";
+
+// One message for both wrong email and wrong password, so the login form
+// can't be used to find out who has an EVC account.
+const INVALID_LOGIN = "Invalid email or password.";
+
 export async function POST(request: Request) {
   try {
     // ============================================================
-    // READ REQUEST BODY
+    // READ + VALIDATE REQUEST
     // ============================================================
 
     const body = await request.json();
 
-    // ============================================================
-    // VALIDATE REQUEST
-    // ============================================================
-
     const data = loginSchema.parse(body);
 
     // ============================================================
-    // FIND USER
+    // RATE LIMIT (per IP and per email)
     // ============================================================
 
-    const user = await prisma.user.findUnique({
+    const blocked = await firstBlocked([
+      [RATE_LIMITS.loginIp, getClientIp(request)],
+      [RATE_LIMITS.loginEmail, data.email],
+    ]);
+
+    if (blocked) {
+      return tooManyRequests(
+        blocked.resetAt,
+        "Too many login attempts. Please wait 15 minutes and try again, or reset your password."
+      );
+    }
+
+    // ============================================================
+    // FIND USER (case-insensitive, so "Name@x.com" == "name@x.com")
+    // ============================================================
+
+    const user = await prisma.user.findFirst({
       where: {
-        email: data.email,
+        email: {
+          equals: data.email,
+          mode: "insensitive",
+        },
       },
     });
 
-    // ============================================================
-    // INVALID EMAIL
-    // ============================================================
-
     if (!user) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid email",
-        },
-        {
-          status: 401,
-        }
+        { success: false, message: INVALID_LOGIN },
+        { status: 401 }
       );
     }
 
@@ -57,19 +75,10 @@ export async function POST(request: Request) {
       user.passwordHash
     );
 
-    // ============================================================
-    // INVALID PASSWORD
-    // ============================================================
-
     if (!isPasswordValid) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid password",
-        },
-        {
-          status: 401,
-        }
+        { success: false, message: INVALID_LOGIN },
+        { status: 401 }
       );
     }
 
@@ -84,9 +93,7 @@ export async function POST(request: Request) {
           message:
             "This account has been suspended. Please contact support.",
         },
-        {
-          status: 403,
-        }
+        { status: 403 }
       );
     }
 
@@ -97,9 +104,7 @@ export async function POST(request: Request) {
     const now = new Date();
 
     const updatedUser = await prisma.user.update({
-      where: {
-        id: user.id,
-      },
+      where: { id: user.id },
       data: {
         lastLoginAt: now,
         lastActiveAt: now,
@@ -113,14 +118,10 @@ export async function POST(request: Request) {
     await recordLoginActivity(updatedUser.id);
 
     // ============================================================
-    // GENERATE JWT
+    // GENERATE JWT + RESPONSE
     // ============================================================
 
     const token = generateToken(updatedUser.id);
-
-    // ============================================================
-    // CREATE RESPONSE
-    // ============================================================
 
     const response = NextResponse.json(
       {
@@ -136,14 +137,8 @@ export async function POST(request: Request) {
           accountStatus: updatedUser.accountStatus,
         },
       },
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
-
-    // ============================================================
-    // STORE JWT IN HTTPONLY COOKIE
-    // ============================================================
 
     response.cookies.set("token", token, {
       httpOnly: true,
@@ -154,23 +149,28 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.issues[0]?.message || "Please check your email and password.",
+        },
+        { status: 400 }
+      );
+    }
+
     console.error("========== LOGIN ERROR ==========");
     console.error(error);
     console.error("=================================");
 
+    // Never send internal error text or stack traces to the browser.
     return NextResponse.json(
       {
         success: false,
-        message: error?.message || "Unknown error occurred",
-        stack:
-          process.env.NODE_ENV === "development"
-            ? error?.stack
-            : undefined,
+        message: "Something went wrong. Please try again.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

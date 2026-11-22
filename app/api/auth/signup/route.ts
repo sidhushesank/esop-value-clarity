@@ -6,9 +6,28 @@ import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validators";
 import { hashPassword } from "@/lib/auth";
 import { sendVerificationEmail } from "@/lib/mail";
+import {
+  RATE_LIMITS,
+  checkRateLimit,
+  getClientIp,
+  tooManyRequests,
+} from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    // Stop bots creating accounts / sending verification emails in bulk.
+    const limit = await checkRateLimit(
+      RATE_LIMITS.signupIp,
+      getClientIp(request)
+    );
+
+    if (!limit.allowed) {
+      return tooManyRequests(
+        limit.resetAt,
+        "Too many sign-up attempts from this network. Please try again in an hour."
+      );
+    }
+
     // Read request body
     const body = await request.json();
 
