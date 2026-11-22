@@ -13,13 +13,13 @@ export async function GET() {
   try {
     const { workspace } = await requireCompanyWorkspace();
     const grants = await listGrants(workspace.id);
-    const bytes = await buildRegisterWorkbook(workspace.name, grants);
+    const bytes = await buildRegisterWorkbook(workspace.name, grants, workspace.jurisdiction);
 
     return new NextResponse(bytes as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="${registerFileName(workspace.name)}"`,
+        "Content-Disposition": `attachment; filename="${registerFileName(workspace.name, workspace.jurisdiction)}"`,
         "Cache-Control": "no-store",
       },
     });

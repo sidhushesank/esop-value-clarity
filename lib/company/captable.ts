@@ -272,19 +272,19 @@ export function buildCapTable(input: {
       c.totalUnits > 0
     ) {
       notes.push(
-        `${c.name}: no conversion ratio entered, so each unit is counted as 1 equity share in the fully diluted view.`
+        `${c.name}: no conversion ratio entered, so each unit is counted as 1 share in the fully diluted view.`
       );
     }
     if (c.amountBased && c.totalUnits > 0) {
       notes.push(
-        `${c.name}: a convertible note / iSAFE has no share count until it converts at a priced round, so it is not in the percentages. Model it in the round simulator.`
+        `${c.name}: a convertible note or SAFE has no share count until it converts at a priced round, so it is not in the percentages.`
       );
     }
   }
 
   if (esop.poolSize === 0) {
     notes.push(
-      "No ESOP pool is recorded yet. Add one under ESOP pool so the fully diluted view includes it."
+      "No option pool is recorded yet. Add one on the pool tab so the fully diluted view includes it."
     );
   }
 

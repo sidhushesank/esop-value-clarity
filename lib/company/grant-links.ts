@@ -91,6 +91,7 @@ export async function resolveGrantLink(token: string) {
               id: true,
               name: true,
               cin: true,
+              jurisdiction: true,
               status: true,
               expiresAt: true,
               currentFmvPerShare: true,

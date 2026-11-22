@@ -41,18 +41,51 @@ export async function poolUsed(schemeId: string, excludeGrantId?: string) {
 }
 
 type WorkspaceForWarnings = {
+  id?: string;
   dpiitRecognised: boolean | null;
   incorporationDate: Date | null;
+  jurisdiction?: "IN" | "US";
+  currentFmvPerShare?: number | null;
+  fmvValuationDate?: Date | null;
 };
+
+/** US: the grant's option type and who holds it (for the ISO $100,000 limit). */
+export type UsGrantFacts = {
+  usOptionType: "ISO" | "NSO" | null;
+  holderKey: string;
+};
+
+/** The same person's other ISO grants (not lapsed, not drafts), for the $100,000 limit. */
+async function otherIsoGrantsOf(
+  workspaceId: string,
+  holderKey: string,
+  excludeGrantId?: string
+): Promise<GrantTerms[]> {
+  const rows = await prisma.optionGrant.findMany({
+    where: {
+      workspaceId,
+      holderKey,
+      usOptionType: "ISO",
+      status: { in: [...POOL_STATUSES] },
+      ...(excludeGrantId ? { id: { not: excludeGrantId } } : {}),
+    },
+  });
+  return rows.map(termsOf);
+}
 
 export async function warningsFor(
   terms: GrantTerms,
   scheme: EsopScheme,
   workspace: WorkspaceForWarnings,
   isPromoterOver10Pct: boolean,
-  excludeGrantId?: string
+  excludeGrantId?: string,
+  us?: UsGrantFacts
 ) {
+  const jurisdiction = workspace.jurisdiction ?? "IN";
+  const isUsIso = jurisdiction === "US" && us?.usOptionType === "ISO" && !!workspace.id;
+
   return grantWarnings(terms, {
+    jurisdiction,
     poolSize: scheme.poolSize,
     poolUsedByOthers: await poolUsed(scheme.id, excludeGrantId),
     shareholderApprovedOn: scheme.shareholderApprovedOn,
@@ -60,6 +93,12 @@ export async function warningsFor(
     dpiitRecognised: workspace.dpiitRecognised,
     incorporationDate: workspace.incorporationDate,
     isPromoterOver10Pct,
+    usOptionType: us?.usOptionType ?? null,
+    fmvPerShare: workspace.currentFmvPerShare ?? null,
+    fmvValuationDate: workspace.fmvValuationDate ?? null,
+    otherIsoGrants: isUsIso
+      ? await otherIsoGrantsOf(workspace.id as string, us!.holderKey, excludeGrantId)
+      : [],
   });
 }
 
@@ -80,7 +119,8 @@ export async function grantDetail(
       grant.scheme,
       workspace,
       grant.isPromoterOver10Pct,
-      grant.id
+      grant.id,
+      { usOptionType: grant.usOptionType, holderKey: grant.holderKey }
     ),
   };
 }

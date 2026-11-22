@@ -57,6 +57,7 @@ export async function POST(request: Request) {
         employeeRef: input.employeeRef,
         holderKey,
         isPromoterOver10Pct: input.isPromoterOver10Pct,
+        usOptionType: workspace.jurisdiction === "US" ? input.usOptionType ?? null : null,
         grantDate: input.grantDate,
         options: input.options,
         exercisePrice: input.exercisePrice,
@@ -75,7 +76,8 @@ export async function POST(request: Request) {
       scheme,
       workspace,
       grant.isPromoterOver10Pct,
-      grant.id
+      grant.id,
+      { usOptionType: grant.usOptionType, holderKey: grant.holderKey }
     );
 
     return NextResponse.json({ success: true, grant, warnings }, { status: 201 });

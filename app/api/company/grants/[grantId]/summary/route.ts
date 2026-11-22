@@ -35,6 +35,8 @@ export async function GET(_request: Request, { params }: Ctx) {
     const detail = await grantDetail(grant, workspace);
 
     const bytes = await buildGrantSummaryPdf({
+      jurisdiction: workspace.jurisdiction,
+      usOptionType: grant.usOptionType,
       companyName: workspace.name,
       companyCin: workspace.cin,
       schemeName: grant.scheme.name,

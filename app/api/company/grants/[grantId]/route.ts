@@ -75,6 +75,12 @@ export async function PATCH(request: Request, { params }: Ctx) {
         employeeRef: input.employeeRef,
         holderKey,
         isPromoterOver10Pct: input.isPromoterOver10Pct,
+        usOptionType:
+          workspace.jurisdiction === "US"
+            ? input.usOptionType === undefined
+              ? existing.usOptionType
+              : input.usOptionType
+            : null,
         grantDate: input.grantDate,
         options: input.options,
         exercisePrice: input.exercisePrice,

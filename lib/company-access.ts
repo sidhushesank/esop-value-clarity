@@ -36,6 +36,8 @@ const WORKSPACE_SELECT = {
   cin: true,
   incorporationDate: true,
   dpiitRecognised: true,
+  jurisdiction: true,
+  usStateOfIncorporation: true,
   currentFmvPerShare: true,
   fmvValuationDate: true,
   fmvValuerName: true,

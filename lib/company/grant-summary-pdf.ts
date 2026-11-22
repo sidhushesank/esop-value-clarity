@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
 import type { GrantWarning, VestingMilestone } from "@/lib/company/grants";
+import { numberLocale, plainCurrencyPrefix, type Jurisdiction } from "@/lib/jurisdiction";
 
 /**
  * Grant summary PDF, in two versions:
@@ -34,8 +35,10 @@ function fmtDate(d: Date | null): string {
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-function fmtNum(n: number): string {
-  return n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+let NUM_LOCALE = "en-IN";
+
+function fmtNum(n: number, maxDecimals = 2): string {
+  return n.toLocaleString(NUM_LOCALE, { maximumFractionDigits: maxDecimals });
 }
 
 function makeCleaner(font: PDFFont) {
@@ -56,6 +59,10 @@ function makeCleaner(font: PDFFont) {
 
 export type GrantSummaryInput = {
   audience?: "COMPANY" | "EMPLOYEE";
+  /** Company country: decides currency and wording. Defaults to India. */
+  jurisdiction?: Jurisdiction;
+  /** US only: ISO or NSO. */
+  usOptionType?: "ISO" | "NSO" | null;
   vestedToday?: number;
   fmvPerShare?: number | null;
   fmvDate?: Date | null;
@@ -81,6 +88,11 @@ export type GrantSummaryInput = {
 
 export async function buildGrantSummaryPdf(input: GrantSummaryInput): Promise<Uint8Array> {
   const employee = input.audience === "EMPLOYEE";
+  const j: Jurisdiction = input.jurisdiction ?? "IN";
+  const us = j === "US";
+  NUM_LOCALE = numberLocale(j);
+  const cur = plainCurrencyPrefix(j);
+  const priceDecimals = us ? 4 : 2;
   const doc = await PDFDocument.create();
   doc.setTitle(`${employee ? "Grant summary" : "Draft grant summary"} - ${input.employeeName}`);
   doc.setProducer("ESOP Value Clarity");
@@ -135,18 +147,23 @@ export async function buildGrantSummaryPdf(input: GrantSummaryInput): Promise<Ui
   y -= 24;
   text(employee ? `${input.employeeName}: your grant summary` : "Draft grant summary", M, 20, bold, C.white);
   y -= 18;
-  text(`${input.companyName}${input.companyCin ? `  ·  CIN ${input.companyCin}` : ""}`, M, 9.5, regular, rgb(0.8, 0.84, 0.9));
+  text(`${input.companyName}${!us && input.companyCin ? `  ·  CIN ${input.companyCin}` : ""}`, M, 9.5, regular, rgb(0.8, 0.84, 0.9));
 
   /* Draft banner */
   y = PAGE_H - 108 - 26;
   page.drawRectangle({ x: M, y: y - 30, width: CONTENT_W, height: 44, color: rgb(1, 0.97, 0.88), borderColor: C.amber, borderWidth: 0.8 });
   y -= 2;
-  text(employee ? "SUMMARY - NOT YOUR GRANT LETTER" : "DRAFT - NOT A GRANT LETTER", M + 12, 9.5, bold, C.amber);
+  const legalDoc = us ? "GRANT AGREEMENT" : "GRANT LETTER";
+  text(employee ? `SUMMARY - NOT YOUR ${legalDoc}` : `DRAFT - NOT A ${legalDoc}`, M + 12, 9.5, bold, C.amber);
   y -= 13;
   text(
     employee
-      ? "A summary of your grant as recorded by your company. Your grant letter and the ESOP scheme are the documents that count."
-      : "A summary of the terms entered in EVC. Have the grant letter prepared or reviewed by your CS or lawyer before issuing.",
+      ? us
+        ? "A summary of your grant as recorded by your company. Your grant agreement and the equity plan are the documents that count."
+        : "A summary of your grant as recorded by your company. Your grant letter and the ESOP scheme are the documents that count."
+      : us
+        ? "A summary of the terms entered in EVC. Have the grant agreement prepared or reviewed by your lawyer before issuing."
+        : "A summary of the terms entered in EVC. Have the grant letter prepared or reviewed by your CS or lawyer before issuing.",
     M + 12, 8.5, regular, C.text
   );
   y -= 36;
@@ -154,12 +171,15 @@ export async function buildGrantSummaryPdf(input: GrantSummaryInput): Promise<Ui
   /* Key terms */
   const rows: [string, string][] = [
     ["Employee", `${input.employeeName}${input.employeeRef ? ` (${input.employeeRef})` : ""}`],
-    ["ESOP scheme", input.schemeName],
+    [us ? "Equity incentive plan" : "ESOP scheme", input.schemeName],
+    ...(us
+      ? ([["Option type", input.usOptionType === "ISO" ? "Incentive stock option (ISO)" : input.usOptionType === "NSO" ? "Non-qualified stock option (NSO)" : "Not recorded"]] as [string, string][])
+      : []),
     ["Status in EVC", input.status],
     ["Grant date", fmtDate(input.grantDate)],
     ["Number of options", fmtNum(input.options)],
-    ["Exercise price per option", `Rs. ${fmtNum(input.exercisePrice)}`],
-    ["Total exercise cost (all options)", `Rs. ${fmtNum(input.options * input.exercisePrice)}`],
+    ["Exercise price per option", `${cur}${fmtNum(input.exercisePrice, priceDecimals)}`],
+    ["Total exercise cost (all options)", `${cur}${fmtNum(input.options * input.exercisePrice)}`],
     ["Vesting starts", fmtDate(input.vestingStart)],
     ["Vesting period", `${input.vestingMonths} months, ${input.cliffMonths}-month cliff, then monthly`],
     ["Option expiry", input.expiryDate ? fmtDate(input.expiryDate) : "Not entered"],
@@ -173,7 +193,7 @@ export async function buildGrantSummaryPdf(input: GrantSummaryInput): Promise<Ui
     if (input.fmvPerShare && input.vestedToday !== undefined) {
       rows.push([
         "Value of vested options today",
-        `Rs. ${fmtNum(input.vestedToday * input.fmvPerShare)} at Rs. ${fmtNum(input.fmvPerShare)} per share${input.fmvDate ? ` (valued ${fmtDate(input.fmvDate)})` : ""}`,
+        `${cur}${fmtNum(input.vestedToday * input.fmvPerShare)} at ${cur}${fmtNum(input.fmvPerShare, priceDecimals)} per share${us ? " (409A)" : ""}${input.fmvDate ? ` (valued ${fmtDate(input.fmvDate)})` : ""}`,
       ]);
     }
     if (input.leftOn) {
@@ -216,7 +236,7 @@ export async function buildGrantSummaryPdf(input: GrantSummaryInput): Promise<Ui
   if (!employee && input.warnings.length) {
     y -= 10;
     ensure(40);
-    text("Points to review with your CS or lawyer", M, 12, bold, C.navy);
+    text(us ? "Points to review with your lawyer" : "Points to review with your CS or lawyer", M, 12, bold, C.navy);
     y -= 16;
     for (const w of input.warnings) {
       ensure(30);

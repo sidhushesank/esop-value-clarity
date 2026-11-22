@@ -33,7 +33,7 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     const negative = findNegativeBalance(remaining);
     if (negative) {
       return badRequest(
-        `This entry cannot be deleted: a later entry depends on it. ${await describeNegative(negative)}`,
+        `This entry cannot be deleted: a later entry depends on it. ${await describeNegative(negative, workspace.jurisdiction)}`,
         "IN_USE",
         409
       );

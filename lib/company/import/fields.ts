@@ -33,7 +33,7 @@ export const GRANT_IMPORT_FIELDS: ImportField[] = [
   { key: "employeeEmail", label: "Employee email", required: false, hint: "Used for their grant page", synonyms: ["email", "employeeemail", "emailid", "emailaddress", "workemail"] },
   { key: "employeeRef", label: "Employee ID", required: false, hint: "", synonyms: ["employeeid", "empid", "employeecode", "empcode", "employeeno", "staffid", "id"] },
   { key: "options", label: "Options granted", required: true, hint: "Whole number", synonyms: ["options", "optionsgranted", "noofoptions", "numberofoptions", "esops", "esopsgranted", "granted", "quantity"] },
-  { key: "exercisePrice", label: "Exercise price (₹)", required: true, hint: "0 is allowed", synonyms: ["exerciseprice", "strikeprice", "strike", "price", "exercisepricepershare"] },
+  { key: "exercisePrice", label: "Exercise price per option", required: true, hint: "0 is allowed", synonyms: ["exerciseprice", "strikeprice", "strike", "price", "exercisepricepershare"] },
   { key: "grantDate", label: "Grant date", required: true, hint: "dd/mm/yyyy works", synonyms: ["grantdate", "dateofgrant", "granteddate", "date"] },
   { key: "vestingStart", label: "Vesting start", required: false, hint: "Default: grant date", synonyms: ["vestingstart", "vestingstartdate", "vestingcommencement", "vestingcommencementdate"] },
   { key: "vestingMonths", label: "Vesting period (months)", required: false, hint: "48, 48 months or 4 years (default: scheme)", synonyms: ["vestingmonths", "vestingperiod", "vesting", "vestingduration", "vestingschedule"] },
@@ -43,7 +43,8 @@ export const GRANT_IMPORT_FIELDS: ImportField[] = [
   { key: "status", label: "Status", required: false, hint: "Issued / Accepted / Left / Lapsed / Exercised / Draft (default Issued)", synonyms: ["status", "grantstatus", "employmentstatus", "state"] },
   { key: "leftOn", label: "Date of leaving", required: false, hint: "Needed for leavers", synonyms: ["leftdate", "dateofleaving", "leavingdate", "lastworkingday", "exitdate", "dateofexit", "leavedate", "lefton"] },
   { key: "optionsExercised", label: "Options exercised", required: false, hint: "Default 0", synonyms: ["exercised", "optionsexercised", "noofoptionsexercised", "exercisedoptions"] },
-  { key: "promoter", label: "Promoter or >10% director", required: false, hint: "Yes / No (default No)", synonyms: ["promoter", "ispromoter", "director", "promoterordirector"] },
+  { key: "promoter", label: "Promoter or >10% director (US: 10% holder)", required: false, hint: "Yes / No (default No)", synonyms: ["promoter", "ispromoter", "director", "promoterordirector", "tenpercentholder", "10holder", "10percentholder"] },
+  { key: "optionType", label: "Option type (US: ISO / NSO)", required: false, hint: "US companies only: ISO or NSO", synonyms: ["optiontype", "type", "isonso", "isoornso", "granttype", "awardtype"] },
 ];
 
 export function fieldsFor(kind: ImportKind): ImportField[] {

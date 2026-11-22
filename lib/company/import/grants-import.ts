@@ -31,6 +31,7 @@ export type GrantImportItem = {
   employeeRef: string | null;
   holderKey: string;
   isPromoterOver10Pct: boolean;
+  usOptionType: "ISO" | "NSO" | null;
   grantDate: Date;
   options: number;
   exercisePrice: number;
@@ -69,7 +70,13 @@ export type GrantImportContext = {
     defaultCliffMonths: number;
     defaultPostExitDays: number;
   };
-  workspace: { dpiitRecognised: boolean | null; incorporationDate: Date | null };
+  workspace: {
+    dpiitRecognised: boolean | null;
+    incorporationDate: Date | null;
+    jurisdiction?: "IN" | "US";
+    currentFmvPerShare?: number | null;
+    fmvValuationDate?: Date | null;
+  };
   existingHolderKeys: Set<string>;
   /** "holderKey|yyyy-mm-dd|options" for grants already in EVC (duplicate check). */
   existingGrantKeys: Set<string>;
@@ -237,6 +244,18 @@ export function analyseGrants(rows: Row[], mapping: ImportMapping, ctx: GrantImp
     const promoter = parseYesNo(promoterCell);
     if (!isBlank(promoterCell) && promoter === null) errors.push(`Promoter "${text(promoterCell)}" should be Yes or No.`);
 
+    // US only: ISO / NSO. Ignored for Indian companies.
+    let usOptionType: "ISO" | "NSO" | null = null;
+    if (ctx.workspace.jurisdiction === "US") {
+      const typeCell = cell(row, mapping, "optionType");
+      if (!isBlank(typeCell)) {
+        const t = text(typeCell).toUpperCase().replace(/[^A-Z]/g, "");
+        if (t === "ISO" || t.startsWith("INCENTIVE")) usOptionType = "ISO";
+        else if (t === "NSO" || t === "NQSO" || t === "NQ" || t.startsWith("NON")) usOptionType = "NSO";
+        else errors.push(`Option type "${text(typeCell)}" should be ISO or NSO.`);
+      }
+    }
+
     // Arithmetic that needs a valid grant
     let optionsLapsed = 0;
     let terms: GrantTerms | null = null;
@@ -258,7 +277,7 @@ export function analyseGrants(rows: Row[], mapping: ImportMapping, ctx: GrantImp
 
       if (optionsExercised > vested) {
         errors.push(
-          `Options exercised (${optionsExercised.toLocaleString("en-IN")}) is more than had vested by ${leftOn ? "the leaving date" : "today"} (${vested.toLocaleString("en-IN")}).`
+          `Options exercised (${optionsExercised.toLocaleString(ctx.workspace.jurisdiction === "US" ? "en-US" : "en-IN")}) is more than had vested by ${leftOn ? "the leaving date" : "today"} (${vested.toLocaleString(ctx.workspace.jurisdiction === "US" ? "en-US" : "en-IN")}).`
         );
       }
 
@@ -293,6 +312,7 @@ export function analyseGrants(rows: Row[], mapping: ImportMapping, ctx: GrantImp
       employeeRef,
       holderKey,
       isPromoterOver10Pct: promoter ?? false,
+      usOptionType,
       grantDate,
       options,
       exercisePrice,
@@ -315,6 +335,12 @@ export function analyseGrants(rows: Row[], mapping: ImportMapping, ctx: GrantImp
         dpiitRecognised: ctx.workspace.dpiitRecognised,
         incorporationDate: ctx.workspace.incorporationDate,
         isPromoterOver10Pct: promoter ?? false,
+        jurisdiction: ctx.workspace.jurisdiction ?? "IN",
+        usOptionType,
+        fmvPerShare: ctx.workspace.currentFmvPerShare ?? null,
+        fmvValuationDate: ctx.workspace.fmvValuationDate ?? null,
+        // The ISO $100,000 limit is checked per grant after import (open the grant).
+        otherIsoGrants: [],
       }),
     });
   }
@@ -327,7 +353,7 @@ export function analyseGrants(rows: Row[], mapping: ImportMapping, ctx: GrantImp
   const blockers: string[] = [];
   if (usedAfter > s.poolSize) {
     blockers.push(
-      `These grants need ${importing.toLocaleString("en-IN")} options from the pool, but only ${Math.max(0, s.poolSize - s.poolUsed).toLocaleString("en-IN")} are left (pool ${s.poolSize.toLocaleString("en-IN")}). Increase the pool under ESOP pool if your shareholders approved a bigger one.`
+      `These grants need ${importing.toLocaleString(ctx.workspace.jurisdiction === "US" ? "en-US" : "en-IN")} options from the pool, but only ${Math.max(0, s.poolSize - s.poolUsed).toLocaleString(ctx.workspace.jurisdiction === "US" ? "en-US" : "en-IN")} are left (pool ${s.poolSize.toLocaleString(ctx.workspace.jurisdiction === "US" ? "en-US" : "en-IN")}). Increase the pool on the pool tab if a bigger one has been approved.`
     );
   }
   if (ctx.holderLimit !== null && ctx.existingHolderKeys.size + newHolderKeys.size > ctx.holderLimit) {

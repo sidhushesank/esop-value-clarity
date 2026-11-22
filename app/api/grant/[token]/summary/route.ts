@@ -33,6 +33,8 @@ export async function GET(_request: Request, { params }: Ctx) {
 
   const bytes = await buildGrantSummaryPdf({
     audience: "EMPLOYEE",
+    jurisdiction: view.jurisdiction,
+    usOptionType: view.usOptionType,
     companyName: g.workspace.name,
     companyCin: g.workspace.cin,
     schemeName: g.scheme.name,

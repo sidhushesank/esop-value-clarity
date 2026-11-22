@@ -15,14 +15,14 @@ import {
 
 import type { EmployeeViewData } from "@/lib/company/employee-view-data";
 import { runScenarios, type ScenarioResult } from "@/lib/company/employee-maths";
-
-function fmtNum(n: number): string {
-  return Math.round(n).toLocaleString("en-IN");
-}
-
-function fmtRs(n: number): string {
-  return `₹${Math.round(n).toLocaleString("en-IN")}`;
-}
+import {
+  currencySymbol,
+  formatMoney,
+  formatNumber,
+  formatPrice,
+  wordingFor,
+  type Jurisdiction,
+} from "@/lib/jurisdiction";
 
 function fmtDate(value: string | null): string {
   if (!value) return "-";
@@ -36,25 +36,50 @@ const INPUT =
 
 type Regime = "NEW" | "OLD";
 
-function minus(n: number): string {
-  return n > 0 ? `−${fmtRs(n)}` : fmtRs(0);
+type Row = { label: string; cell: (s: ScenarioResult) => string };
+
+/**
+ * India: the full after-tax illustration (Indian slab tax at exercise,
+ * long-term gains at sale).
+ * US: value and exercise cost only, before tax. US tax depends on ISO vs
+ * NSO, AMT and the employee's state; it is not estimated on this page.
+ */
+function scenarioRows(j: Jurisdiction): Row[] {
+  const money = (n: number) => formatMoney(Math.round(n), j);
+  const minus = (n: number) => (n > 0 ? `−${money(n)}` : money(0));
+  const rows: Row[] = [
+    { label: "Value per share after dilution", cell: (s) => formatPrice(s.pricePerShare, j) },
+    { label: "Value of your options", cell: (s) => money(s.grossValue) },
+    { label: "Less: cost to exercise", cell: (s) => (s.underwater ? "-" : minus(s.exerciseCost)) },
+  ];
+  if (j === "IN") {
+    rows.push(
+      { label: "Less: tax when you exercise", cell: (s) => (s.underwater ? "-" : minus(s.exerciseTax)) },
+      { label: "Less: tax when you sell", cell: (s) => (s.underwater ? "-" : minus(s.saleTax)) }
+    );
+  }
+  return rows;
 }
 
-const SCENARIO_ROWS: { label: string; cell: (s: ScenarioResult) => string }[] = [
-  { label: "Value per share after dilution", cell: (s) => fmtRs(s.pricePerShare) },
-  { label: "Value of your options", cell: (s) => fmtRs(s.grossValue) },
-  { label: "Less: cost to exercise", cell: (s) => (s.underwater ? "-" : minus(s.exerciseCost)) },
-  { label: "Less: tax when you exercise", cell: (s) => (s.underwater ? "-" : minus(s.exerciseTax)) },
-  { label: "Less: tax when you sell", cell: (s) => (s.underwater ? "-" : minus(s.saleTax)) },
-];
+/** India: take-home after the estimated tax. US: gain before tax. */
+function outcome(s: ScenarioResult, j: Jurisdiction): number {
+  return j === "US" ? Math.max(0, s.grossValue - s.exerciseCost) : s.takeHome;
+}
 
 export default function EmployeeGrantView({ token, data }: { token: string; data: EmployeeViewData }) {
+  const j: Jurisdiction = data.jurisdiction ?? "IN";
+  const us = j === "US";
+  const words = wordingFor(j);
+  const fmtNum = (n: number) => formatNumber(Math.round(n), j, 0);
+  const fmtRs = (n: number) => formatMoney(Math.round(n), j);
+  const fmtPer = (n: number) => formatPrice(n, j);
+  const SCENARIO_ROWS = scenarioRows(j);
   const left = !!data.leftOn;
   const [accepted, setAccepted] = useState<string | null>(data.acceptedAt);
   const status = accepted ? "ACCEPTED" : data.status;
 
   /* ---------------- Inputs for the illustration (kept in this browser only) ---------------- */
-  const [income, setIncome] = useState("1200000");
+  const [income, setIncome] = useState(us ? "0" : "1200000");
   const [regime, setRegime] = useState<Regime>("NEW");
   const [basis, setBasis] = useState<"ALL" | "VESTED">(left ? "VESTED" : "ALL");
   const [dilution, setDilution] = useState("20");
@@ -89,12 +114,13 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
             {data.companyName} · {data.schemeName}
           </p>
           <h1 className="mt-3 text-2xl font-black leading-tight md:text-3xl">
-            {data.employeeName}, here is your ESOP grant
+            {data.employeeName}, {words.employeeGrantHeading}
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
             What you were granted, when it becomes yours, what it costs to
             exercise, and what it could be worth. The value figures are
             illustrations you can change, not a promise.
+            {us && data.usOptionType ? ` These are ${data.usOptionType === "ISO" ? "incentive stock options (ISOs)" : "non-qualified stock options (NSOs)"}.` : ""}
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-black">
             <span className="rounded-full bg-white/10 px-3 py-1.5">Granted {fmtDate(data.grantDate)}</span>
@@ -109,7 +135,7 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
           {[
             ["Options granted", fmtNum(data.options)],
             ["Yours today (vested)", fmtNum(data.position.vested)],
-            ["Exercise price", `${fmtRs(data.exercisePrice)} per option`],
+            ["Exercise price", `${fmtPer(data.exercisePrice)} per option`],
             left
               ? ["Lapsed on leaving", fmtNum(data.position.lapsed)]
               : ["Next vesting", data.nextVest ? `${fmtNum(data.nextVest.options)} on ${fmtDate(data.nextVest.date)}` : "Fully vested"],
@@ -127,7 +153,7 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
             <p>
               {fmtNum(data.position.vestedUnexercised)} vested options can be exercised until{" "}
               <b>{fmtDate(data.position.exerciseWindowEnds)}</b>. After that they lapse. Exercising
-              costs {fmtRs(data.position.vestedUnexercised * data.exercisePrice)} plus tax (see below).
+              costs {fmtRs(data.position.vestedUnexercised * data.exercisePrice)} plus tax{us ? "" : " (see below)"}.
             </p>
           </div>
         )}
@@ -188,7 +214,7 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700"><TrendingUp size={20} /></span>
             <div>
-              <h2 className="text-base font-black">What it could be worth to you, after tax</h2>
+              <h2 className="text-base font-black">{us ? "What it could be worth to you" : "What it could be worth to you, after tax"}</h2>
               <p className="mt-1 text-sm leading-6 text-slate-500">
                 Change the numbers to match your situation. Nothing you type here is saved or sent to your company.
               </p>
@@ -206,17 +232,21 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
           ) : (
             <>
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="block">
-                  <span className="text-xs font-bold text-slate-500">Your annual taxable salary (₹)</span>
-                  <input className={`${INPUT} mt-1`} inputMode="numeric" value={income} onChange={(e) => setIncome(e.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-bold text-slate-500">Tax regime</span>
-                  <select className={`${INPUT} mt-1`} value={regime} onChange={(e) => setRegime(e.target.value as Regime)}>
-                    <option value="NEW">New regime</option>
-                    <option value="OLD">Old regime</option>
-                  </select>
-                </label>
+                {!us && (
+                  <>
+                    <label className="block">
+                      <span className="text-xs font-bold text-slate-500">Your annual taxable salary ({currencySymbol(j)})</span>
+                      <input className={`${INPUT} mt-1`} inputMode="numeric" value={income} onChange={(e) => setIncome(e.target.value)} />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold text-slate-500">Tax regime</span>
+                      <select className={`${INPUT} mt-1`} value={regime} onChange={(e) => setRegime(e.target.value as Regime)}>
+                        <option value="NEW">New regime</option>
+                        <option value="OLD">Old regime</option>
+                      </select>
+                    </label>
+                  </>
+                )}
                 <label className="block">
                   <span className="text-xs font-bold text-slate-500">Options to count</span>
                   <select className={`${INPUT} mt-1`} value={basis} onChange={(e) => setBasis(e.target.value as "ALL" | "VESTED")}>
@@ -244,13 +274,27 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
               {result && (
                 <>
                   <div className="mt-5 rounded-xl bg-blue-50 px-4 py-4 text-sm leading-6 text-blue-950">
-                    <p>
-                      <b>Today</b> ({fmtNum(optionsCounted)} options at {fmtRs(data.fmv.perShare)} per share
-                      {data.fmv.valuationDate ? `, valued ${fmtDate(data.fmv.valuationDate)}` : ""}):{" "}
-                      worth {fmtRs(result.today.value)} on paper. Exercising costs {fmtRs(result.today.exerciseCost)}
-                      {" "}and adds {fmtRs(result.today.exerciseTax.perquisite)} to your taxable income, so about{" "}
-                      <b>{fmtRs(result.today.exerciseTax.tax)}</b> in tax when you exercise, even though you cannot sell yet.
-                    </p>
+                    {us ? (
+                      <p>
+                        <b>Today</b> ({fmtNum(optionsCounted)} options at a 409A value of {fmtPer(data.fmv.perShare)} per share
+                        {data.fmv.valuationDate ? `, valued ${fmtDate(data.fmv.valuationDate)}` : ""}):{" "}
+                        worth {fmtRs(result.today.value)} on paper. Exercising costs {fmtRs(result.today.exerciseCost)}.
+                        {" "}The spread of {fmtRs(result.today.exerciseTax.perquisite)} is{" "}
+                        {data.usOptionType === "ISO"
+                          ? "not regular income for an ISO, but it can count towards the alternative minimum tax (AMT)."
+                          : data.usOptionType === "NSO"
+                            ? "taxed as ordinary income when you exercise an NSO, even though you cannot sell yet."
+                            : "taxed differently for ISOs and NSOs; ask your company which you have."}
+                      </p>
+                    ) : (
+                      <p>
+                        <b>Today</b> ({fmtNum(optionsCounted)} options at {fmtPer(data.fmv.perShare)} per share
+                        {data.fmv.valuationDate ? `, valued ${fmtDate(data.fmv.valuationDate)}` : ""}):{" "}
+                        worth {fmtRs(result.today.value)} on paper. Exercising costs {fmtRs(result.today.exerciseCost)}
+                        {" "}and adds {fmtRs(result.today.exerciseTax.perquisite)} to your taxable income, so about{" "}
+                        <b>{fmtRs(result.today.exerciseTax.tax)}</b> in tax when you exercise, even though you cannot sell yet.
+                      </p>
+                    )}
                   </div>
 
                   {/* Phones: one card per scenario */}
@@ -270,9 +314,9 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
                           ))}
                         </dl>
                         <div className="mt-3 flex justify-between border-t border-slate-100 pt-3">
-                          <p className="font-black">You take home</p>
+                          <p className="font-black">{us ? "Your gain before tax" : "You take home"}</p>
                           <p className="font-black tabular-nums">
-                            {s.underwater ? <span className="text-xs font-bold text-slate-400">Not worth exercising</span> : fmtRs(s.takeHome)}
+                            {s.underwater ? <span className="text-xs font-bold text-slate-400">Not worth exercising</span> : fmtRs(outcome(s, j))}
                           </p>
                         </div>
                       </div>
@@ -302,10 +346,10 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
                           </tr>
                         ))}
                         <tr>
-                          <td className="py-3 font-black">You take home (estimate)</td>
+                          <td className="py-3 font-black">{us ? "Your gain before tax (estimate)" : "You take home (estimate)"}</td>
                           {result.scenarios.map((s) => (
                             <td key={s.label} className="py-3 text-right font-black tabular-nums">
-                              {s.underwater ? <span className="text-xs font-bold text-slate-400">Not worth exercising</span> : fmtRs(s.takeHome)}
+                              {s.underwater ? <span className="text-xs font-bold text-slate-400">Not worth exercising</span> : fmtRs(outcome(s, j))}
                             </td>
                           ))}
                         </tr>
@@ -313,12 +357,20 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
                     </table>
                   </div>
 
+                  {us ? (
+                  <ul className="mt-4 space-y-1.5 text-xs leading-5 text-slate-500">
+                    <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Figures are before tax. US tax depends on whether these are ISOs or NSOs, when you exercise and sell, the alternative minimum tax (AMT) and your state, so it is not estimated here. Talk to a US tax adviser before exercising.</li>
+                    <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> If you exercise early, an 83(b) election may apply; it must be filed with the IRS within 30 days of exercise. Ask your company whether early exercise is allowed.</li>
+                    <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> There may be no buyer for your shares until a tender offer, secondary sale, acquisition or IPO.</li>
+                  </ul>
+                  ) : (
                   <ul className="mt-4 space-y-1.5 text-xs leading-5 text-slate-500">
                     <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Assumes you exercise at today&apos;s value per share and later sell after holding the shares for more than 24 months (long-term: 12.5% plus 4% cess on the gain above today&apos;s value).</li>
                     <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Tax when you exercise is the extra income tax on your salary slab. Surcharge relief and other income are not included.</li>
                     <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> Some startups let employees defer this tax; ask your company whether it applies to you.</li>
                     <li className="flex gap-2"><Info size={13} className="mt-0.5 shrink-0" /> There may be no buyer for your shares until a buyback, secondary sale or IPO.</li>
                   </ul>
+                  )}
                 </>
               )}
             </>
@@ -377,13 +429,15 @@ export default function EmployeeGrantView({ token, data }: { token: string; data
             <div>
               <p className="font-black text-slate-950">Want to plan exercising, leaving or selling in detail?</p>
               <p>
-                ESOP Value Clarity PRO compares exercise strategies, tax and exit scenarios for your own grant.{" "}
+                {us
+                  ? "ESOP Value Clarity PRO models exercise timing, dilution and exit scenarios for your own grant."
+                  : "ESOP Value Clarity PRO compares exercise strategies, tax and exit scenarios for your own grant."}{" "}
                 <a href="/pricing" className="font-bold text-blue-700 underline">See PRO</a>
               </p>
             </div>
           </div>
           <p className="mt-4 text-xs text-slate-400">
-            Prepared by {data.companyName} using ESOP Value Clarity. Your grant letter and the ESOP scheme are the
+            Prepared by {data.companyName} using ESOP Value Clarity. Your grant {us ? "agreement and the equity plan" : "letter and the ESOP scheme"} are the
             documents that count. Figures here are estimates, not legal, tax or investment advice.
           </p>
         </section>

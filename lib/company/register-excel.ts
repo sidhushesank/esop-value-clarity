@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 
 import type { listGrants } from "@/lib/company/grants-data";
 import { firstVestDate, fullyVestedDate } from "@/lib/company/grants";
+import { plainCurrencyTag, type Jurisdiction } from "@/lib/jurisdiction";
 
 type GrantRows = Awaited<ReturnType<typeof listGrants>>;
 
@@ -18,28 +19,32 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 /**
- * Register of options, with the fields usually kept in the register of
- * employee stock options (Form SH-6). Column set is an aid; check the
+ * India: register of options, with the fields usually kept in the register
+ * of employee stock options (Form SH-6). Column set is an aid; check the
  * statutory format with your CS (verify).
+ * US: option ledger with the same columns plus the option type (ISO / NSO).
  */
 export async function buildRegisterWorkbook(
   companyName: string,
-  grants: GrantRows
+  grants: GrantRows,
+  jurisdiction: Jurisdiction = "IN"
 ): Promise<Uint8Array> {
+  const us = jurisdiction === "US";
   const wb = new ExcelJS.Workbook();
   wb.creator = "ESOP Value Clarity";
   wb.created = new Date();
 
-  const ws = wb.addWorksheet("Options register");
+  const ws = wb.addWorksheet(us ? "Option ledger" : "Options register");
   ws.columns = [
     { header: "Sr.", key: "sr", width: 6 },
     { header: "Employee", key: "name", width: 26 },
     { header: "Employee ref", key: "ref", width: 14 },
-    { header: "Scheme", key: "scheme", width: 20 },
+    { header: us ? "Plan" : "Scheme", key: "scheme", width: 20 },
+    ...(us ? [{ header: "Option type", key: "optionType", width: 12 }] : []),
     { header: "Status", key: "status", width: 16 },
     { header: "Date of grant", key: "grantDate", width: 14, style: { numFmt: DATE_FMT } },
     { header: "Options granted", key: "options", width: 14, style: { numFmt: "#,##0" } },
-    { header: "Exercise price (Rs.)", key: "price", width: 16, style: { numFmt: "#,##0.00" } },
+    { header: `Exercise price ${plainCurrencyTag(jurisdiction)}`, key: "price", width: 16, style: { numFmt: us ? "#,##0.0000" : "#,##0.00" } },
     { header: "Vesting start", key: "vestStart", width: 14, style: { numFmt: DATE_FMT } },
     { header: "Vesting (months)", key: "vestMonths", width: 12 },
     { header: "Cliff (months)", key: "cliff", width: 12 },
@@ -79,6 +84,7 @@ export async function buildRegisterWorkbook(
       name: g.employeeName,
       ref: g.employeeRef ?? "",
       scheme: g.scheme.name,
+      optionType: us ? g.usOptionType ?? "Not set" : undefined,
       status: STATUS_LABEL[g.status] ?? g.status,
       grantDate: g.grantDate,
       options: g.options,
@@ -99,16 +105,18 @@ export async function buildRegisterWorkbook(
   });
 
   ws.addRow([]);
-  ws.addRow([`${companyName}: register of options, generated ${new Date().toISOString().slice(0, 10)}.`]);
+  ws.addRow([`${companyName}: ${us ? "option ledger" : "register of options"}, generated ${new Date().toISOString().slice(0, 10)}.`]);
   ws.addRow([
-    "Columns follow the fields usually kept in Form SH-6. Check the statutory format with your CS (verify). A record-keeping aid, not legal advice.",
+    us
+      ? "A record-keeping aid listing every option grant, not legal advice. Your plan documents and board approvals are the official record."
+      : "Columns follow the fields usually kept in Form SH-6. Check the statutory format with your CS (verify). A record-keeping aid, not legal advice.",
   ]).font = { italic: true, color: { argb: "FF64748B" } };
 
   const buffer = await wb.xlsx.writeBuffer();
   return new Uint8Array(buffer as ArrayBuffer);
 }
 
-export function registerFileName(companyName: string) {
+export function registerFileName(companyName: string, jurisdiction: Jurisdiction = "IN") {
   const safe = companyName.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "company";
-  return `${safe}-options-register-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  return `${safe}-${jurisdiction === "US" ? "option-ledger" : "options-register"}-${new Date().toISOString().slice(0, 10)}.xlsx`;
 }

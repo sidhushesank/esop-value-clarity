@@ -18,6 +18,8 @@ import CompanyDetailsPanel from "@/components/company/CompanyDetailsPanel";
 import EsopPoolPanel from "@/components/company/EsopPoolPanel";
 import GrantsPanel from "@/components/company/GrantsPanel";
 import type { WorkspaceInfo } from "@/components/company/types";
+import { JurisdictionProvider } from "@/components/company/JurisdictionContext";
+import { asJurisdiction, wordingFor } from "@/lib/jurisdiction";
 import { BTN_LIGHT, fmtDate, readJson } from "@/components/company/ui";
 
 type WorkspaceResponse = {
@@ -26,6 +28,7 @@ type WorkspaceResponse = {
   isEvcOwner?: boolean;
   holderLimit?: number | null;
   optionHolders?: number;
+  jurisdictionLocked?: boolean;
   code?: string;
   message?: string;
 };
@@ -144,6 +147,8 @@ export default function CompanyHomePage() {
 
   const ws = info!.workspace!;
   const isOwner = info!.isEvcOwner === true;
+  const jurisdiction = asJurisdiction(ws.jurisdiction);
+  const words = wordingFor(jurisdiction);
 
   return (
     <main className="min-h-screen bg-[#f5f8fc] text-slate-950">
@@ -184,12 +189,12 @@ export default function CompanyHomePage() {
             )}
           </div>
           <h1 className="mt-4 max-w-2xl text-2xl font-black leading-tight md:text-3xl">
-            Your cap table, your ESOP pool and every grant, in one place.
+            Your cap table, your {words.pool.toLowerCase()} and every grant, in one place.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
             Each employee gets a clear page showing what their options could be
-            worth. Records here are a preparation aid for your CS or lawyer, not
-            legal or tax advice.
+            worth. Records here are a preparation aid for your{" "}
+            {jurisdiction === "US" ? "lawyer" : "CS or lawyer"}, not legal or tax advice.
           </p>
           <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-slate-400">
             <span>
@@ -197,6 +202,7 @@ export default function CompanyHomePage() {
               {info!.holderLimit ? ` of ${info!.holderLimit}` : ""}
             </span>
             {!isOwner && <span>Plan valid until {fmtDate(ws.expiresAt)}</span>}
+            <span>Company in {words.countryName} · amounts in {jurisdiction === "US" ? "US dollars" : "rupees"}</span>
           </div>
         </section>
 
@@ -214,7 +220,7 @@ export default function CompanyHomePage() {
               }`}
             >
               {t.icon}
-              {t.label}
+              {t.id === "POOL" ? words.pool : t.label}
               {t.soon && (
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black uppercase text-slate-500">
                   Next
@@ -224,12 +230,20 @@ export default function CompanyHomePage() {
           ))}
         </nav>
 
-        <div className="mt-5">
-          {tab === "CAPTABLE" && <CapTablePanel />}
-          {tab === "POOL" && <EsopPoolPanel />}
-          {tab === "GRANTS" && <GrantsPanel companyName={ws.name} onChanged={() => void load()} />}
-          {tab === "DETAILS" && <CompanyDetailsPanel workspace={ws} onSaved={() => void load()} />}
-        </div>
+        <JurisdictionProvider value={jurisdiction}>
+          <div className="mt-5">
+            {tab === "CAPTABLE" && <CapTablePanel />}
+            {tab === "POOL" && <EsopPoolPanel />}
+            {tab === "GRANTS" && <GrantsPanel companyName={ws.name} onChanged={() => void load()} />}
+            {tab === "DETAILS" && (
+              <CompanyDetailsPanel
+                workspace={ws}
+                jurisdictionLocked={info!.jurisdictionLocked === true}
+                onSaved={() => void load()}
+              />
+            )}
+          </div>
+        </JurisdictionProvider>
       </div>
     </main>
   );

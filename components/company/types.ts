@@ -20,6 +20,9 @@ export type WorkspaceInfo = {
   cin: string | null;
   incorporationDate: string | null;
   dpiitRecognised: boolean | null;
+  /** IN = India, US = United States. Older workspaces without it are India. */
+  jurisdiction?: "IN" | "US";
+  usStateOfIncorporation?: string | null;
   currentFmvPerShare: number | null;
   fmvValuationDate: string | null;
   fmvValuerName: string | null;
@@ -172,6 +175,7 @@ export type GrantRow = {
   employeeEmail: string | null;
   employeeRef: string | null;
   isPromoterOver10Pct: boolean;
+  usOptionType?: "ISO" | "NSO" | null;
   grantDate: string;
   options: number;
   exercisePrice: number;

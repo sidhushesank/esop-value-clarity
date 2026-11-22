@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     const data = await loadCapTable(workspace.id, asOf);
-    const bytes = await buildCapTableWorkbook(workspace.name, data);
+    const bytes = await buildCapTableWorkbook(workspace.name, data, workspace.jurisdiction);
 
     return new NextResponse(bytes as unknown as BodyInit, {
       status: 200,

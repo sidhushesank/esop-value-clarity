@@ -3,7 +3,9 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Loader2, Upload, X } from "lucide-react";
 
-import { BTN_DARK, BTN_LIGHT, INPUT, LABEL, fmtDate, fmtNum, readJson, todayIso } from "@/components/company/ui";
+import { BTN_DARK, BTN_LIGHT, INPUT, LABEL, fmtDate, readJson, todayIso } from "@/components/company/ui";
+import { useJurisdiction } from "@/components/company/JurisdictionContext";
+import { formatNumber } from "@/lib/jurisdiction";
 
 type Kind = "captable" | "grants";
 
@@ -56,6 +58,11 @@ export default function ImportCard({
   schemes?: { id: string; name: string; optionsAvailable: number }[];
   onImported: () => void;
 }) {
+  const j = useJurisdiction();
+  const us = j === "US";
+  const fmtNum = (n: number) => formatNumber(n, j);
+  const planWord = us ? "equity incentive plan" : "ESOP scheme";
+  const holderWord = us ? "stockholder" : "shareholder";
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [asOf, setAsOf] = useState(todayIso());
@@ -87,7 +94,7 @@ export default function ImportCard({
   }
 
   async function runPreview(f: File, map: Record<string, number | null> | null) {
-    if (kind === "grants" && !schemeId) return setError("Choose the ESOP scheme first.");
+    if (kind === "grants" && !schemeId) return setError(`Choose the ${planWord} first.`);
     setBusy("preview");
     setError("");
     setDone("");
@@ -125,7 +132,7 @@ export default function ImportCard({
       if (!res.ok || !json?.success) return setError(json?.message ?? "The import did not go through. Nothing was saved.");
       setDone(
         kind === "captable"
-          ? `Imported ${fmtNum(json.movements)} shareholding${json.movements === 1 ? "" : "s"} (${json.newHolders} new shareholder${json.newHolders === 1 ? "" : "s"}, ${json.newClasses} new class${json.newClasses === 1 ? "" : "es"}).`
+          ? `Imported ${fmtNum(json.movements)} shareholding${json.movements === 1 ? "" : "s"} (${json.newHolders} new ${holderWord}${json.newHolders === 1 ? "" : "s"}, ${json.newClasses} new class${json.newClasses === 1 ? "" : "es"}).`
           : `Imported ${fmtNum(json.grants)} grant${json.grants === 1 ? "" : "s"} into ${json.scheme}.`
       );
       reset();
@@ -148,7 +155,7 @@ export default function ImportCard({
             <p className="text-xs text-slate-500">
               {kind === "captable"
                 ? "Already have a cap table in Excel? Bring it in instead of typing it."
-                : "Already granted ESOPs? Bring them all in at once."}
+                : us ? "Already granted stock options? Bring them all in at once." : "Already granted ESOPs? Bring them all in at once."}
             </p>
           </div>
         </div>
@@ -194,7 +201,7 @@ export default function ImportCard({
           </label>
         ) : (
           <label className="block">
-            <span className={LABEL}>ESOP scheme</span>
+            <span className={LABEL}>{us ? "Equity incentive plan" : "ESOP scheme"}</span>
             <select className={`${INPUT} mt-1 h-10 w-64`} value={schemeId} onChange={(e) => setSchemeId(e.target.value)}>
               {(schemes ?? []).map((s) => (
                 <option key={s.id} value={s.id}>{s.name} ({fmtNum(s.optionsAvailable)} available)</option>
@@ -228,7 +235,7 @@ export default function ImportCard({
       </div>
 
       {kind === "grants" && (!schemes || schemes.length === 0) && (
-        <p className="mt-3 text-sm font-semibold text-amber-700">Add your ESOP scheme under ESOP pool first.</p>
+        <p className="mt-3 text-sm font-semibold text-amber-700">{us ? "Add your equity incentive plan under Option pool first." : "Add your ESOP scheme under ESOP pool first."}</p>
       )}
 
       {error && <p className="mt-4 text-sm font-semibold text-red-600">{error}</p>}
@@ -285,9 +292,9 @@ export default function ImportCard({
                   <div className="rounded-xl bg-slate-50 px-4 py-3">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">New to EVC</p>
                     <p className="mt-1 text-sm font-black">
-                      {preview.newHolders?.length ?? 0} shareholders · {preview.newClasses?.length ?? 0} classes
+                      {preview.newHolders?.length ?? 0} {holderWord}s · {preview.newClasses?.length ?? 0} classes
                     </p>
-                    <p className="text-xs text-slate-500">{preview.matchedHolders ?? 0} matched to existing shareholders</p>
+                    <p className="text-xs text-slate-500">{preview.matchedHolders ?? 0} matched to existing {holderWord}s</p>
                   </div>
                 ) : (
                   <div className="rounded-xl bg-slate-50 px-4 py-3">
@@ -376,7 +383,7 @@ export default function ImportCard({
                       <thead>
                         <tr className="border-b border-slate-200 text-left text-slate-400">
                           {kind === "captable" ? (
-                            <><th className="py-1.5">Row</th><th>Shareholder</th><th>Class</th><th className="text-right">Shares</th><th className="text-right">Date</th></>
+                            <><th className="py-1.5">Row</th><th>{us ? "Stockholder" : "Shareholder"}</th><th>Class</th><th className="text-right">Shares</th><th className="text-right">Date</th></>
                           ) : (
                             <><th className="py-1.5">Row</th><th>Employee</th><th>Status</th><th className="text-right">Options</th><th className="text-right">Granted</th><th className="text-right">Lapsed</th></>
                           )}

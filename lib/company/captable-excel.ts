@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 
 import type { loadCapTable } from "@/lib/company/captable-data";
+import { plainCurrencyTag, type Jurisdiction } from "@/lib/jurisdiction";
 
 type CapTableData = Awaited<ReturnType<typeof loadCapTable>>;
 
@@ -23,8 +24,11 @@ function styleHeader(row: ExcelJS.Row) {
 
 export async function buildCapTableWorkbook(
   companyName: string,
-  data: CapTableData
+  data: CapTableData,
+  jurisdiction: Jurisdiction = "IN"
 ): Promise<Uint8Array> {
+  const us = jurisdiction === "US";
+  const tag = plainCurrencyTag(jurisdiction);
   const wb = new ExcelJS.Workbook();
   wb.creator = "ESOP Value Clarity";
   wb.created = new Date();
@@ -45,11 +49,11 @@ export async function buildCapTableWorkbook(
   ws.addRow([]);
 
   const header = [
-    "Shareholder",
+    us ? "Stockholder" : "Shareholder",
     "Type",
     ...shareClasses.map((c) => c.name),
-    ...amountClasses.map((c) => `${c.name} (₹ amount)`),
-    "Equity shares",
+    ...amountClasses.map((c) => `${c.name} ${tag} amount`),
+    us ? "Common shares" : "Equity shares",
     "Issued %",
     "Fully diluted shares",
     "Fully diluted %",
@@ -71,8 +75,8 @@ export async function buildCapTableWorkbook(
   }
 
   ws.addRow([
-    "ESOP pool (outstanding + unallocated)",
-    "ESOP",
+    us ? "Option pool (outstanding + unallocated)" : "ESOP pool (outstanding + unallocated)",
+    us ? "Options" : "ESOP",
     ...shareClasses.map(() => null),
     ...amountClasses.map(() => null),
     null,
@@ -127,7 +131,7 @@ export async function buildCapTableWorkbook(
     { header: "Quantity", key: "qty", width: 14, style: { numFmt: "#,##0" } },
     { header: "Converts into", key: "toCls", width: 20 },
     { header: "Units received", key: "toQty", width: 14, style: { numFmt: "#,##0" } },
-    { header: "Price per share (₹)", key: "price", width: 18, style: { numFmt: "#,##0.00" } },
+    { header: `Price per share ${tag}`, key: "price", width: 18, style: { numFmt: us ? "#,##0.0000" : "#,##0.00" } },
     { header: "Note", key: "note", width: 40 },
   ];
   styleHeader(log.getRow(1));

@@ -10,6 +10,10 @@ import type { ResolvedGrantLink } from "@/lib/company/grant-links";
 
 /** Everything the employee page needs, as plain JSON (no database objects). */
 export type EmployeeViewData = {
+  /** IN = Indian company (rupees, Indian tax). US = US company (dollars, no Indian tax). */
+  jurisdiction: "IN" | "US";
+  /** US only: ISO or NSO (null if not recorded or Indian company). */
+  usOptionType: "ISO" | "NSO" | null;
   companyName: string;
   companyCin: string | null;
   schemeName: string;
@@ -64,6 +68,8 @@ export function buildEmployeeView(link: ResolvedGrantLink): EmployeeViewData {
   }
 
   return {
+    jurisdiction: ws.jurisdiction === "US" ? "US" : "IN",
+    usOptionType: ws.jurisdiction === "US" ? g.usOptionType ?? null : null,
     companyName: ws.name,
     companyCin: ws.cin,
     schemeName: g.scheme.name,

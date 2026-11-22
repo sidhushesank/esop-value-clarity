@@ -93,7 +93,14 @@ const POOL_STATUSES = ["ISSUED", "ACCEPTED", "LEFT", "EXERCISED", "LAPSED"] as c
 const HOLDER_STATUSES = ["DRAFT", "ISSUED", "ACCEPTED", "LEFT", "EXERCISED"] as const;
 
 export async function grantsAnalysis(
-  workspace: { id: string; dpiitRecognised: boolean | null; incorporationDate: Date | null },
+  workspace: {
+    id: string;
+    dpiitRecognised: boolean | null;
+    incorporationDate: Date | null;
+    jurisdiction?: "IN" | "US";
+    currentFmvPerShare?: number | null;
+    fmvValuationDate?: Date | null;
+  },
   rows: { rowNumber: number; cells: unknown[] }[],
   mapping: ImportMapping,
   schemeIdRaw: FormDataEntryValue | null,
@@ -140,7 +147,13 @@ export async function grantsAnalysis(
       defaultCliffMonths: scheme.defaultCliffMonths,
       defaultPostExitDays: scheme.defaultPostExitDays,
     },
-    workspace: { dpiitRecognised: workspace.dpiitRecognised, incorporationDate: workspace.incorporationDate },
+    workspace: {
+      dpiitRecognised: workspace.dpiitRecognised,
+      incorporationDate: workspace.incorporationDate,
+      jurisdiction: workspace.jurisdiction ?? "IN",
+      currentFmvPerShare: workspace.currentFmvPerShare ?? null,
+      fmvValuationDate: workspace.fmvValuationDate ?? null,
+    },
     existingHolderKeys,
     existingGrantKeys,
     holderLimit,

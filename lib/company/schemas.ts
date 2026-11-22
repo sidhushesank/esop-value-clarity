@@ -27,6 +27,8 @@ export const companyDetailsSchema = z.object({
   companyType: z.enum(["PRIVATE_LIMITED", "UNLISTED_PUBLIC"]).optional(),
   incorporationDate: saneDate("Incorporation date").nullable().optional(),
   dpiitRecognised: z.boolean().nullable().optional(),
+  jurisdiction: z.enum(["IN", "US"]).optional(),
+  usStateOfIncorporation: optionalText(60),
   currentFmvPerShare: z.number().positive("Value per share must be more than zero.").max(10_000_000).nullable().optional(),
   fmvValuationDate: saneDate("Valuation date").nullable().optional(),
   fmvValuerName: optionalText(200),
@@ -191,6 +193,8 @@ export const optionGrantSchema = z
     ),
     employeeRef: optionalText(60),
     isPromoterOver10Pct: z.boolean().default(false),
+    // US companies only: ISO or NSO. Ignored (stored as null) for Indian companies.
+    usOptionType: z.enum(["ISO", "NSO"]).nullable().optional(),
     grantDate: saneDate("Grant date"),
     options: z
       .number()

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     const negative = findNegativeBalance([...existing, candidate]);
 
     if (negative) {
-      return badRequest(await describeNegative(negative), "INSUFFICIENT_UNITS", 409);
+      return badRequest(await describeNegative(negative, workspace.jurisdiction), "INSUFFICIENT_UNITS", 409);
     }
 
     const movement = await prisma.shareMovement.create({

@@ -14,7 +14,6 @@ import {
 
 import {
   HOLDER_TYPE_LABEL,
-  KIND_LABEL,
   MOVEMENT_LABEL,
   type CapTableResponse,
   type MovementKind,
@@ -22,6 +21,14 @@ import {
   type ShareholderType,
 } from "@/components/company/types";
 import ImportCard from "@/components/company/ImportCard";
+import { useJurisdiction } from "@/components/company/JurisdictionContext";
+import {
+  currencySymbol,
+  formatNumber,
+  kindLabel,
+  kindsFor,
+  wordingFor,
+} from "@/lib/jurisdiction";
 import {
   BTN_DARK,
   BTN_LIGHT,
@@ -29,7 +36,6 @@ import {
   INPUT,
   LABEL,
   fmtDate,
-  fmtNum,
   fmtPct,
   parseNum,
   readJson,
@@ -39,6 +45,10 @@ import {
 const AMOUNT_KINDS: SecurityKind[] = ["CONVERTIBLE_NOTE", "ISAFE"];
 
 export default function CapTablePanel() {
+  const j = useJurisdiction();
+  const words = wordingFor(j);
+  const sym = currencySymbol(j);
+  const fmtNum = (n: number) => formatNumber(n, j);
   const [data, setData] = useState<CapTableResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,11 +111,11 @@ export default function CapTablePanel() {
       {/* Summary */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Equity shares issued", fmtNum(snapshot.totals.equityShares)],
+          [j === "US" ? "Common shares issued" : "Equity shares issued", fmtNum(snapshot.totals.equityShares)],
           ["Fully diluted shares", fmtNum(snapshot.totals.fullyDilutedShares)],
-          ["Shareholders", String(snapshot.rows.length)],
+          [words.shareholders, String(snapshot.rows.length)],
           [
-            "ESOP pool (fully diluted)",
+            `${words.pool} (fully diluted)`,
             snapshot.esop.poolSize > 0 ? fmtPct(snapshot.esop.fullyDilutedPct) : "Not set",
           ],
         ].map(([label, value]) => (
@@ -156,7 +166,7 @@ export default function CapTablePanel() {
 
         {isEmpty ? (
           <p className="mt-6 rounded-xl bg-slate-50 px-4 py-6 text-center text-sm font-semibold text-slate-500">
-            No shares recorded yet. Add a class (for example Equity shares),
+            No shares recorded yet. Add a class (for example {j === "US" ? "Common stock" : "Equity shares"}),
             add the founders, then record their allotment.
           </p>
         ) : (
@@ -164,12 +174,12 @@ export default function CapTablePanel() {
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  <th className="py-3 pr-4">Shareholder</th>
+                  <th className="py-3 pr-4">{j === "US" ? "Stockholder" : "Shareholder"}</th>
                   {shareClasses.map((c) => (
                     <th key={c.id} className="py-3 pr-4 text-right">{c.name}</th>
                   ))}
                   {amountClasses.map((c) => (
-                    <th key={c.id} className="py-3 pr-4 text-right">{c.name} (₹)</th>
+                    <th key={c.id} className="py-3 pr-4 text-right">{c.name} ({sym})</th>
                   ))}
                   <th className="py-3 pr-4 text-right">Issued %</th>
                   <th className="py-3 text-right">Fully diluted %</th>
@@ -202,7 +212,7 @@ export default function CapTablePanel() {
                 ))}
                 <tr className="border-b border-slate-100 bg-slate-50/60">
                   <td className="py-3 pr-4">
-                    <p className="font-bold">ESOP pool</p>
+                    <p className="font-bold">{words.pool}</p>
                     <p className="text-xs text-slate-400">
                       {fmtNum(snapshot.esop.outstandingOptions)} granted ·{" "}
                       {fmtNum(snapshot.esop.unallocated)} unallocated
@@ -255,6 +265,11 @@ export default function CapTablePanel() {
 /* ------------------------------------------------------------------ */
 
 function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: () => void }) {
+  const j = useJurisdiction();
+  const us = j === "US";
+  const sym = currencySymbol(j);
+  const words = wordingFor(j);
+  const fmtNum = (n: number) => formatNumber(n, j);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -274,7 +289,7 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
   const isAmount = AMOUNT_KINDS.includes(form.kind);
 
   async function save() {
-    if (!form.name.trim()) return setError("Enter a name, for example \"Equity shares\".");
+    if (!form.name.trim()) return setError(`Enter a name, for example "${us ? "Common stock" : "Equity shares"}".`);
     const nums = {
       faceValue: parseNum(form.faceValue),
       conversionRatio: parseNum(form.conversionRatio),
@@ -337,7 +352,7 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
       <CardHeader
         icon={<Layers size={20} />}
         title="Share classes"
-        text="Equity shares, preference shares (CCPS), debentures, notes and iSAFEs."
+        text={us ? "Common stock, preferred stock, convertible notes, SAFEs and warrants." : "Equity shares, preference shares (CCPS), debentures, notes and iSAFEs."}
         open={open}
         onOpen={() => { setError(""); setOpen(true); }}
         onClose={() => setOpen(false)}
@@ -348,25 +363,25 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className={LABEL}>Name *</span>
-            <input className={`${INPUT} mt-1`} value={form.name} placeholder="Equity shares" onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <input className={`${INPUT} mt-1`} value={form.name} placeholder={us ? "Common stock" : "Equity shares"} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </label>
           <label className="block">
             <span className={LABEL}>Type *</span>
             <select className={`${INPUT} mt-1`} value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as SecurityKind })}>
-              {(Object.keys(KIND_LABEL) as SecurityKind[]).map((k) => (
-                <option key={k} value={k}>{KIND_LABEL[k]}</option>
+              {(kindsFor(j) as SecurityKind[]).map((k) => (
+                <option key={k} value={k}>{kindLabel(k, j)}</option>
               ))}
             </select>
           </label>
           {!isAmount && (
             <label className="block">
-              <span className={LABEL}>Face value per share (₹)</span>
+              <span className={LABEL}>{words.faceValue} ({sym})</span>
               <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.faceValue} placeholder="10" onChange={(e) => setForm({ ...form, faceValue: e.target.value })} />
             </label>
           )}
           {isPref && (
             <label className="block">
-              <span className={LABEL}>Equity shares per unit on conversion</span>
+              <span className={LABEL}>{us ? "Common shares" : "Equity shares"} per unit on conversion</span>
               <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.conversionRatio} placeholder="1" onChange={(e) => setForm({ ...form, conversionRatio: e.target.value })} />
             </label>
           )}
@@ -385,7 +400,7 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
           {isAmount && (
             <>
               <label className="block">
-                <span className={LABEL}>Valuation cap (₹)</span>
+                <span className={LABEL}>Valuation cap ({sym})</span>
                 <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.valuationCap} onChange={(e) => setForm({ ...form, valuationCap: e.target.value })} />
               </label>
               <label className="block">
@@ -393,7 +408,7 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
                 <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: e.target.value })} />
               </label>
               <p className="text-xs leading-5 text-slate-500 sm:col-span-2">
-                For a note or iSAFE, record each investor&apos;s amount in ₹ as the
+                For a note or {us ? "SAFE" : "iSAFE"}, record each investor&apos;s amount in {sym} as the
                 quantity when you record the allotment.
               </p>
             </>
@@ -418,10 +433,10 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
             <div className="min-w-0">
               <p className="truncate font-bold">{c.name}</p>
               <p className="text-xs text-slate-400">
-                {KIND_LABEL[c.kind]}
+                {kindLabel(c.kind, j)}
                 {c.conversionRatio ? ` · converts 1:${c.conversionRatio}` : ""}
                 {c.liqPrefMultiple ? ` · ${c.liqPrefMultiple}× preference${c.participating ? ", participating" : ""}` : ""}
-                {c.valuationCap ? ` · cap ₹${fmtNum(c.valuationCap)}` : ""}
+                {c.valuationCap ? ` · cap ${sym}${fmtNum(c.valuationCap)}` : ""}
                 {c.discountPct ? ` · ${c.discountPct}% discount` : ""}
               </p>
             </div>
@@ -440,6 +455,9 @@ function ClassesCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
 /* ------------------------------------------------------------------ */
 
 function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: () => void }) {
+  const j = useJurisdiction();
+  const words = wordingFor(j);
+  const holderWord = j === "US" ? "stockholder" : "shareholder";
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -452,7 +470,7 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
   });
 
   async function save() {
-    if (!form.name.trim()) return setError("Enter the shareholder's name.");
+    if (!form.name.trim()) return setError(`Enter the ${holderWord}'s name.`);
     setSaving(true);
     setError("");
     try {
@@ -463,12 +481,12 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
         body: JSON.stringify({ ...form, name: form.name.trim() }),
       });
       const json = await readJson(res);
-      if (!res.ok || !json?.success) return setError(json?.message ?? "We could not add this shareholder.");
+      if (!res.ok || !json?.success) return setError(json?.message ?? `We could not add this ${holderWord}.`);
       setOpen(false);
       setForm({ ...form, name: "", email: "" });
       onChanged();
     } catch {
-      setError("We could not add this shareholder. Please retry.");
+      setError(`We could not add this ${holderWord}. Please retry.`);
     } finally {
       setSaving(false);
     }
@@ -483,7 +501,7 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
         credentials: "include",
       });
       const json = await readJson(res);
-      if (!res.ok || !json?.success) return setError(json?.message ?? "We could not delete this shareholder.");
+      if (!res.ok || !json?.success) return setError(json?.message ?? `We could not delete this ${holderWord}.`);
       onChanged();
     } finally {
       setDeleting(null);
@@ -494,12 +512,12 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
     <section className={CARD}>
       <CardHeader
         icon={<Users size={20} />}
-        title="Shareholders"
+        title={words.shareholders}
         text="Founders, investors and anyone else who holds or will hold shares."
         open={open}
         onOpen={() => { setError(""); setOpen(true); }}
         onClose={() => setOpen(false)}
-        addLabel="Add shareholder"
+        addLabel={`Add ${holderWord}`}
       />
 
       {open && (
@@ -520,14 +538,16 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
             <span className={LABEL}>Email</span>
             <input className={`${INPUT} mt-1`} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </label>
-          <label className="flex items-center gap-2 pt-6 text-sm font-semibold">
-            <input type="checkbox" checked={form.isResident} onChange={(e) => setForm({ ...form, isResident: e.target.checked })} />
-            Resident in India
-          </label>
+          {words.residentCheckbox && (
+            <label className="flex items-center gap-2 pt-6 text-sm font-semibold">
+              <input type="checkbox" checked={form.isResident} onChange={(e) => setForm({ ...form, isResident: e.target.checked })} />
+              {words.residentCheckbox}
+            </label>
+          )}
           <div className="sm:col-span-2">
             {error && <p className="mb-2 text-sm font-semibold text-red-600">{error}</p>}
             <button type="button" className={BTN_DARK} disabled={saving} onClick={() => void save()}>
-              {saving && <Loader2 size={14} className="animate-spin" />} Save shareholder
+              {saving && <Loader2 size={14} className="animate-spin" />} Save {holderWord}
             </button>
           </div>
         </div>
@@ -537,7 +557,7 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
 
       <ul className="mt-5 divide-y divide-slate-100">
         {data.holders.length === 0 && (
-          <li className="py-3 text-sm text-slate-400">No shareholders yet.</li>
+          <li className="py-3 text-sm text-slate-400">No {holderWord}s yet.</li>
         )}
         {data.holders.map((h) => (
           <li key={h.id} className="flex items-center justify-between gap-3 py-3">
@@ -546,7 +566,7 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
               <p className="truncate text-xs text-slate-400">
                 {HOLDER_TYPE_LABEL[h.type]}
                 {h.email ? ` · ${h.email}` : ""}
-                {!h.isResident ? " · Non-resident" : ""}
+                {!h.isResident && words.nonResidentTag ? ` · ${words.nonResidentTag}` : ""}
               </p>
             </div>
             <button type="button" title="Delete" className="text-slate-300 transition hover:text-red-600" disabled={deleting === h.id} onClick={() => void remove(h.id)}>
@@ -564,6 +584,9 @@ function HoldersCard({ data, onChanged }: { data: CapTableResponse; onChanged: (
 /* ------------------------------------------------------------------ */
 
 function MovementsCard({ data, onChanged }: { data: CapTableResponse; onChanged: () => void }) {
+  const j = useJurisdiction();
+  const sym = currencySymbol(j);
+  const fmtNum = (n: number) => formatNumber(n, j);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -672,7 +695,7 @@ function MovementsCard({ data, onChanged }: { data: CapTableResponse; onChanged:
 
       {!canRecord && (
         <p className="mt-3 text-xs font-semibold text-slate-400">
-          Add at least one class and one shareholder first.
+          Add at least one class and one {j === "US" ? "stockholder" : "shareholder"} first.
         </p>
       )}
 
@@ -729,7 +752,7 @@ function MovementsCard({ data, onChanged }: { data: CapTableResponse; onChanged:
           )}
 
           <label className="block">
-            <span className={LABEL}>{amountBased ? "Amount (₹) *" : "Number of shares *"}</span>
+            <span className={LABEL}>{amountBased ? `Amount (${sym}) *` : "Number of shares *"}</span>
             <input className={`${INPUT} mt-1`} inputMode="numeric" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
           </label>
 
@@ -755,7 +778,7 @@ function MovementsCard({ data, onChanged }: { data: CapTableResponse; onChanged:
 
           {!amountBased && form.kind !== "CONVERSION" && (
             <label className="block">
-              <span className={LABEL}>Price per share (₹)</span>
+              <span className={LABEL}>Price per share ({sym})</span>
               <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.pricePerShare} onChange={(e) => setForm({ ...form, pricePerShare: e.target.value })} />
             </label>
           )}
@@ -785,7 +808,7 @@ function MovementsCard({ data, onChanged }: { data: CapTableResponse; onChanged:
               <th className="py-3 pr-4">Class</th>
               <th className="py-3 pr-4">From → To</th>
               <th className="py-3 pr-4 text-right">Quantity</th>
-              <th className="py-3 pr-4 text-right">Price (₹)</th>
+              <th className="py-3 pr-4 text-right">Price ({sym})</th>
               <th className="py-3" />
             </tr>
           </thead>

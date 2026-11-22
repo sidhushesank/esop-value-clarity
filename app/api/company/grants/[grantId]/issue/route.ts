@@ -29,7 +29,8 @@ export async function POST(_request: Request, { params }: Ctx) {
       grant.scheme,
       workspace,
       grant.isPromoterOver10Pct,
-      grant.id
+      grant.id,
+      { usOptionType: grant.usOptionType, holderKey: grant.holderKey }
     );
     const block = warnings.find((w) => w.severity === "BLOCK");
     if (block) return badRequest(block.message, block.code, 409);

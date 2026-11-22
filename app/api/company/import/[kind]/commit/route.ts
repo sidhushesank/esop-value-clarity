@@ -116,6 +116,7 @@ export async function POST(request: Request, { params }: Ctx) {
         employeeRef: it.employeeRef,
         holderKey: it.holderKey,
         isPromoterOver10Pct: it.isPromoterOver10Pct,
+        usOptionType: it.usOptionType,
         grantDate: it.grantDate,
         options: it.options,
         exercisePrice: it.exercisePrice,

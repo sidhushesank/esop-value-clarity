@@ -27,6 +27,14 @@ import {
 import GrantLetterCard from "@/components/company/GrantLetterCard";
 import ImportCard from "@/components/company/ImportCard";
 import GrantLinkCard from "@/components/company/GrantLinkCard";
+import { useJurisdiction } from "@/components/company/JurisdictionContext";
+import {
+  currencyTag,
+  formatMoney,
+  formatNumber,
+  formatPrice,
+  wordingFor,
+} from "@/lib/jurisdiction";
 import {
   BTN_DARK,
   BTN_LIGHT,
@@ -34,7 +42,6 @@ import {
   INPUT,
   LABEL,
   fmtDate,
-  fmtNum,
   parseNum,
   readJson,
   todayIso,
@@ -46,6 +53,7 @@ type FormState = {
   employeeEmail: string;
   employeeRef: string;
   isPromoterOver10Pct: boolean;
+  usOptionType: "" | "ISO" | "NSO";
   grantDate: string;
   options: string;
   exercisePrice: string;
@@ -64,6 +72,7 @@ function emptyForm(s?: SchemeRow): FormState {
     employeeEmail: "",
     employeeRef: "",
     isPromoterOver10Pct: false,
+    usOptionType: "",
     grantDate: todayIso(),
     options: "",
     exercisePrice: "",
@@ -83,6 +92,10 @@ export default function GrantsPanel({
   companyName: string;
   onChanged?: () => void;
 }) {
+  const j = useJurisdiction();
+  const us = j === "US";
+  const words = wordingFor(j);
+  const fmtNum = (n: number) => formatNumber(n, j);
   const [grants, setGrants] = useState<GrantRow[] | null>(null);
   const [schemes, setSchemes] = useState<SchemeRow[]>([]);
   const [error, setError] = useState("");
@@ -137,7 +150,7 @@ export default function GrantsPanel({
     const cliff = parseNum(form.cliffMonths);
     const post = parseNum(form.postExitDays);
 
-    if (!form.schemeId) return setFormError("Choose the ESOP scheme.");
+    if (!form.schemeId) return setFormError(us ? "Choose the equity incentive plan." : "Choose the ESOP scheme.");
     if (!form.employeeName.trim()) return setFormError("Enter the employee's name.");
     if (!options || !Number.isInteger(options) || options <= 0) return setFormError("Enter the number of options as a whole number.");
     if (price === null || Number.isNaN(price) || price < 0) return setFormError("Enter the exercise price (0 is allowed).");
@@ -158,6 +171,7 @@ export default function GrantsPanel({
           employeeEmail: form.employeeEmail.trim() || null,
           employeeRef: form.employeeRef.trim() || null,
           isPromoterOver10Pct: form.isPromoterOver10Pct,
+          usOptionType: us ? form.usOptionType || null : null,
           grantDate: form.grantDate,
           options,
           exercisePrice: price,
@@ -196,13 +210,13 @@ export default function GrantsPanel({
               <h3 className="text-base font-black">Grants</h3>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
                 Create a grant as a draft, check the points flagged, download
-                the draft summary for your CS or lawyer, then mark it issued.
+                the draft summary for your {us ? "lawyer" : "CS or lawyer"}, then mark it issued.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <a href="/api/company/grants/register" className={BTN_LIGHT}>
-              <Download size={14} /> Options register
+              <Download size={14} /> {us ? "Option ledger" : "Options register"}
             </a>
             {open ? (
               <button type="button" className={BTN_LIGHT} onClick={() => setOpen(false)}>
@@ -227,13 +241,15 @@ export default function GrantsPanel({
         </div>
 
         {noScheme && grants !== null && (
-          <p className="mt-3 text-xs font-semibold text-slate-400">Add an ESOP scheme under ESOP pool first.</p>
+          <p className="mt-3 text-xs font-semibold text-slate-400">
+            {us ? "Add an equity incentive plan under Option pool first." : "Add an ESOP scheme under ESOP pool first."}
+          </p>
         )}
 
         {open && (
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className={LABEL}>Scheme *</span>
+              <span className={LABEL}>{us ? "Plan *" : "Scheme *"}</span>
               <select className={`${INPUT} mt-1`} value={form.schemeId} onChange={(e) => pickScheme(e.target.value)}>
                 {schemes.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -259,9 +275,23 @@ export default function GrantsPanel({
               <input className={`${INPUT} mt-1`} inputMode="numeric" value={form.options} onChange={(e) => setForm({ ...form, options: e.target.value })} />
             </label>
             <label className="block">
-              <span className={LABEL}>Exercise price per option (₹) *</span>
+              <span className={LABEL}>{us ? "Strike price per option" : "Exercise price per option"} {currencyTag(j)} *</span>
               <input className={`${INPUT} mt-1`} inputMode="decimal" value={form.exercisePrice} onChange={(e) => setForm({ ...form, exercisePrice: e.target.value })} />
             </label>
+            {us && (
+              <label className="block">
+                <span className={LABEL}>Option type</span>
+                <select
+                  className={`${INPUT} mt-1`}
+                  value={form.usOptionType}
+                  onChange={(e) => setForm({ ...form, usOptionType: e.target.value as FormState["usOptionType"] })}
+                >
+                  <option value="">Choose ISO or NSO</option>
+                  <option value="ISO">ISO (incentive stock option, employees only)</option>
+                  <option value="NSO">NSO (non-qualified, anyone)</option>
+                </select>
+              </label>
+            )}
             <label className="block">
               <span className={LABEL}>Grant date *</span>
               <input type="date" className={`${INPUT} mt-1`} value={form.grantDate} onChange={(e) => setForm({ ...form, grantDate: e.target.value })} />
@@ -288,7 +318,7 @@ export default function GrantsPanel({
             </label>
             <label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2 lg:col-span-3">
               <input type="checkbox" checked={form.isPromoterOver10Pct} onChange={(e) => setForm({ ...form, isPromoterOver10Pct: e.target.checked })} />
-              This person is a promoter, or a director holding more than 10% of the company
+              {words.bigHolderCheckbox}
             </label>
             <label className="block sm:col-span-2 lg:col-span-3">
               <span className={LABEL}>Note</span>
@@ -343,7 +373,7 @@ export default function GrantsPanel({
                   <th className="px-3 py-3">Granted</th>
                   <th className="px-3 py-3 text-right">Options</th>
                   <th className="px-3 py-3 text-right">Vested today</th>
-                  <th className="px-3 py-3 text-right">Price (₹)</th>
+                  <th className="px-3 py-3 text-right">Price {currencyTag(j)}</th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
@@ -356,7 +386,11 @@ export default function GrantsPanel({
                   >
                     <td className="px-6 py-3">
                       <p className="font-bold">{g.employeeName}</p>
-                      <p className="text-xs text-slate-400">{g.scheme.name}{g.employeeRef ? ` · ${g.employeeRef}` : ""}</p>
+                      <p className="text-xs text-slate-400">
+                        {g.scheme.name}
+                        {us && g.usOptionType ? ` · ${g.usOptionType}` : ""}
+                        {g.employeeRef ? ` · ${g.employeeRef}` : ""}
+                      </p>
                     </td>
                     <td className="px-3 py-3">
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${GRANT_STATUS_STYLE[g.status]}`}>
@@ -371,7 +405,7 @@ export default function GrantsPanel({
                         ({g.options > 0 ? Math.round((g.position.vested / g.options) * 100) : 0}%)
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-right tabular-nums">{fmtNum(g.exercisePrice)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatNumber(g.exercisePrice, j, us ? 4 : 2)}</td>
                     <td className="px-6 py-3 text-right text-xs font-black text-blue-700">
                       {selected === g.id ? "Close" : "Open"}
                     </td>
@@ -417,6 +451,9 @@ function GrantDetail({
   onClose: () => void;
   onChanged: () => void;
 }) {
+  const j = useJurisdiction();
+  const us = j === "US";
+  const fmtNum = (n: number) => formatNumber(n, j);
   const [data, setData] = useState<GrantDetailResponse | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
@@ -505,7 +542,8 @@ function GrantDetail({
             </span>
           </div>
           <p className="mt-1 text-xs font-semibold text-slate-400">
-            {grant.scheme.name} · granted {fmtDate(grant.grantDate)}
+            {grant.scheme.name}
+            {us ? ` · ${grant.usOptionType ?? "option type not set"}` : ""} · granted {fmtDate(grant.grantDate)}
             {grant.employeeEmail ? ` · ${grant.employeeEmail}` : ""}
           </p>
         </div>
@@ -521,7 +559,7 @@ function GrantDetail({
           grant.leftOn
             ? ["Lapsed on leaving", fmtNum(position.lapsed)]
             : ["Still to vest", fmtNum(position.unvested)],
-          ["Cost to exercise vested", `₹${fmtNum(position.exerciseCostOfVested)}`],
+          ["Cost to exercise vested", formatMoney(position.exerciseCostOfVested, j, { decimals: us ? 2 : 0 })],
         ].map(([k, v]) => (
           <div key={k} className="rounded-xl bg-slate-50 px-4 py-3">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{k}</p>
@@ -561,7 +599,7 @@ function GrantDetail({
             </tbody>
           </table>
           <p className="mt-2 text-xs text-slate-400">
-            {grant.vestingMonths} months, {grant.cliffMonths}-month cliff, then monthly. Exercise price ₹{fmtNum(grant.exercisePrice)}.
+            {grant.vestingMonths} months, {grant.cliffMonths}-month cliff, then monthly. {us ? "Strike price" : "Exercise price"} {formatPrice(grant.exercisePrice, j)}.
           </p>
         </div>
 
@@ -668,7 +706,9 @@ function GrantDetail({
       )}
 
       <p className="mt-4 text-xs leading-5 text-slate-400">
-        The summary is a draft for your CS or lawyer, not a grant letter.
+        {us
+          ? "The summary is a draft for your lawyer, not a grant agreement."
+          : "The summary is a draft for your CS or lawyer, not a grant letter."}
       </p>
     </section>
   );

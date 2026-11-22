@@ -1441,7 +1441,8 @@ model CompanyWorkspace {
   companyType       ClientCompanyType @default(PRIVATE_LIMITED)
   incorporationDate DateTime?
   dpiitRecognised   Boolean?
-
+  jurisdiction           EquityJurisdiction @default(IN)
+  usStateOfIncorporation String?
   // Current value per share shown to employees on their grant page
   // (usually the latest merchant-banker valuation).
   currentFmvPerShare Float?
@@ -1640,7 +1641,7 @@ model OptionGrant {
   holderKey     String
 
   isPromoterOver10Pct Boolean @default(false)
-
+  usOptionType UsOptionType?
   grantDate     DateTime @db.Date
   options       Int
   exercisePrice Float
@@ -1710,4 +1711,13 @@ model RateLimitBucket {
   updatedAt DateTime @updatedAt
 
   @@index([resetAt])
+}
+
+enum EquityJurisdiction {
+  IN
+  US
+}
+enum UsOptionType {
+  ISO
+  NSO
 }
