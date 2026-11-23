@@ -25,7 +25,6 @@ import {
   LabelList,
   Pie,
   PieChart,
-  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -43,6 +42,8 @@ import {
   CircleHelp,
   Clock3,
   Cpu,
+  Download,
+  FileSpreadsheet,
   FileCheck2,
   FileSearch,
   FileText,
@@ -151,8 +152,6 @@ function runModel(options: number, exitValuation: number) {
    CONTENT
 ============================================================ */
 
-const ROTATING_AUDIENCES = ["employees", "HR teams", "CA firms", "founders"];
-
 const CAPABILITIES = [
   "Grant letter extraction",
   "Field-by-field confirmation",
@@ -161,18 +160,26 @@ const CAPABILITIES = [
   "Dilution across rounds",
   "Perquisite tax",
   "Capital gains",
-  "Surcharge & cess",
+  "Resident, RNOR & NRI tax",
   "Bear / Base / Bull exits",
   "Offer comparison",
   "One-page PDF report",
-  "Advisor Console",
-  "Tax-event ledger",
   "Cap table",
   "ESOP pool & grants",
+  "Exercises & allotment",
+  "PAS-3, TDS & Form 3921 tracking",
+  "ESOP expense report (Ind AS 102)",
+  "Compliance calendar & reminders",
   "Employee grant links",
+  "Team logins & change history",
+  "Advisor Console",
+  "Tax-event ledger",
+  "Foreign RSU / ESPP tax pack",
+  "Schedule FA, CG & Form 67",
+  "SBI TT rates (Rule 115)",
   "Excel import",
   "Free cap table builder",
-];
+]
 
 const STORY = [
   {
@@ -224,6 +231,7 @@ const AUDIENCES = [
       "Cash needed to exercise, before any exit",
       "Take-home across Bear, Base and Bull exits",
       "Two offers compared on the same basis",
+      "Resident, RNOR or NRI: tax follows your status",
     ],
     cta: { label: "Model your grant free", href: "/simulator" },
   },
@@ -237,6 +245,8 @@ const AUDIENCES = [
       "Cap table as of any date, fully diluted",
       "Grants from your approved ESOP pool",
       "A private page per employee, with Accept",
+      "Exercises tracked to PAS-3, TDS and Form 3921",
+      "ESOP expense report and a compliance calendar",
       "Import your existing Excel cap table and grants",
     ],
     cta: { label: "See the Startup plan", href: "/pricing#startup" },
@@ -265,6 +275,8 @@ const AUDIENCES = [
       "Client companies and grants in one place",
       "Diligence checks across grant registers",
       "Tax-event ledger for exercises and sales",
+      "Foreign RSU / ESPP gains to Schedule FA, CG, Form 67",
+      "One compliance calendar across every client",
       "Client-ready reports in one click",
     ],
     cta: { label: "Book an advisor walkthrough", href: "/meeting" },
@@ -530,18 +542,27 @@ type Slot = { date: string; label: string };
 
 export default function HomePage() {
   const reduced = useReducedMotion();
-  const [audienceIndex, setAudienceIndex] = useState(0);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
 
-  useEffect(() => {
-    if (reduced) return;
-    const id = window.setInterval(
-      () => setAudienceIndex((i) => (i + 1) % ROTATING_AUDIENCES.length),
-      2200
-    );
-    return () => window.clearInterval(id);
-  }, [reduced]);
+  // Hero "Employees" window: the sample grant run through the real tax engine.
+  const heroSample = useMemo(() => {
+    const exitCr = 50;
+    const model = runModel(SAMPLE.vestedOptions, exitCr * CRORE);
+    return {
+      company: SAMPLE.company,
+      totalOptions: SAMPLE.totalOptions,
+      vestedOptions: SAMPLE.vestedOptions,
+      strike: SAMPLE.strike,
+      vestingYears: SAMPLE.vestingMonths / 12,
+      cliffYears: SAMPLE.cliffMonths / 12,
+      exitCr,
+      gross: model.gross,
+      exerciseCost: model.exerciseCost,
+      tax: model.tax,
+      takeHome: model.takeHome,
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -586,130 +607,7 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       {/* ======================= HERO ======================= */}
-      <section className="relative isolate overflow-hidden bg-[#020d1f] text-white">
-        <div className="evc-aurora pointer-events-none absolute inset-0 -z-10" />
-        <div className="evc-grid pointer-events-none absolute inset-0 -z-10" />
-        <div className="evc-beam pointer-events-none absolute -top-40 left-1/2 -z-10 h-[520px] w-[900px] -translate-x-1/2" />
-
-        <div className="mx-auto grid grid-cols-1 max-w-[1200px] gap-14 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)] lg:items-center lg:pb-24">
-          <div>
-            <a
-              href="#startups"
-              className="evc-rise group inline-flex items-center gap-2 rounded-full border border-[#F2B421]/30 bg-[#F2B421]/[0.08] py-1 pl-1 pr-3 text-xs text-[#FCE3A3] backdrop-blur transition hover:border-[#F2B421]/60"
-              style={{ animationDelay: "0ms" }}
-            >
-              <span className="rounded-full bg-[#F2B421] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#020d1f]">
-                New
-              </span>
-              Startup Equity Desk for founders
-              <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-            </a>
-
-            <h1
-              className="evc-rise mt-7 text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-[4.35rem]"
-              style={{ animationDelay: "80ms" }}
-            >
-              Know what your ESOPs are worth{" "}
-              <span className="evc-gold-text whitespace-nowrap">in hand.</span>
-            </h1>
-
-            <p
-              className="evc-rise mt-6 max-w-xl text-lg leading-8 text-slate-300"
-              style={{ animationDelay: "160ms" }}
-            >
-              EVC turns a grant letter into one clear answer: what you hold,
-              what it costs to exercise, and what you keep after tax.
-            </p>
-
-            <p
-              className="evc-rise mt-3 flex h-8 items-center gap-2 text-lg text-slate-300"
-              style={{ animationDelay: "220ms" }}
-            >
-              Built for
-              <span className="relative inline-block h-8 min-w-[9ch] overflow-hidden align-bottom">
-                {ROTATING_AUDIENCES.map((word, index) => (
-                  <span
-                    key={word}
-                    className="absolute left-0 top-0 whitespace-nowrap font-semibold text-[#F2B421] transition-all duration-500"
-                    style={{
-                      transform: `translateY(${(index - audienceIndex) * 100}%)`,
-                      opacity: index === audienceIndex ? 1 : 0,
-                    }}
-                  >
-                    {word}.
-                  </span>
-                ))}
-              </span>
-            </p>
-
-            <div
-              className="evc-rise mt-9 flex flex-col gap-3 sm:flex-row"
-              style={{ animationDelay: "300ms" }}
-            >
-              <Link
-                href="/simulator"
-                className="evc-btn-gold group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-6 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
-              >
-                Model your grant free
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="/meeting"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.04] px-6 text-sm font-semibold text-white backdrop-blur transition hover:border-white/40 hover:bg-white/[0.08]"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Book a 20-minute walkthrough
-              </Link>
-            </div>
-
-            <div
-              className="evc-rise mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400"
-              style={{ animationDelay: "340ms" }}
-            >
-              {["Free simulator to start", "Built for Indian tax rules", "Every field source-checked"].map((item) => (
-                <span key={item} className="inline-flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-[#F2B421]" />
-                  {item}
-                </span>
-              ))}
-            </div>
-
-            <div
-              className="evc-rise mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6"
-              style={{ animationDelay: "400ms" }}
-            >
-              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
-                In use at
-              </span>
-              {CUSTOMERS.map((name) => (
-                <span key={name} className="text-lg font-semibold tracking-tight text-white/90">
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="evc-rise" style={{ animationDelay: "240ms" }}>
-            <HeroDashboard />
-          </div>
-        </div>
-
-        <div className="relative border-t border-white/10 py-5">
-          <div className="evc-marquee-mask overflow-hidden">
-            <div className={`flex w-max gap-3 ${reduced ? "" : "evc-marquee"}`}>
-              {[...CAPABILITIES, ...CAPABILITIES].map((item, index) => (
-                <span
-                  key={`${item}-${index}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs text-slate-300"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#F2B421]" />
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroShowcase employee={heroSample} />
 
       {/* ======================= PROBLEM ======================= */}
       <section className="mx-auto max-w-[1200px] px-4 py-24 sm:px-6 md:py-32">
@@ -836,7 +734,7 @@ export default function HomePage() {
             <Bento className="lg:col-span-4" tag="Vesting" title="See what is vested on any date." text="Cliff, monthly schedule, and what lapses if you leave, on one timeline.">
               <VestingChart />
             </Bento>
-            <Bento className="lg:col-span-2" tag="Tax" title="Both tax events, split." text="Perquisite at exercise, capital gains at sale.">
+            <Bento className="lg:col-span-2" tag="Tax" title="Both tax events, split." text="Perquisite at exercise, capital gains at sale, for residents, RNORs and NRIs.">
               <TaxDonut />
             </Bento>
             <Bento className="lg:col-span-3" tag="Dilution" title="Ownership, round by round." text="Watch the stake shrink before it surprises anyone.">
@@ -845,7 +743,7 @@ export default function HomePage() {
             <Bento className="lg:col-span-3" tag="Offer Intelligence" title="Two offers, one basis." text="Guaranteed cash and equity opportunity, compared honestly.">
               <OfferChart />
             </Bento>
-            <Bento className="lg:col-span-3" tag="Advisor Console" title="Every client, one console." text="Client companies, grant registers, diligence checks and tax events.">
+            <Bento className="lg:col-span-3" tag="Advisor Console" title="Every client, one console." text="Client companies, grant registers, tax events, foreign RSU gains and one compliance calendar.">
               <AdvisorTable />
             </Bento>
             <Bento className="lg:col-span-3" tag="Team Intelligence" title="Reports for the whole team." text="Roll clear reports out from each employee’s own grant.">
@@ -936,175 +834,678 @@ export default function HomePage() {
   );
 }
 
+type HeroEmployeeSample = {
+  company: string;
+  totalOptions: number;
+  vestedOptions: number;
+  strike: number;
+  vestingYears: number;
+  cliffYears: number;
+  exitCr: number;
+  gross: number;
+  exerciseCost: number;
+  tax: number;
+  takeHome: number;
+};
+
+type ModeKey = "startups" | "employees" | "firms";
+
+const CYCLE_MS = 9000;
+
+/* Shipped in November 2026; the hero badge cycles through these. */
+const WHATS_NEW = [
+  "Compliance calendar with reminders",
+  "ESOP expense report · Ind AS 102",
+  "Exercises → PAS-3, TDS, Form 3921",
+  "Foreign RSU / ESPP tax pack for CAs",
+  "Resident, RNOR and NRI tax",
+  "Team logins and change history",
+];
+const TICK_MS = 50;
+
+const MODES: {
+  key: ModeKey;
+  tab: string;
+  icon: typeof Building2;
+  product: string;
+  line: string;
+  points: string[];
+  cta: { label: string; href: string };
+  second: { label: string; href: string };
+  url: string;
+}[] = [
+  {
+    key: "startups",
+    tab: "Startups",
+    icon: Building2,
+    product: "Startup Equity Desk",
+    line: "Your cap table, ESOP pool and every grant, kept current, with the filings tracked for you.",
+    points: [
+      "Cap table and ESOP pool update as you grant",
+      "Exercise → allotment → PAS-3, TDS, Form 3921 tracked",
+      "ESOP expense report (Ind AS 102 / ICAI) in Excel and PDF",
+      "Compliance calendar with email reminders and .ics export",
+      "Team logins (owner, admin, view only) and full change history",
+    ],
+    cta: { label: "See the Startup Desk", href: "#startups" },
+    second: { label: "Book a founder walkthrough", href: "/meeting" },
+    url: "esopvalueclarity.com/company",
+  },
+  {
+    key: "employees",
+    tab: "Employees",
+    icon: UserRound,
+    product: "EVC PRO",
+    line: "Upload your grant letter. See what you hold, what exercising costs, and what you keep after tax.",
+    points: [
+      "Every field read from the letter and confirmed by you",
+      "Vesting, exercise cost, perquisite tax and capital gains in one model",
+      "Resident, RNOR or NRI: the tax changes with your status",
+      "Compare offers; one-page PDF report",
+    ],
+    cta: { label: "Model your grant free", href: "/simulator" },
+    second: { label: "Book a 20-minute walkthrough", href: "/meeting" },
+    url: "esopvalueclarity.com/pro",
+  },
+  {
+    key: "firms",
+    tab: "CA firms",
+    icon: Landmark,
+    product: "Advisor Console",
+    line: "Every client's ESOPs, tax events and deadlines in one console, including foreign RSUs and ESPP.",
+    points: [
+      "Client grants, exercises and tax-event ledger",
+      "One compliance calendar across clients: TDS, PAS-3, MGT-14, ITR",
+      "Foreign RSUs / ESPP: Schwab, E*TRADE, Fidelity exports → Schedule FA, CG, Form 67",
+      "Team logins and change history per client",
+    ],
+    cta: { label: "Book a demo", href: "/meeting" },
+    second: { label: "See pricing", href: "/pricing" },
+    url: "esopvalueclarity.com/advisor/foreign",
+  },
+];
+
+/* ---------- helpers ---------- */
+
+const clamp = (x: number) => Math.max(0, Math.min(1, x));
+const ease = (x: number) => 1 - Math.pow(1 - clamp(x), 3);
+const seg = (t: number, a: number, b: number) => ease((t - a) / (b - a));
+
+const nf = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+
+function inrShort(value: number) {
+  const v = Math.max(0, value);
+  if (v >= 1e7) return `₹${(v / 1e7).toFixed(2)} Cr`;
+  if (v >= 1e5) return `₹${(v / 1e5).toFixed(2)} L`;
+  return `₹${nf.format(v)}`;
+}
+
+function Appear({ t, at, children, className = "" }: { t: number; at: number; children: ReactNode; className?: string }) {
+  const on = t >= at;
+  return (
+    <div
+      className={`transition-all duration-500 ease-out ${on ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 /* ============================================================
-   HERO DASHBOARD (real tax engine, sample grant, recharts)
+   HERO: three products, each shown working (sample data).
+   Tabs cycle on their own; hovering the window pauses it.
 ============================================================ */
 
-function HeroDashboard() {
-  const [valuationCr, setValuationCr] = useState(50);
-  const [basis, setBasis] = useState<"vested" | "full">("vested");
+function HeroShowcase({ employee }: { employee: HeroEmployeeSample }) {
+  const customers = CUSTOMERS;
+  const reduced = useReducedMotion();
+  const [state, setState] = useState<{ index: number; p: number }>({ index: 0, p: 0 });
+  const [paused, setPaused] = useState(false);
+  const [newIndex, setNewIndex] = useState(0);
 
-  const options = basis === "vested" ? SAMPLE.vestedOptions : SAMPLE.totalOptions;
-  const model = useMemo(() => runModel(options, valuationCr * CRORE), [options, valuationCr]);
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setInterval(() => setNewIndex((i) => (i + 1) % WHATS_NEW.length), 2600);
+    return () => window.clearInterval(id);
+  }, [reduced]);
 
-  const curve = useMemo(() => {
-    const points = [];
-    for (let cr = 10; cr <= 500; cr += 10) {
-      const m = runModel(options, cr * CRORE);
-      points.push({ cr, takeHome: m.takeHome, gross: m.gross });
-    }
-    return points;
-  }, [options]);
+  useEffect(() => {
+    if (reduced || paused) return;
+    const id = window.setInterval(() => {
+      setState((s) => {
+        const p = s.p + TICK_MS / CYCLE_MS;
+        return p >= 1 ? { index: (s.index + 1) % MODES.length, p: 0 } : { index: s.index, p };
+      });
+    }, TICK_MS);
+    return () => window.clearInterval(id);
+  }, [reduced, paused]);
 
-  const takeHome = useAnimatedNumber(model.takeHome);
-  const gross = useAnimatedNumber(model.gross);
-  const total = Math.max(1, model.gross);
-
-  const parts = [
-    { label: "Take-home", value: model.takeHome, color: GOLD },
-    { label: "Tax", value: model.tax, color: SKY },
-    { label: "Exercise cost", value: model.exerciseCost, color: SLATE },
-  ];
+  const mode = MODES[state.index];
+  // The demo plays in the first ~85% of the cycle and then holds.
+  const t = reduced ? 1 : clamp(state.p / 0.85);
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute -inset-8 rounded-[40px] bg-[#F2B421]/10 blur-3xl" />
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.09] to-white/[0.03] shadow-[0_50px_120px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-          </div>
-          <p className="truncate text-[11px] text-slate-400">Sample grant · {SAMPLE.company} (illustrative)</p>
-          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 ring-1 ring-emerald-400/20">
-            <span className="evc-pulse h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Live model
-          </span>
-        </div>
+    <section className="relative isolate overflow-hidden bg-[#020d1f] text-white">
+      <style dangerouslySetInnerHTML={{ __html: HERO_CSS }} />
+      <div className="evc-aurora pointer-events-none absolute inset-0 -z-10" />
+      <div className="evc-grid pointer-events-none absolute inset-0 -z-10" />
+      <div className="evc-beam pointer-events-none absolute -top-40 left-1/2 -z-10 h-[520px] w-[900px] -translate-x-1/2" />
 
-        <div className="p-5 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div>
-              <p className="text-xs text-slate-400">Estimated take-home</p>
-              <p className="mt-1 text-[2.4rem] font-semibold leading-none tracking-tight text-white tabular-nums sm:text-5xl">
-                {inr(takeHome)}
-              </p>
-              <p className="mt-2 text-xs text-slate-400 tabular-nums">
-                from <span className="text-slate-200">{inr(gross)}</span> on paper · ₹{valuationCr} Cr exit
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-1 rounded-xl bg-black/30 p-1 text-xs font-medium">
-              {(
-                [
-                  ["vested", "Vested"],
-                  ["full", "Full grant"],
-                ] as const
-              ).map(([key, label]) => (
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:pb-20">
+        {/* ---------------- copy ---------------- */}
+        <div>
+          <p
+            className="evc-rise inline-flex max-w-full items-center gap-2 rounded-full border border-[#F2B421]/30 bg-[#F2B421]/[0.08] py-1 pl-1 pr-3 text-xs text-[#FCE3A3] backdrop-blur"
+            style={{ animationDelay: "0ms" }}
+          >
+            <span className="shrink-0 rounded-full bg-[#F2B421] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#020d1f]">
+              New
+            </span>
+            <span key={newIndex} className="evh-swap truncate">
+              {WHATS_NEW[newIndex]}
+            </span>
+          </p>
+
+          <h1
+            className="evc-rise mt-6 text-[2.5rem] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-[3.4rem] lg:text-[3.9rem]"
+            style={{ animationDelay: "80ms" }}
+          >
+            ESOP grants, cap table, tax and filings.{" "}
+            <span className="evc-gold-text">In one place.</span>
+          </h1>
+
+          <p className="evc-rise mt-5 max-w-xl text-lg leading-8 text-slate-300" style={{ animationDelay: "160ms" }}>
+            EVC is software, built in India for Indian tax and company law, for the three people every ESOP
+            touches: the startup that grants it, the employee who holds it, and the CA who files the tax on it.
+          </p>
+
+          {/* tabs */}
+          <div
+            role="tablist"
+            aria-label="Who EVC is for"
+            className="evc-rise mt-8 grid grid-cols-3 gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur"
+            style={{ animationDelay: "220ms" }}
+          >
+            {MODES.map((m, i) => {
+              const active = i === state.index;
+              const Icon = m.icon;
+              return (
                 <button
-                  key={key}
+                  key={m.key}
                   type="button"
-                  onClick={() => setBasis(key)}
-                  className={`rounded-lg px-3 py-2 transition ${
-                    basis === key ? "bg-[#F2B421] text-[#020d1f] shadow" : "text-slate-300 hover:text-white"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setState({ index: i, p: 0 })}
+                  className={`relative flex items-center justify-center gap-2 overflow-hidden rounded-xl px-2 py-2.5 text-sm font-semibold transition ${
+                    active ? "bg-white text-[#042653]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
                   }`}
                 >
-                  {label}
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{m.tab}</span>
+                  {active && !reduced && (
+                    <span
+                      className="absolute bottom-0 left-0 h-[3px] bg-[#F2B421]"
+                      style={{ width: `${state.p * 100}%` }}
+                    />
+                  )}
                 </button>
+              );
+            })}
+          </div>
+
+          {/* per-mode detail */}
+          <div key={mode.key} className="evh-swap mt-6 min-h-[292px]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#F2B421]">{mode.product}</p>
+            <p className="mt-2 text-lg font-medium leading-7 text-white">{mode.line}</p>
+            <ul className="mt-4 space-y-2">
+              {mode.points.map((point, i) => (
+                <li
+                  key={point}
+                  className="evh-item flex items-start gap-2.5 text-[15px] leading-6 text-slate-300"
+                  style={{ animationDelay: `${120 + i * 90}ms` }}
+                >
+                  <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[#F2B421]/15">
+                    <Check className="h-3 w-3 text-[#F2B421]" />
+                  </span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href={mode.cta.href}
+                className="evc-btn-gold group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-6 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
+              >
+                {mode.cta.label}
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href={mode.second.href}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.04] px-6 text-sm font-semibold text-white backdrop-blur transition hover:border-white/40 hover:bg-white/[0.08]"
+              >
+                <CalendarDays className="h-4 w-4" />
+                {mode.second.label}
+              </Link>
+            </div>
+          </div>
+
+          {customers.length > 0 && (
+            <div
+              className="evc-rise mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6"
+              style={{ animationDelay: "400ms" }}
+            >
+              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">In use at</span>
+              {customers.map((name) => (
+                <span key={name} className="text-lg font-semibold tracking-tight text-white/90">
+                  {name}
+                </span>
               ))}
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="mt-5 h-[190px] rounded-2xl bg-black/20 p-2 pt-4 ring-1 ring-white/10">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={curve} margin={{ top: 6, right: 12, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="evcHeroGold" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={GOLD} stopOpacity={0.45} />
-                    <stop offset="100%" stopColor={GOLD} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis
-                  dataKey="cr"
-                  type="number"
-                  domain={[10, 500]}
-                  ticks={[10, 100, 200, 300, 400, 500]}
-                  tickFormatter={(v: number) => `₹${v}Cr`}
-                  tick={{ fill: "#64748B", fontSize: 10 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={(v: number) => axisShort(v)}
-                  tick={{ fill: "#64748B", fontSize: 10 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={52}
-                />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  labelStyle={{ color: "#94A3B8", marginBottom: 4 }}
-                  itemStyle={{ color: "#fff", padding: 0 }}
-                  labelFormatter={(v) => `Exit ₹${v} Cr`}
-                  formatter={(value, name) => [inr(Number(value)), name === "takeHome" ? "Take-home" : "On paper"]}
-                  cursor={{ stroke: "rgba(255,255,255,0.25)" }}
-                />
-                <Area type="monotone" dataKey="gross" stroke="rgba(148,163,184,0.7)" strokeDasharray="4 4" strokeWidth={1.5} fill="none" isAnimationActive={false} />
-                <Area type="monotone" dataKey="takeHome" stroke={GOLD} strokeWidth={2.2} fill="url(#evcHeroGold)" animationDuration={900} />
-                <ReferenceLine x={valuationCr} stroke="rgba(242,180,33,0.5)" strokeDasharray="3 3" />
-                <ReferenceDot x={valuationCr} y={model.takeHome} r={5} fill={GOLD} stroke="#020d1f" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="mt-5">
-            <div className="flex items-baseline justify-between text-xs text-slate-400">
-              <label htmlFor="evc-exit">Drag the company exit valuation</label>
-              <span className="text-sm font-semibold text-white">₹{valuationCr} Cr</span>
-            </div>
-            <input
-              id="evc-exit"
-              type="range"
-              min={10}
-              max={500}
-              step={5}
-              value={valuationCr}
-              onChange={(event) => setValuationCr(Number(event.target.value))}
-              className="evc-range mt-3 w-full"
-              style={{ "--fill": `${((valuationCr - 10) / 490) * 100}%` } as CSSProperties}
-            />
-          </div>
-
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            {parts.map((part) => (
-              <div key={part.label} className="rounded-xl bg-white/[0.04] px-3 py-2.5 ring-1 ring-white/10">
-                <p className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: part.color }} />
-                  {part.label}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white tabular-nums">{short(part.value)}</p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${(part.value / total) * 100}%`, background: part.color }} />
+        {/* ---------------- product window ---------------- */}
+        <div
+          className="evc-rise"
+          style={{ animationDelay: "240ms" }}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          <div className="relative">
+            <div className="pointer-events-none absolute -inset-8 rounded-[40px] bg-[#F2B421]/10 blur-3xl" />
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.09] to-white/[0.03] shadow-[0_50px_120px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+              {/* chrome */}
+              <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
                 </div>
+                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-black/30 px-3 py-1 text-[11px] text-slate-400">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                  <span key={mode.url} className="evh-swap truncate">
+                    {mode.url}
+                  </span>
+                </div>
+                <span className="hidden shrink-0 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-slate-400 sm:inline">
+                  {paused ? "Paused" : "Sample data"}
+                </span>
               </div>
+
+              <div key={mode.key} className="evh-swap flex flex-col p-5 sm:min-h-[520px] sm:p-6">
+                {mode.key === "startups" && <StartupDemo t={t} company={employee.company} />}
+                {mode.key === "employees" && <EmployeeDemo t={t} s={employee} />}
+                {mode.key === "firms" && <FirmDemo t={t} />}
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 text-center text-[11px] text-slate-500">
+            Illustrative sample. Hover to pause · click a tab above to switch.
+          </p>
+        </div>
+      </div>
+
+      <div className="relative border-t border-white/10 py-5">
+        <div className="evc-marquee-mask overflow-hidden">
+          <div className={`flex w-max gap-3 ${reduced ? "" : "evc-marquee"}`}>
+            {[...CAPABILITIES, ...CAPABILITIES].map((item, index) => (
+              <span
+                key={`${item}-${index}`}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs text-slate-300"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F2B421]" />
+                {item}
+              </span>
             ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-            <p className="text-[11px] leading-4 text-slate-500">
-              {options.toLocaleString("en-IN")} options · ₹{SAMPLE.strike.toFixed(2)} strike · new regime · {SAMPLE.dilution}% dilution. Not tax advice.
-            </p>
-            <Link href="/simulator" className="group inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#F2B421] hover:text-white">
-              Use your grant
-              <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-            </Link>
+/* ============================================================
+   STARTUPS: cap table, pool, new grant, calendar, expense
+============================================================ */
+
+const CAP = [
+  { label: "Founders", pct: 68, color: "#F2B421" },
+  { label: "Seed fund", pct: 14, color: "#5B9BFF" },
+  { label: "ESOP pool", pct: 12, color: "#34D399" },
+  { label: "Angels", pct: 6, color: "#94A3B8" },
+];
+
+const POOL = 120_000;
+const GRANTED_BEFORE = 62_000;
+const NEW_GRANT = 12_000;
+
+function StartupDemo({ t, company }: { t: number; company: string }) {
+  const grow = seg(t, 0.02, 0.25);
+  const granted = GRANTED_BEFORE + NEW_GRANT * seg(t, 0.38, 0.5);
+  const expense = 684_000 * seg(t, 0.78, 0.92);
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">Cap table · fully diluted</p>
+          <p className="mt-0.5 text-sm font-semibold text-white">{company} Pvt Ltd</p>
+        </div>
+        <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] text-slate-300">10,00,000 shares</span>
+      </div>
+
+      <div>
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-white/10">
+          {CAP.map((c) => (
+            <span key={c.label} className="h-full" style={{ width: `${c.pct * grow}%`, background: c.color }} />
+          ))}
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-2 text-[11px] text-slate-400">
+          {CAP.map((c) => (
+            <span key={c.label} className="flex items-center gap-1.5">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: c.color }} />
+              <span className="truncate">
+                {c.label} <span className="text-slate-200 tabular-nums">{Math.round(c.pct * grow)}%</span>
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">ESOP pool</p>
+          <p className="mt-1 text-sm text-slate-300 tabular-nums">
+            <span className="text-lg font-semibold text-white">{nf.format(granted)}</span> of {nf.format(POOL)} granted
+          </p>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(granted / POOL) * 100 * seg(t, 0.05, 0.25)}%` }} />
+          </div>
+          <Appear t={t} at={0.36} className="mt-3">
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+              <BadgeCheck className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 truncate">New grant · Priya (Eng) · {nf.format(NEW_GRANT)} options</span>
+            </div>
+          </Appear>
+          <Appear t={t} at={0.54} className="mt-2">
+            <div className="flex items-center gap-2 text-[11px] text-slate-400">
+              <Mail className="h-3.5 w-3.5 text-[#F2B421]" />
+              Private grant page sent to Priya
+            </div>
+          </Appear>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">Compliance calendar</p>
+          <div className="mt-2 space-y-2">
+            {[
+              { at: 0.58, title: "PAS-3 · return of allotment", due: "due in 12 days", tone: "amber" },
+              { at: 0.64, title: "TDS on perquisite", due: "due 7 Dec", tone: "amber" },
+              { at: 0.7, title: "MGT-14 · scheme resolution", due: "filed", tone: "green" },
+            ].map((row) => (
+              <Appear key={row.title} t={t} at={row.at}>
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-xs">
+                  <span className="min-w-0 truncate text-slate-200">{row.title}</span>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      row.tone === "green" ? "bg-emerald-400/15 text-emerald-300" : "bg-[#F2B421]/15 text-[#FCE3A3]"
+                    }`}
+                  >
+                    {row.due}
+                  </span>
+                </div>
+              </Appear>
+            ))}
           </div>
         </div>
+      </div>
+
+      <Appear t={t} at={0.76} className="mt-auto">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F2B421]/25 bg-[#F2B421]/[0.07] p-4">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-[#FCE3A3]/80">ESOP expense · FY 2025-26</p>
+            <p className="mt-0.5 text-2xl font-semibold tabular-nums text-white">{inrShort(expense)}</p>
+            <p className="text-[11px] text-slate-400">Ind AS 102 / ICAI Guidance Note · graded vesting</p>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-white/[0.08] px-2 py-1 text-[11px] text-slate-200">
+              <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-lg bg-white/[0.08] px-2 py-1 text-[11px] text-slate-200">
+              <FileText className="h-3.5 w-3.5" /> PDF
+            </span>
+          </div>
+        </div>
+      </Appear>
+    </div>
+  );
+}
+
+/* ============================================================
+   EMPLOYEES: grant letter -> confirmed fields -> after tax
+============================================================ */
+
+const RESIDENCY = ["Resident", "RNOR", "NRI"];
+
+function EmployeeDemo({ t, s }: { t: number; s: HeroEmployeeSample }) {
+  const fields = [
+    { label: "Options granted", value: nf.format(s.totalOptions) },
+    { label: "Vested today", value: nf.format(s.vestedOptions) },
+    { label: "Exercise price", value: `₹${s.strike.toFixed(2)}` },
+    { label: "Vesting", value: `${s.vestingYears} yrs · ${s.cliffYears}-yr cliff` },
+  ];
+  const k = seg(t, 0.5, 0.72);
+  const residency = t < 0.86 ? 0 : t < 0.93 ? 1 : 2;
+  const scanning = t < 0.42;
+
+  const bars = [
+    { label: "On paper", value: s.gross, color: "#94A3B8" },
+    { label: "Exercise cost", value: s.exerciseCost, color: "#64748B" },
+    { label: "Tax", value: s.tax, color: "#5B9BFF" },
+    { label: "You keep", value: s.takeHome, color: "#F2B421" },
+  ];
+  const max = Math.max(1, s.gross);
+
+  return (
+    <div className="flex flex-1 flex-col gap-3">
+      <div className="grid grid-cols-[104px_minmax(0,1fr)] gap-4 sm:grid-cols-[124px_minmax(0,1fr)]">
+        {/* letter */}
+        <div className="relative h-[150px] overflow-hidden rounded-xl bg-white p-3">
+          <p className="text-[9px] font-bold uppercase tracking-wide text-[#042653]">Grant letter</p>
+          <div className="mt-2 space-y-1.5">
+            {[90, 70, 84, 60, 78, 50, 88, 66].map((w, i) => (
+              <span key={i} className="block h-1.5 rounded bg-slate-200" style={{ width: `${w}%` }} />
+            ))}
+          </div>
+          <p className="absolute bottom-2 left-3 text-[8px] text-slate-400">{s.company}.pdf</p>
+          {scanning && (
+            <span className="evh-scan pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-transparent via-[#F2B421]/50 to-transparent" />
+          )}
+        </div>
+
+        {/* fields */}
+        <div>
+          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-slate-400">
+            <ScanLine className="h-3.5 w-3.5 text-[#F2B421]" />
+            {scanning ? "Reading the letter…" : "Fields confirmed"}
+          </p>
+          <div className="mt-2 space-y-1">
+            {fields.map((f, i) => (
+              <Appear key={f.label} t={t} at={0.08 + i * 0.08}>
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-xs">
+                  <span className="truncate text-slate-400">{f.label}</span>
+                  <span className="flex shrink-0 items-center gap-1.5 font-semibold text-white tabular-nums">
+                    {f.value}
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  </span>
+                </div>
+              </Appear>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Appear t={t} at={0.46} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs text-slate-400">What you keep after tax</p>
+            <p className="mt-1 text-[2.1rem] font-semibold leading-none tracking-tight text-[#F2B421] tabular-nums">
+              {inrShort(s.takeHome * k)}
+            </p>
+          </div>
+          <p className="text-right text-[11px] leading-4 text-slate-400">
+            ₹{s.exitCr} Cr exit
+            <br />
+            {nf.format(s.vestedOptions)} vested options
+          </p>
+        </div>
+        <div className="mt-3 space-y-1.5">
+          {bars.map((b) => (
+            <div key={b.label} className="grid grid-cols-[84px_minmax(0,1fr)_64px] items-center gap-2 text-[11px]">
+              <span className="text-slate-400">{b.label}</span>
+              <span className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                <span className="block h-full rounded-full" style={{ width: `${(b.value / max) * 100 * k}%`, background: b.color }} />
+              </span>
+              <span className="text-right text-slate-200 tabular-nums">{inrShort(b.value * k)}</span>
+            </div>
+          ))}
+        </div>
+      </Appear>
+
+      <Appear t={t} at={0.8} className="mt-auto">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+          <span className="text-[11px] text-slate-400">Tax residency</span>
+          <div className="flex gap-1">
+            {RESIDENCY.map((r, i) => (
+              <span
+                key={r}
+                className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition ${
+                  i === residency ? "bg-white text-[#042653]" : "text-slate-400"
+                }`}
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+        </div>
+      </Appear>
+    </div>
+  );
+}
+
+/* ============================================================
+   CA FIRMS: broker files -> lots -> ITR schedules + Excel
+============================================================ */
+
+const FILES = [
+  { name: "Schwab · Realized gains.csv", at: 0.02 },
+  { name: "E*TRADE · Gains & Losses.xlsx", at: 0.1 },
+  { name: "Fidelity · ESPP purchases.csv", at: 0.18 },
+];
+
+const LOTS = [
+  { what: "RSU vest → sold", qty: "40 sh", tag: "LTCG", tone: "gold" },
+  { what: "ESPP buy → sold", qty: "25 sh", tag: "STCG", tone: "sky" },
+  { what: "RSU vest → held", qty: "60 sh", tag: "Sch. FA", tone: "green" },
+  { what: "Dividend · US tax withheld", qty: "", tag: "FTC", tone: "sky" },
+];
+
+const OUTPUTS = ["Schedule FA", "Schedule CG", "FSI / TR", "Form 67"];
+
+function FirmDemo({ t }: { t: number }) {
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">Foreign Equity Tax Pack</p>
+          <p className="mt-0.5 text-sm font-semibold text-white">Client: A. Mehta · FY 2025-26</p>
+        </div>
+        <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] text-slate-300">3 brokers</span>
+      </div>
+
+      <div className="space-y-1.5">
+        {FILES.map((f) => (
+          <div
+            key={f.name}
+            className={`flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs transition-all duration-500 ${
+              t >= f.at ? "translate-x-0 opacity-100" : "-translate-x-6 opacity-0"
+            }`}
+          >
+            <span className="flex min-w-0 items-center gap-2 text-slate-200">
+              <FileSpreadsheet className="h-3.5 w-3.5 shrink-0 text-[#5B9BFF]" />
+              <span className="truncate">{f.name}</span>
+            </span>
+            <span className={`shrink-0 text-[10px] font-semibold ${t >= f.at + 0.1 ? "text-emerald-300" : "text-slate-500"}`}>
+              {t >= f.at + 0.1 ? "read ✓" : "reading…"}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <Appear t={t} at={0.36} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+        <p className="px-1 text-[11px] text-slate-400">Lots matched · SBI TT rate (Rule 115) applied · splits adjusted</p>
+        <div className="mt-2 space-y-1">
+          {LOTS.map((l, i) => (
+            <Appear key={l.what} t={t} at={0.4 + i * 0.06}>
+              <div className="grid grid-cols-[minmax(0,1fr)_48px_64px] items-center gap-2 rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-xs">
+                <span className="truncate text-slate-200">{l.what}</span>
+                <span className="text-right text-slate-400 tabular-nums">{l.qty}</span>
+                <span
+                  className={`justify-self-end rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    l.tone === "gold"
+                      ? "bg-[#F2B421]/15 text-[#FCE3A3]"
+                      : l.tone === "green"
+                        ? "bg-emerald-400/15 text-emerald-300"
+                        : "bg-[#5B9BFF]/15 text-[#BFD7FF]"
+                  }`}
+                >
+                  {l.tag}
+                </span>
+              </div>
+            </Appear>
+          ))}
+        </div>
+      </Appear>
+
+      <div className="mt-auto space-y-3">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+          {OUTPUTS.map((o, i) => (
+            <Appear key={o} t={t} at={0.68 + i * 0.04}>
+              <span className="flex items-center justify-center gap-1 rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-2 py-1.5 text-[11px] font-semibold text-emerald-200">
+                <Check className="h-3 w-3" /> {o}
+              </span>
+            </Appear>
+          ))}
+        </div>
+        <Appear t={t} at={0.86}>
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-[#F2B421] px-4 py-2.5 text-[#020d1f]">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Download className="h-4 w-4" /> Excel working paper ready
+            </span>
+            <span className="text-[11px] font-medium">Advance tax + ITR dates in calendar</span>
+          </div>
+        </Appear>
       </div>
     </div>
   );
 }
+
+/* ============================================================
+   CSS (scoped by class names; page CSS supplies evc-*)
+============================================================ */
+
+const HERO_CSS = `
+.evh-swap { animation: evhSwap .5s cubic-bezier(.2,.7,.2,1); }
+@keyframes evhSwap { from { opacity: 0; transform: translateY(8px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.evh-item { opacity: 0; animation: evhItem .5s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes evhItem { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.evh-scan { animation: evhScan 1.6s ease-in-out infinite; }
+@keyframes evhScan { 0% { transform: translateY(-20px); } 100% { transform: translateY(150px); } }
+@media (prefers-reduced-motion: reduce) {
+  .evh-swap, .evh-item, .evh-scan { animation: none !important; opacity: 1 !important; }
+}
+`;
 
 /* ============================================================
    HOW IT WORKS (navy, sticky product panel)
