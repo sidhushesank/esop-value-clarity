@@ -170,16 +170,18 @@ export async function addMember(
     );
   }
 
-  // Someone who already owns their own workspace/firm would never see this one.
+  // Someone with their own LIVE plan would never see this team. An ended or
+  // revoked plan doesn't count: ex-customers can join a team.
   const invitee = await prisma.user.findFirst({
     where: { email: { equals: email, mode: "insensitive" } },
     select: {
       id: true,
-      ownedCompanyWorkspace: { select: { id: true } },
-      ownedAdvisorFirm: { select: { id: true } },
+      ownedCompanyWorkspace: { select: { status: true, expiresAt: true } },
+      ownedAdvisorFirm: { select: { status: true, expiresAt: true } },
     },
   });
-  if (invitee && (s.kind === "COMPANY" ? invitee.ownedCompanyWorkspace : invitee.ownedAdvisorFirm)) {
+  const ownPlan = invitee ? (s.kind === "COMPANY" ? invitee.ownedCompanyWorkspace : invitee.ownedAdvisorFirm) : null;
+  if (ownPlan && ownPlan.status === "ACTIVE" && ownPlan.expiresAt > new Date()) {
     throw new ProAccessError(
       s.kind === "COMPANY"
         ? "This email already has its own Startup plan, so it can't join another company's team. Use a different email."

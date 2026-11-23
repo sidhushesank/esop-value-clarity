@@ -89,14 +89,20 @@ export async function requireAdvisorFirm(opts: AdvisorAccessOptions = {}) {
     select: FIRM_SELECT,
   });
 
-  if (!firm) {
+  // An own plan that has ended doesn't hide a firm this person was invited to.
+  const ownIsLive = !!firm && firm.status === "ACTIVE" && firm.expiresAt > new Date();
+
+  if (!ownIsLive) {
     const membership = await findMembership("ADVISOR", user);
     if (membership?.firmId) {
-      firm = await prisma.advisorFirm.findUnique({
+      const teamFirm = await prisma.advisorFirm.findUnique({
         where: { id: membership.firmId },
         select: FIRM_SELECT,
       });
-      role = membership.role as AccessRole;
+      if (teamFirm) {
+        firm = teamFirm;
+        role = membership.role as AccessRole;
+      }
     }
   }
 
@@ -188,4 +194,4 @@ export async function assertCanAddClient(
       "CLIENT_LIMIT_REACHED"
     );
   }
-}
+}

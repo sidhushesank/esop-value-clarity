@@ -107,14 +107,21 @@ export async function requireCompanyWorkspace(opts: CompanyAccessOptions = {}) {
     select: { ...WORKSPACE_SELECT, ownerId: true },
   });
 
-  if (!workspace) {
+  // An own plan that has ended doesn't hide a team this person was invited to.
+  const ownIsLive =
+    !!workspace && workspace.status === "ACTIVE" && workspace.expiresAt > new Date();
+
+  if (!ownIsLive) {
     const membership = await findMembership("COMPANY", user);
     if (membership?.workspaceId) {
-      workspace = await prisma.companyWorkspace.findUnique({
+      const teamWorkspace = await prisma.companyWorkspace.findUnique({
         where: { id: membership.workspaceId },
         select: { ...WORKSPACE_SELECT, ownerId: true },
       });
-      role = membership.role as AccessRole;
+      if (teamWorkspace) {
+        workspace = teamWorkspace;
+        role = membership.role as AccessRole;
+      }
     }
   }
 

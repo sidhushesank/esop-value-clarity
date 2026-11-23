@@ -76,8 +76,8 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        company: active(user.ownedCompanyWorkspace) || (!user.ownedCompanyWorkspace && memberCompany),
-        advisor: active(user.ownedAdvisorFirm) || (!user.ownedAdvisorFirm && memberAdvisor),
+        company: active(user.ownedCompanyWorkspace) || memberCompany,
+        advisor: active(user.ownedAdvisorFirm) || memberAdvisor,
       },
       { headers: { "Cache-Control": "no-store" } }
     );
