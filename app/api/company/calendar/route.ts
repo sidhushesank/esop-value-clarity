@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 /** GET: every dated compliance item for the company. */
 export async function GET() {
   try {
-    const { workspace, role } = await requireCompanyWorkspace();
+    const { workspace, role, ownerId } = await requireCompanyWorkspace();
     const [items, owner] = await Promise.all([
       collectDesk(workspace),
-      prisma.user.findUnique({ where: { id: workspace.ownerId }, select: { email: true } }),
+      prisma.user.findUnique({ where: { id: ownerId }, select: { email: true } }),
     ]);
     return NextResponse.json({ success: true, items, canEdit: role !== "VIEWER", reminderEmail: owner?.email ?? null });
   } catch (error) {
