@@ -1670,7 +1670,8 @@ model OptionGrant {
   letterDownloadedAt  DateTime?
   letterDownloadCount Int       @default(0)
 
-  links GrantLink[]
+  links     GrantLink[]
+  exercises OptionExercise[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1882,4 +1883,48 @@ model FxSync {
   syncedAt DateTime
   ok       Boolean
   message  String?
+}
+
+// ─── W2a: option exercises → share allotment → filings ───
+// One row per exercise. Allotting creates the shareholder (if new) and an
+// ALLOTMENT ShareMovement (movementId), so the cap table updates by itself.
+model OptionExercise {
+  id          String      @id @default(cuid())
+  workspaceId String
+  grantId     String
+  grant       OptionGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  exerciseDate  DateTime @db.Date
+  options       Int
+  exercisePrice Float
+  // Value per share on the exercise date (India: merchant banker FMV; US: 409A / FMV).
+  fmvPerShare   Float?
+
+  // Allotment (India) / issuance (US)
+  allotmentDate DateTime? @db.Date
+  classId       String?
+  shareholderId String?
+  movementId    String?
+
+  // India filings
+  pas3FiledOn        DateTime? @db.Date
+  pas3Srn            String?
+  shareCertificateOn DateTime? @db.Date
+  tdsDeferred        Boolean   @default(false)
+  tdsAmount          Float?
+  tdsDeductedOn      DateTime? @db.Date
+  tdsDepositedOn     DateTime? @db.Date
+  tdsChallanRef      String?
+
+  // US filings
+  form3921FurnishedOn DateTime? @db.Date
+  form3921FiledOn     DateTime? @db.Date
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, exerciseDate])
+  @@index([grantId])
 }

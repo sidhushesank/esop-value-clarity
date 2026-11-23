@@ -11,6 +11,7 @@ import {
   Layers,
   PieChart,
   RefreshCw,
+  Repeat,
   Rocket,
   Users,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import TeamPanel from "@/components/team/TeamPanel";
 import CompanyDetailsPanel from "@/components/company/CompanyDetailsPanel";
 import EsopPoolPanel from "@/components/company/EsopPoolPanel";
 import GrantsPanel from "@/components/company/GrantsPanel";
+import ExercisesPanel from "@/components/company/ExercisesPanel";
 import type { WorkspaceInfo } from "@/components/company/types";
 import { JurisdictionProvider } from "@/components/company/JurisdictionContext";
 import { asJurisdiction, wordingFor } from "@/lib/jurisdiction";
@@ -38,12 +40,13 @@ type WorkspaceResponse = {
   message?: string;
 };
 
-type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "DETAILS" | "HISTORY" | "TEAM";
+type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "EXERCISES" | "DETAILS" | "HISTORY" | "TEAM";
 
 const TABS: { id: Tab; label: string; icon: ReactNode; soon?: boolean }[] = [
   { id: "CAPTABLE", label: "Cap table", icon: <PieChart size={15} /> },
   { id: "POOL", label: "ESOP pool", icon: <Layers size={15} /> },
   { id: "GRANTS", label: "Grants", icon: <Gift size={15} /> },
+  { id: "EXERCISES", label: "Exercises", icon: <Repeat size={15} /> },
   { id: "DETAILS", label: "Company details", icon: <Building2 size={15} /> },
   { id: "HISTORY", label: "History", icon: <HistoryIcon size={15} /> },
   { id: "TEAM", label: "Team", icon: <Users size={15} /> },
@@ -252,6 +255,7 @@ export default function CompanyHomePage() {
             {tab === "CAPTABLE" && <CapTablePanel />}
             {tab === "POOL" && <EsopPoolPanel />}
             {tab === "GRANTS" && <GrantsPanel companyName={ws.name} onChanged={() => void load()} />}
+            {tab === "EXERCISES" && <ExercisesPanel />}
             {tab === "TEAM" && <TeamPanel kind="company" />}
             {tab === "HISTORY" && (
               <ChangeHistoryPanel
@@ -260,6 +264,7 @@ export default function CompanyHomePage() {
                 intro="Every change to the cap table, plans, grants, letters, links and company details: who made it and when. Employee acceptances are included."
                 filters={[
                   { value: "grant", label: "Grants" },
+                  { value: "exercise", label: "Exercises" },
                   { value: "scheme", label: jurisdiction === "US" ? "Plans" : "Schemes" },
                   { value: "class", label: "Share classes" },
                   { value: "holder", label: jurisdiction === "US" ? "Stockholders" : "Shareholders" },

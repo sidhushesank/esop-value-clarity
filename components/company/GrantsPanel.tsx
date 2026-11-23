@@ -10,6 +10,7 @@ import {
   Info,
   Loader2,
   Plus,
+  Repeat,
   Send,
   Trash2,
   UserMinus,
@@ -459,6 +460,59 @@ function GrantDetail({
   const [busy, setBusy] = useState("");
   const [leftOn, setLeftOn] = useState(todayIso());
   const [leaving, setLeaving] = useState(false);
+  const [exercising, setExercising] = useState(false);
+  const [ex, setEx] = useState({ date: todayIso(), options: "", fmv: "", deferred: false, allotNow: true, allotDate: todayIso(), classId: "" });
+  const [classes, setClasses] = useState<{ id: string; name: string; kind: string }[]>([]);
+
+  async function openExercise() {
+    setExercising(true);
+    setError("");
+    try {
+      const res = await fetch("/api/company/exercises", { credentials: "include", cache: "no-store" });
+      const json = await readJson(res);
+      if (res.ok && json?.success) {
+        const list = json.classes as { id: string; name: string; kind: string }[];
+        setClasses(list);
+        const first = list.find((c) => c.kind === "EQUITY") ?? list[0];
+        setEx((v) => ({ ...v, classId: first?.id ?? "", allotNow: Boolean(first) }));
+      }
+    } catch {
+      /* classes are optional: the exercise can be allotted later */
+    }
+  }
+
+  async function recordExercise() {
+    const options = parseNum(ex.options);
+    const fmv = parseNum(ex.fmv);
+    if (!options || !Number.isInteger(options) || options <= 0) return setError("Enter how many options are exercised.");
+    if (fmv !== null && (Number.isNaN(fmv) || fmv <= 0)) return setError("Value per share must be a number above zero.");
+    setBusy("exercise");
+    setError("");
+    try {
+      const res = await fetch(`/api/company/grants/${grantId}/exercises`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exerciseDate: ex.date,
+          options,
+          fmvPerShare: fmv,
+          tdsDeferred: !us && ex.deferred,
+          allot: ex.allotNow && ex.classId ? { date: ex.allotDate, classId: ex.classId } : null,
+        }),
+      });
+      const json = await readJson(res);
+      if (!res.ok || !json?.success) return setError(json?.message ?? "That did not work. Please retry.");
+      setExercising(false);
+      setEx((v) => ({ ...v, options: "", fmv: "" }));
+      onChanged();
+      await load();
+    } catch {
+      setError("That did not work. Please retry.");
+    } finally {
+      setBusy("");
+    }
+  }
 
   const load = useCallback(async () => {
     setError("");
@@ -529,6 +583,7 @@ function GrantDetail({
   const isDraft = grant.status === "DRAFT";
   const canLeave = grant.status === "ISSUED" || grant.status === "ACCEPTED";
   const canLapse = grant.status === "LEFT" || grant.status === "ISSUED" || grant.status === "ACCEPTED";
+  const canExercise = canLapse && position.vestedUnexercised > 0;
   const blocked = warnings.some((w) => w.severity === "BLOCK");
 
   return (
@@ -671,12 +726,84 @@ function GrantDetail({
           </div>
         )}
 
+        {canExercise && !exercising && (
+          <button type="button" className={BTN_DARK} disabled={!!busy} onClick={() => void openExercise()}>
+            <Repeat size={14} /> Record exercise
+          </button>
+        )}
+
         {canLapse && (
           <button type="button" className={BTN_LIGHT} disabled={!!busy} onClick={() => void act("lapse")} title="Everything not exercised lapses back to the pool">
             {busy === "lapse" && <Loader2 size={14} className="animate-spin" />} Lapse remaining options
           </button>
         )}
       </div>
+
+      {exercising && (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <p className="text-sm font-black">Record an exercise</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {fmtNum(position.vestedUnexercised)} vested options can be exercised today at {formatPrice(grant.exercisePrice, j)} each.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="block">
+              <span className={LABEL}>Exercise date</span>
+              <input type="date" max={todayIso()} className={`${INPUT} mt-1`} value={ex.date} onChange={(e) => setEx({ ...ex, date: e.target.value })} />
+            </label>
+            <label className="block">
+              <span className={LABEL}>Options exercised</span>
+              <input inputMode="numeric" className={`${INPUT} mt-1`} placeholder={String(position.vestedUnexercised)} value={ex.options} onChange={(e) => setEx({ ...ex, options: e.target.value })} />
+            </label>
+            <label className="block">
+              <span className={LABEL}>{us ? "FMV per share on that date" : "Value per share on that date (FMV)"}</span>
+              <input inputMode="decimal" className={`${INPUT} mt-1`} placeholder="Blank = the company's current value" value={ex.fmv} onChange={(e) => setEx({ ...ex, fmv: e.target.value })} />
+            </label>
+          </div>
+          {!us && (
+            <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+              <input type="checkbox" checked={ex.deferred} onChange={(e) => setEx({ ...ex, deferred: e.target.checked })} />
+              Defer TDS (only for start-ups with the IMB certificate under s.80-IAC)
+            </label>
+          )}
+          {classes.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <label className="flex items-center gap-2 text-sm font-semibold">
+                <input type="checkbox" checked={ex.allotNow} onChange={(e) => setEx({ ...ex, allotNow: e.target.checked })} />
+                {us ? "Issue the shares now" : "Allot the shares now"}
+              </label>
+              {ex.allotNow && (
+                <>
+                  <label className="block">
+                    <span className={LABEL}>{us ? "Issue date" : "Allotment date"}</span>
+                    <input type="date" max={todayIso()} className={`${INPUT} mt-1 w-44`} value={ex.allotDate} onChange={(e) => setEx({ ...ex, allotDate: e.target.value })} />
+                  </label>
+                  <label className="block">
+                    <span className={LABEL}>Class</span>
+                    <select className={`${INPUT} mt-1 w-52`} value={ex.classId} onChange={(e) => setEx({ ...ex, classId: e.target.value })}>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">No share class yet: you can {us ? "issue" : "allot"} the shares later from the Exercises tab.</p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" className={BTN_DARK} disabled={!!busy} onClick={() => void recordExercise()}>
+              {busy === "exercise" && <Loader2 size={14} className="animate-spin" />} Record exercise
+            </button>
+            <button type="button" className={BTN_LIGHT} onClick={() => setExercising(false)}>
+              Cancel
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">Filings and due dates for this exercise then appear on the Exercises tab.</p>
+        </div>
+      )}
 
       {grant.status !== "LAPSED" && (
         <GrantLetterCard
