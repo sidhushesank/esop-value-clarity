@@ -190,10 +190,16 @@ export async function collectFirm(firm: { id: string }, today = new Date()) {
     // TDS and other ledger deadlines (already reminded by the tax-event ledger).
     try {
       const ledger = await computeClientLedger(c.id, t0);
+      // PAS-3 dates already listed from the exercise register (below) for this client.
+      const registerPas3 = new Set(
+        c.exercises.map((e) => isoDay(addDays(e.allotmentDate as Date, 30)))
+      );
       for (const d of ledger.deadlines) {
+        const isPas3 = d.code === "PAS3" || /PAS[\s-]?3/i.test(d.label);
+        if (isPas3 && registerPas3.has(isoDay(d.dueDate))) continue;
         items.push({
           key: `tax:${c.id}:${deadlineKey(d)}`,
-          category: "TAX",
+          category: isPas3 ? "MCA" : "TAX",
           subject: `${c.name} · ${d.employeeName}`,
           title: d.label,
           detail: `Responsibility: ${d.owner}. From the client's tax-event ledger.`,

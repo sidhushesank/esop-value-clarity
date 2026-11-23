@@ -1,3 +1,5 @@
+import type { ResidencyStatus } from "@/lib/esop/residency";
+
 export type TaxRegime = "NEW" | "OLD";
 
 export type EquityType = "UNLISTED" | "LISTED";
@@ -16,6 +18,19 @@ export type AdvancedTaxInput = {
   equityType: EquityType;
 
   taxRegime: TaxRegime;
+
+  /*
+   * NEW (W3, optional): tax residency. Default RESIDENT keeps
+   * every existing caller's numbers unchanged.
+   */
+  residency?: ResidencyStatus;
+
+  /*
+   * NEW (W3, optional): for a non-resident, the share (0-100) of
+   * the vesting period worked in India. Only that share of the
+   * perquisite is taxed in India. Default 100.
+   */
+  indiaWorkSharePercent?: number;
 };
 
 export type AdvancedTaxResult = {
@@ -51,6 +66,12 @@ export type AdvancedTaxResult = {
    */
   surchargeRatePercent?: number;
 
+  /* NEW (W3): residency used and its effect. */
+  residency?: ResidencyStatus;
+  indiaSharePercent?: number;
+  perquisiteBeforeIndiaShare?: number;
+  rebateAvailable?: boolean;
+
   status:
     | "high-value"
     | "positive"
@@ -77,7 +98,7 @@ function positiveNumber(value: number) {
    AY 2026-27
 ============================================================ */
 
-function calculateNewRegimeTax(income: number) {
+function calculateNewRegimeTax(income: number, resident = true) {
   const taxableIncome = positiveNumber(income);
 
   let tax = 0;
@@ -115,7 +136,8 @@ function calculateNewRegimeTax(income: number) {
    * total normal income is <= ₹12 lakh.
    */
 
-  if (taxableIncome <= 1_200_000) {
+  // 87A rebate is for resident individuals only (ROR and RNOR), not NRIs.
+  if (resident && taxableIncome <= 1_200_000) {
     tax = Math.max(tax - 60_000, 0);
   }
 
@@ -133,7 +155,7 @@ function calculateNewRegimeTax(income: number) {
    OLD TAX REGIME
 ============================================================ */
 
-function calculateOldRegimeTax(income: number) {
+function calculateOldRegimeTax(income: number, resident = true) {
   const taxableIncome = positiveNumber(income);
 
   let tax = 0;
@@ -156,7 +178,7 @@ function calculateOldRegimeTax(income: number) {
    * Basic 87A rebate treatment for lower income.
    */
 
-  if (taxableIncome <= 500_000) {
+  if (resident && taxableIncome <= 500_000) {
     tax = Math.max(tax - 12_500, 0);
   }
 
@@ -219,13 +241,14 @@ export function surchargeRateFor(
 
 function calculateSlabTax(
   income: number,
-  regime: TaxRegime
+  regime: TaxRegime,
+  resident = true
 ) {
   if (regime === "OLD") {
-    return calculateOldRegimeTax(income);
+    return calculateOldRegimeTax(income, resident);
   }
 
-  return calculateNewRegimeTax(income);
+  return calculateNewRegimeTax(income, resident);
 }
 
 /*
@@ -237,13 +260,15 @@ function calculateSlabTax(
 
 function calculateTaxWithSurcharge(
   income: number,
-  regime: TaxRegime
+  regime: TaxRegime,
+  resident = true
 ) {
   const taxableIncome = positiveNumber(income);
 
   const baseTax = calculateSlabTax(
     taxableIncome,
-    regime
+    regime,
+    resident
   );
 
   const rate = surchargeRateFor(
@@ -268,7 +293,7 @@ function calculateTaxWithSurcharge(
     baseTax * (1 + rate);
 
   const taxAtThreshold =
-    calculateSlabTax(threshold, regime) *
+    calculateSlabTax(threshold, regime, resident) *
     (1 + surchargeRateFor(threshold, regime));
 
   const marginalReliefCap =
@@ -288,12 +313,14 @@ function calculateTaxWithSurcharge(
 
 function calculateIncomeTax(
   income: number,
-  regime: TaxRegime
+  regime: TaxRegime,
+  resident = true
 ) {
   return (
     calculateTaxWithSurcharge(
       income,
-      regime
+      regime,
+      resident
     ) * 1.04
   );
 }
@@ -389,6 +416,26 @@ export function calculateAdvancedTax(
   const taxRegime =
     input.taxRegime;
 
+  /* W3: residency */
+  const residency: ResidencyStatus =
+    input.residency ?? "RESIDENT";
+
+  const resident =
+    residency !== "NON_RESIDENT";
+
+  const indiaSharePercent =
+    residency === "NON_RESIDENT"
+      ? Math.min(
+          Math.max(
+            safeNumber(
+              input.indiaWorkSharePercent ?? 100
+            ),
+            0
+          ),
+          100
+        )
+      : 100;
+
   /* ==========================================================
      EXERCISE
   ========================================================== */
@@ -407,9 +454,18 @@ export function calculateAdvancedTax(
       0
     );
 
-  const taxablePerquisite =
+  const perquisiteBeforeIndiaShare =
     vestedShares *
     perquisitePerShare;
+
+  /*
+   * W3: a non-resident is taxed in India only on the part
+   * of the perquisite earned for work in India (share of the
+   * vesting period spent working in India).
+   */
+  const taxablePerquisite =
+    perquisiteBeforeIndiaShare *
+    (indiaSharePercent / 100);
 
   /* ==========================================================
      INCOME TAX
@@ -425,13 +481,15 @@ export function calculateAdvancedTax(
   const taxBeforeESOP =
     calculateIncomeTax(
       incomeBeforeESOP,
-      taxRegime
+      taxRegime,
+      resident
     );
 
   const taxAfterESOP =
     calculateIncomeTax(
       incomeAfterESOP,
-      taxRegime
+      taxRegime,
+      resident
     );
 
   /*
@@ -531,14 +589,16 @@ export function calculateAdvancedTax(
     const taxWithGain =
       calculateIncomeTax(
         incomeWithGain,
-        taxRegime
+        taxRegime,
+        resident
       );
 
     const taxWithoutGain =
       calculateIncomeTax(
         otherAnnualIncome +
           taxablePerquisite,
-        taxRegime
+        taxRegime,
+        resident
       );
 
     capitalGainsTax =
@@ -637,6 +697,20 @@ export function calculateAdvancedTax(
     "Actual tax liability depends on your personal circumstances and transaction documents.",
   ];
 
+  if (residency === "NON_RESIDENT") {
+    assumptions.push(
+      `Non-resident: only ${indiaSharePercent}% of the perquisite (the part of the vesting period worked in India) is taxed in India; the rest may be taxed where you worked.`,
+      "Non-residents don't get the section 87A rebate.",
+      "Capital gains on shares of an Indian company stay taxable in India for a non-resident; the buyer usually deducts TDS on the sale. A tax treaty (DTAA) may change this and needs a Tax Residency Certificate and Form 10F.",
+      "Employers often withhold TDS on the full perquisite; any excess is claimed back in your Indian return."
+    );
+  } else if (residency === "RNOR") {
+    assumptions.push(
+      "RNOR: taxed in India like a resident on Indian income, including this perquisite; foreign income is generally not taxed in India unless received here.",
+      "RNORs may be able to exclude the part of the perquisite earned for work outside India if it isn't received in India: confirm with your CA."
+    );
+  }
+
   return {
     vestedShares,
 
@@ -665,8 +739,13 @@ export function calculateAdvancedTax(
 
     surchargeRatePercent,
 
+    residency,
+    indiaSharePercent,
+    perquisiteBeforeIndiaShare,
+    rebateAvailable: resident,
+
     status,
 
     assumptions,
   };
-}
+}

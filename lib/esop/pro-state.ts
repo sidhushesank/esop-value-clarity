@@ -91,6 +91,10 @@ export type ProEquityState = {
 
   equityType: "UNLISTED" | "LISTED";
   taxRegime: "NEW" | "OLD";
+
+  /* W3: India tax residency and, for NRIs, the share of the vesting period worked in India. */
+  residencyStatus: "RESIDENT" | "RNOR" | "NON_RESIDENT";
+  indiaWorkSharePercent: number;
 };
 
 /* ============================================================
@@ -213,6 +217,9 @@ export const DEFAULT_PRO_STATE: ProEquityState = {
 
   equityType: "UNLISTED",
   taxRegime: "NEW",
+
+  residencyStatus: "RESIDENT",
+  indiaWorkSharePercent: 100,
 };
 
 /* ============================================================
@@ -1235,4 +1242,4 @@ export function normalizeProNumber(
   )
     ? parsed
     : 0;
-}
+}

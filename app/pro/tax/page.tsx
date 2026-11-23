@@ -32,6 +32,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import ResidencyPanel from "@/components/pro/ResidencyPanel";
+
 import {
   calculateAdvancedTax,
   type AdvancedTaxInput,
@@ -336,6 +338,12 @@ export default function ProTaxPage() {
 
       taxRegime:
         proState.taxRegime,
+
+      residency:
+        proState.residencyStatus ?? "RESIDENT",
+
+      indiaWorkSharePercent:
+        proState.indiaWorkSharePercent ?? 100,
     }),
     [
       proState,
@@ -456,6 +464,12 @@ export default function ProTaxPage() {
 
       taxRegime:
         DEFAULT_PRO_STATE.taxRegime,
+
+      residencyStatus:
+        DEFAULT_PRO_STATE.residencyStatus,
+
+      indiaWorkSharePercent:
+        DEFAULT_PRO_STATE.indiaWorkSharePercent,
     });
   }
 
@@ -1079,6 +1093,20 @@ export default function ProTaxPage() {
 
                 </div>
               </div>
+
+              {/* ==================================================
+                  TAX RESIDENCY (W3)
+              ================================================== */}
+
+              <ResidencyPanel
+                status={proState.residencyStatus ?? "RESIDENT"}
+                sharePercent={proState.indiaWorkSharePercent ?? 100}
+                vestingStartDate={proState.sourceVestingStartDate ?? null}
+                perquisiteBeforeShare={result.perquisiteBeforeIndiaShare}
+                taxablePerquisite={result.taxablePerquisite}
+                formatMoney={(n) => formatCurrency(n)}
+                onChange={(patch) => updateProState(patch)}
+              />
 
               {/* ==================================================
                   RESET
@@ -1937,4 +1965,4 @@ function formatPercentage(value: number) {
       maximumFractionDigits: 1,
     }
   )}%`;
-}
+}
