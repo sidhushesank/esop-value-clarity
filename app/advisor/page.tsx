@@ -8,6 +8,7 @@ import {
   Briefcase,
   Building2,
   FileText,
+  Globe2,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -367,6 +368,15 @@ export default function AdvisorHomePage() {
             {teamOpen ? "Hide team" : "Team logins"}
           </button>
 
+          <button
+            type="button"
+            onClick={() => router.push("/advisor/foreign")}
+            className="ml-3 mt-6 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white/[0.12]"
+          >
+            <Globe2 size={16} className="text-slate-300" />
+            Foreign equity tax
+          </button>
+
           {role !== "OWNER" && (
             <p className="mt-4 text-xs font-semibold text-slate-400">
               You are {role === "ADMIN" ? "an admin" : "a view-only member"} of {firmName}.
@@ -686,4 +696,4 @@ function Field({
       <div className="mt-2">{children}</div>
     </label>
   );
-}
+}

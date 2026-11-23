@@ -1775,3 +1775,89 @@ model SeatMember {
   @@index([kind, email])
   @@index([userId])
 }
+
+
+// ─── F: Foreign Equity Tax Pack (Advisor Console) ───
+// Individual clients of a CA firm who hold foreign RSU / ESPP / ESOP shares.
+// No foreign keys to existing tables (plain firmId), like ChangeLog.
+enum FxTxnType {
+  VEST
+  BUY
+  SELL
+  DIVIDEND
+  TAX_WITHHELD
+}
+
+enum FxRateRule {
+  SAME_DAY
+  PREV_MONTH_END
+}
+
+model FxClient {
+  id               String     @id @default(cuid())
+  firmId           String
+  name             String
+  email            String?
+  notes            String?
+  slabRate         Float      @default(0.3)
+  costRateRule     FxRateRule @default(SAME_DAY)
+  saleRateRule     FxRateRule @default(PREV_MONTH_END)
+  dividendRateRule FxRateRule @default(PREV_MONTH_END)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  archivedAt       DateTime?
+
+  transactions FxTransaction[]
+
+  @@index([firmId])
+}
+
+model FxTransaction {
+  id              String    @id @default(cuid())
+  firmId          String
+  clientId        String
+  client          FxClient  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type            FxTxnType
+  date            DateTime
+  symbol          String
+  company         String?
+  broker          String?
+  account         String?
+  quantity        Float     @default(0)
+  priceUsd        Float?
+  amountUsd       Float?
+  feesUsd         Float?
+  currency        String    @default("USD")
+  lotRef          String?
+  costInrPerShare Float?
+  source          String?
+  createdAt       DateTime  @default(now())
+
+  @@index([clientId, date])
+  @@index([firmId])
+}
+
+// SBI TT buying rates. firmId "" = shared rates kept by EVC; a firm's own
+// upload (firmId = its id) wins over the shared rate for the same day.
+model FxRate {
+  firmId    String   @default("")
+  currency  String
+  date      DateTime
+  ttbr      Float
+  source    String?
+  updatedAt DateTime @updatedAt
+
+  @@id([firmId, currency, date])
+  @@index([currency, date])
+}
+
+// Daily closing prices for Schedule FA peak / closing values, per firm.
+model FxPrice {
+  firmId    String
+  symbol    String
+  date      DateTime
+  close     Float
+  updatedAt DateTime @updatedAt
+
+  @@id([firmId, symbol, date])
+}
