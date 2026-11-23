@@ -6,7 +6,7 @@ import { badRequest, companyErrorResponse, validationError } from "@/lib/company
 import { logCompanyChange } from "@/lib/change-log";
 import { findNegativeBalance } from "@/lib/company/captable";
 import { loadMovements } from "@/lib/company/captable-data";
-import { allotShares, statusAfterExercise } from "@/lib/company/exercises-data";
+import { allotShares, sharesLabel, statusAfterExercise } from "@/lib/company/exercises-data";
 import { updateExerciseSchema } from "@/lib/company/exercise-schemas";
 
 type Ctx = { params: Promise<{ exerciseId: string }> };
@@ -71,7 +71,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
     const changed = Object.keys(data).filter((k) => show((before as Record<string, unknown>)[k]) !== show((result.updated as Record<string, unknown>)[k]));
     const parts = changed.map((k) => `${LABELS[k] ?? k} ${show((result.updated as Record<string, unknown>)[k])}`);
-    if (result.allotted) parts.unshift(`${us ? "issued" : "allotted"} ${before.options} ${result.allotted.className} shares on ${allot!.date.toISOString().slice(0, 10)}`);
+    if (result.allotted) parts.unshift(`${us ? "issued" : "allotted"} ${before.options} ${sharesLabel(result.allotted.className)} on ${allot!.date.toISOString().slice(0, 10)}`);
     if (parts.length) {
       await logCompanyChange({ user, workspace }, {
         action: result.allotted ? "exercise.allotted" : "exercise.updated",

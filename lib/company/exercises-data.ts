@@ -67,6 +67,11 @@ export async function allotShares(
   return { className: cls.name, holderCreated: holder.created, movementId: movement.id };
 }
 
+/** "Equity shares" stays as is; "Class A" becomes "Class A shares". */
+export function sharesLabel(className: string) {
+  return /(shares?|stock)$/i.test(className.trim()) ? className.trim() : `${className.trim()} shares`;
+}
+
 const dateOut = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 
 /** Every exercise in the workspace with its filings, newest first. */

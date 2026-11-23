@@ -29,6 +29,7 @@ export async function POST(_request: Request, { params }: Ctx) {
       data: {
         status: "LAPSED",
         optionsLapsed: Math.max(0, grant.options - grant.optionsExercised),
+        lapsedOn: new Date(new Date().toISOString().slice(0, 10)),
       },
     });
 

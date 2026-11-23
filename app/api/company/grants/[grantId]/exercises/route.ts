@@ -7,7 +7,7 @@ import { logCompanyChange } from "@/lib/change-log";
 import { addDaysUtc, vestedOn } from "@/lib/company/grants";
 import { termsOf } from "@/lib/company/grants-data";
 import { exercisableOn } from "@/lib/company/exercises";
-import { allotShares, statusAfterExercise } from "@/lib/company/exercises-data";
+import { allotShares, sharesLabel, statusAfterExercise } from "@/lib/company/exercises-data";
 import { recordExerciseSchema } from "@/lib/company/exercise-schemas";
 
 type Ctx = { params: Promise<{ grantId: string }> };
@@ -92,7 +92,7 @@ export async function POST(request: Request, { params }: Ctx) {
       entityType: "exercise",
       entityId: result.exercise.id,
       summary: `${grant.employeeName} exercised ${n(input.options)} options on ${on.toISOString().slice(0, 10)}${
-        result.allotted ? `; ${n(input.options)} ${result.allotted.className} shares ${us ? "issued" : "allotted"} on ${input.allot!.date.toISOString().slice(0, 10)}` : ""
+        result.allotted ? `; ${n(input.options)} ${sharesLabel(result.allotted.className)} ${us ? "issued" : "allotted"} on ${input.allot!.date.toISOString().slice(0, 10)}` : ""
       }.`,
       details: {
         options: input.options,

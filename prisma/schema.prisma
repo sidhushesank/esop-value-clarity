@@ -1656,6 +1656,8 @@ model OptionGrant {
   issuedAt   DateTime?
   acceptedAt DateTime?
   leftOn     DateTime?         @db.Date
+  // Date "Lapse remaining options" was used (W2b: needed to reverse expense in the right year).
+  lapsedOn   DateTime?         @db.Date
 
   optionsLapsed    Int @default(0)
   optionsExercised Int @default(0)
@@ -1672,6 +1674,7 @@ model OptionGrant {
 
   links     GrantLink[]
   exercises OptionExercise[]
+  valuation GrantValuation?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1927,4 +1930,67 @@ model OptionExercise {
 
   @@index([workspaceId, exerciseDate])
   @@index([grantId])
+}
+
+// ─── W2b: ESOP expense (Ind AS 102 / ICAI Guidance Note / ASC 718) ───
+enum ExpenseStandard {
+  IND_AS_102
+  ICAI_GUIDANCE_NOTE
+  ASC_718
+}
+
+enum ExpenseAttribution {
+  GRADED
+  STRAIGHT_LINE
+}
+
+enum ExpenseValuationBasis {
+  FAIR_VALUE
+  INTRINSIC
+}
+
+// Company-wide accounting policy and default valuation assumptions.
+model ExpenseSettings {
+  id          String @id @default(cuid())
+  workspaceId String @unique
+
+  standard       ExpenseStandard
+  attribution    ExpenseAttribution    @default(GRADED)
+  valuationBasis ExpenseValuationBasis @default(FAIR_VALUE)
+
+  // Defaults for every grant; a grant can override them.
+  volatility       Float?
+  riskFreeRate     Float?
+  dividendYield    Float  @default(0)
+  // Expected yearly rate of employees leaving before vesting (0 = record forfeitures as they happen).
+  forfeitureRate   Float  @default(0)
+  contractualYears Float  @default(10)
+  // Month the financial year ends (3 = March, 12 = December).
+  fyEndMonth       Int
+
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Grant-date valuation inputs for one grant (blank = company default).
+model GrantValuation {
+  id          String      @id @default(cuid())
+  grantId     String      @unique
+  grant       OptionGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  workspaceId String
+
+  fmvPerShare       Float?
+  volatility        Float?
+  riskFreeRate      Float?
+  dividendYield     Float?
+  expectedTermYears Float?
+  // A value per option from an outside valuer replaces the Black-Scholes figure.
+  fairValueOverride Float?
+  note              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
 }

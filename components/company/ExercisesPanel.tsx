@@ -123,7 +123,7 @@ export default function ExercisesPanel() {
 
       {rows?.map((r) => (
         <section key={r.id} className={CARD}>
-          <button type="button" className="flex w-full flex-wrap items-start justify-between gap-3 text-left" onClick={() => setOpen(open === r.id ? null : r.id)}>
+          <div className="flex w-full flex-wrap items-start justify-between gap-3">
             <div>
               <p className="font-black">
                 {r.employeeName} · {formatNumber(r.options, j)} options on {fmtDate(r.exerciseDate)}
@@ -136,8 +136,13 @@ export default function ExercisesPanel() {
                 {r.allotmentDate ? ` · ${us ? "issued" : "allotted"} ${fmtDate(r.allotmentDate)} (${r.className})` : ` · not yet ${us ? "issued" : "allotted"}`}
               </p>
             </div>
-            {open === r.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+            <button type="button" className={open === r.id ? BTN_LIGHT : BTN_DARK} onClick={() => setOpen(open === r.id ? null : r.id)}>
+              {open === r.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {open === r.id ? "Close" : canEdit ? (r.allotmentDate ? "Record filings" : us ? "Issue shares / record filings" : "Allot shares / record filings") : "Details"}
+            </button>
+          </div>
+
+          {open === r.id && <ExerciseEditor row={r} classes={classes} canEdit={canEdit} onSaved={() => void load()} />}
 
           <ul className="mt-4 space-y-2">
             {r.obligations.map((o) => (
@@ -153,7 +158,6 @@ export default function ExercisesPanel() {
             ))}
           </ul>
 
-          {open === r.id && <ExerciseEditor row={r} classes={classes} canEdit={canEdit} onSaved={() => void load()} />}
         </section>
       ))}
 
@@ -243,7 +247,7 @@ function ExerciseEditor({ row, classes, canEdit, onSaved }: { row: Row; classes:
   );
 
   return (
-    <div className="mt-5 border-t border-slate-100 pt-5">
+    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
       {!row.allotmentDate && canEdit && (
         <div className="mb-5 rounded-xl bg-slate-50 p-4">
           <p className="text-sm font-black">{us ? "Issue the shares" : "Allot the shares"}</p>
