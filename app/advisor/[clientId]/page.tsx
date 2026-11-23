@@ -8,6 +8,7 @@ import {
   Calculator,
   ClipboardCheck,
   Database,
+  History as HistoryIcon,
   ShieldCheck,
 } from "lucide-react";
 
@@ -16,9 +17,10 @@ import ClientDetailsPanel from "@/components/advisor/ClientDetailsPanel";
 import ImportPanel from "@/components/advisor/ImportPanel";
 import ReportPanel from "@/components/advisor/ReportPanel";
 import TaxLedgerPanel from "@/components/advisor/TaxLedgerPanel";
+import ChangeHistoryPanel from "@/components/history/ChangeHistoryPanel";
 import type { ClientDetail } from "@/components/advisor/types";
 
-type TabKey = "company" | "data" | "approvals" | "report" | "tax";
+type TabKey = "company" | "data" | "approvals" | "report" | "tax" | "history";
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "company", label: "Company", icon: <Building2 size={14} /> },
@@ -26,6 +28,7 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "approvals", label: "Approvals", icon: <ShieldCheck size={14} /> },
   { key: "report", label: "Check & report", icon: <ClipboardCheck size={14} /> },
   { key: "tax", label: "Tax ledger", icon: <Calculator size={14} /> },
+  { key: "history", label: "History", icon: <HistoryIcon size={14} /> },
 ];
 
 export default function AdvisorClientPage() {
@@ -222,6 +225,24 @@ export default function AdvisorClientPage() {
           {tab === "report" && <ReportPanel client={client} />}
 
           {tab === "tax" && <TaxLedgerPanel client={client} />}
+
+          {tab === "history" && (
+            <ChangeHistoryPanel
+              endpoint={`/api/advisor/clients/${client.id}/history`}
+              exportHref={`/api/advisor/clients/${client.id}/history/export`}
+              intro="Every change your firm made for this client: imports, approvals, valuations, diligence runs, share links and tax events, with who made it and when."
+              filters={[
+                { value: "import", label: "Imports" },
+                { value: "resolution", label: "Approvals" },
+                { value: "valuation", label: "Valuations" },
+                { value: "diligence", label: "Diligence runs" },
+                { value: "sharelink", label: "Share links" },
+                { value: "tax_event", label: "Tax events" },
+                { value: "tax_employee", label: "Tax employees" },
+                { value: "client", label: "Company details" },
+              ]}
+            />
+          )}
         </div>
       </div>
     </main>
