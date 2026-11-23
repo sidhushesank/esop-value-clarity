@@ -16,7 +16,7 @@ import { logCompanyChange } from "@/lib/change-log";
  */
 export async function POST(request: Request) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = shareMovementSchema.safeParse(body);

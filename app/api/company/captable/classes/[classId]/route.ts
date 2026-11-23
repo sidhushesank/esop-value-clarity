@@ -16,7 +16,7 @@ async function findClass(workspaceId: string, classId: string) {
 /** PATCH: edit a class's terms. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { classId } = await params;
 
     const existing = await findClass(workspace.id, classId);
@@ -53,7 +53,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a class with no movements can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { classId } = await params;
 
     const existing = await findClass(workspace.id, classId);

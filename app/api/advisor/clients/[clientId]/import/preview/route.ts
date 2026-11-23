@@ -26,7 +26,7 @@ type RouteContext = {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm } = await requireAdvisorFirm();
+    const { firm } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);

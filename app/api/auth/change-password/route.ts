@@ -6,10 +6,11 @@ import {
   tooManyRequests,
 } from "@/lib/rate-limit";
 import {
-  getUserIdFromToken,
   verifyPassword,
   hashPassword,
+  generateToken,
 } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(
@@ -123,10 +124,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    // Every other device is now logged out (their cookie's password
+    // fingerprint no longer matches). Keep this device logged in.
+    const response = NextResponse.json({
       success: true,
-      message: "Password updated successfully.",
+      message: "Password updated. You've been logged out on your other devices.",
     });
+
+    response.cookies.set("token", generateToken(userId, passwordHash), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
 
   } catch (error) {
     console.error(error);

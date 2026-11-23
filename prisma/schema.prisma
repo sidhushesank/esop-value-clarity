@@ -1743,3 +1743,35 @@ model ChangeLog {
   @@index([workspaceId, createdAt])
   @@index([firmId, clientId, createdAt])
 }
+
+// ─── W1d: team logins (seats) for the Startup Equity Desk and Advisor Console ───
+// Named "Seat" so it is never confused with Team Intelligence (TeamWorkspace).
+// No foreign keys on purpose: plain ids, like ChangeLog.
+enum SeatKind {
+  COMPANY
+  ADVISOR
+}
+
+enum SeatRole {
+  ADMIN
+  VIEWER
+}
+
+model SeatMember {
+  id          String    @id @default(cuid())
+  kind        SeatKind
+  workspaceId String?
+  firmId      String?
+  email       String
+  userId      String?
+  role        SeatRole
+  invitedById String
+  createdAt   DateTime  @default(now())
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+
+  @@unique([workspaceId, email])
+  @@unique([firmId, email])
+  @@index([kind, email])
+  @@index([userId])
+}

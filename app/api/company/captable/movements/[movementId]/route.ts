@@ -17,7 +17,7 @@ type Ctx = { params: Promise<{ movementId: string }> };
  */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { movementId } = await params;
 
     const target = await prisma.shareMovement.findFirst({

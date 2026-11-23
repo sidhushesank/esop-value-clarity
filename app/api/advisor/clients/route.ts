@@ -36,7 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { firm, isFounder, clientLimit, user } = await requireAdvisorFirm();
+    const { firm, isFounder, clientLimit, user } = await requireAdvisorFirm({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = clientInputSchema.safeParse(body);

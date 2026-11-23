@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { razorpay } from "@/lib/razorpay";
 import { PRICING } from "@/lib/pricing";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 const TEAM_PLAN_AMOUNT = 14500000; // ₹1,45,000 in paise
 const TEAM_PLAN_CURRENCY = "INR";
@@ -45,7 +45,7 @@ export async function POST(
     }
 
     const userId =
-      getUserIdFromToken(token);
+      await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

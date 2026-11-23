@@ -38,7 +38,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -78,7 +78,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 // Archive, not hard delete: the firm's history and reports stay intact.
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);

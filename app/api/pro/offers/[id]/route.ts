@@ -36,7 +36,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 /* ============================================================
    RUNTIME
@@ -106,9 +106,9 @@ type RouteContext = {
    AUTHENTICATION HELPER
 ============================================================ */
 
-function getAuthenticatedUserId(
+async function getAuthenticatedUserId(
   request: NextRequest
-):
+): Promise<
   | {
       success: true;
       userId: string;
@@ -116,7 +116,8 @@ function getAuthenticatedUserId(
   | {
       success: false;
       response: NextResponse;
-    } {
+    }
+> {
   const token = request.cookies.get("token")?.value;
 
   if (!token) {
@@ -130,7 +131,7 @@ function getAuthenticatedUserId(
     };
   }
 
-  const userId = getUserIdFromToken(token);
+  const userId = await getSessionUserId(token);
 
   if (!userId) {
     return {
@@ -180,7 +181,7 @@ export async function GET(
        AUTHENTICATION
     ---------------------------------------------------------- */
 
-    const auth = getAuthenticatedUserId(request);
+    const auth = await getAuthenticatedUserId(request);
 
     if (!auth.success) {
       return auth.response;
@@ -586,7 +587,7 @@ export async function PATCH(
        AUTHENTICATION
     ---------------------------------------------------------- */
 
-    const auth = getAuthenticatedUserId(request);
+    const auth = await getAuthenticatedUserId(request);
 
     if (!auth.success) {
       return auth.response;
@@ -1010,7 +1011,7 @@ export async function DELETE(
        AUTHENTICATION
     ---------------------------------------------------------- */
 
-    const auth = getAuthenticatedUserId(request);
+    const auth = await getAuthenticatedUserId(request);
 
     if (!auth.success) {
       return auth.response;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 type SortMode = "newest" | "oldest" | "highest" | "lowest";
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

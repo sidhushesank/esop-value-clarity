@@ -9,7 +9,7 @@ import { logCompanyChange } from "@/lib/change-log";
 /** POST /api/company/captable/holders: add a shareholder. */
 export async function POST(request: Request) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = shareholderSchema.safeParse(body);

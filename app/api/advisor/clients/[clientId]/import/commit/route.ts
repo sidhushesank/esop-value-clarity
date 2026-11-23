@@ -30,7 +30,7 @@ function failure(message: string, code: string, extra?: object) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
 
     await requireClientInFirm(firm.id, clientId);

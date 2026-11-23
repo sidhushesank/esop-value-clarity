@@ -33,7 +33,7 @@ async function requireEvent(clientId: string, eventId: string) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId, eventId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -73,7 +73,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId, eventId } = await params;
 
     await requireClientInFirm(firm.id, clientId);

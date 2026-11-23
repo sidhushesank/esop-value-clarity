@@ -15,7 +15,7 @@ async function findHolder(workspaceId: string, holderId: string) {
 /** PATCH: edit a shareholder. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { holderId } = await params;
 
     const existing = await findHolder(workspace.id, holderId);
@@ -51,7 +51,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a shareholder with no movements can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { holderId } = await params;
 
     const existing = await findHolder(workspace.id, holderId);

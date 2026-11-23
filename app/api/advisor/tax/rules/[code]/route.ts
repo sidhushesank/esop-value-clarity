@@ -13,7 +13,7 @@ type RouteContext = {
 // Founder only: marks a tax rule as verified (or not).
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { isFounder } = await requireAdvisorFirm();
+    const { isFounder } = await requireAdvisorFirm({ write: true });
 
     if (!isFounder) {
       throw new ProAccessError(

@@ -33,7 +33,7 @@ function todayIst(): Date {
 
 export async function POST(_request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
 
     const client = await requireClientInFirm(firm.id, clientId);

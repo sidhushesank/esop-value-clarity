@@ -62,6 +62,8 @@ const RESET_TYPE = "pwd_reset";
 
 export interface AuthTokenPayload {
   userId: string;
+  /** Password fingerprint at login time (absent on tokens issued before W1d). */
+  pwf?: string;
 }
 
 /*
@@ -95,11 +97,16 @@ export async function verifyPassword(
 |--------------------------------------------------------------------------
 */
 
-export function generateToken(userId: string): string {
+/**
+ * passwordHash is included as a short fingerprint so that changing or
+ * resetting the password logs out every other device (see lib/session.ts).
+ */
+export function generateToken(userId: string, passwordHash?: string): string {
   return jwt.sign(
     {
       userId,
       typ: SESSION_TYPE,
+      ...(passwordHash ? { pwf: passwordFingerprint(passwordHash) } : {}),
     },
     getJwtSecret(),
     {
@@ -139,6 +146,7 @@ export function verifyToken(
 
   return {
     userId: payload.userId,
+    ...(typeof payload.pwf === "string" ? { pwf: payload.pwf } : {}),
   };
 }
 

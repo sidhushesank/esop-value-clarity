@@ -6,7 +6,7 @@ import {
   UserRole,
 } from "@prisma/client";
 
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getUserSubscription } from "@/lib/subscription";
 
@@ -105,7 +105,7 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
   }
 
   const userId =
-    getUserIdFromToken(token);
+    await getSessionUserId(token);
 
   if (!userId) {
     throw new ProAccessError(

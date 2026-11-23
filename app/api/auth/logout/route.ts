@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { recordLogoutActivity } from "@/lib/activity";
 
 export async function POST(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
 
   if (token) {
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (userId) {
       await recordLogoutActivity(userId);

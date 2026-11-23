@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { updateProfileSchema } from "@/lib/validators";
 import { recordProfileUpdatedActivity } from "@/lib/activity";
 import { ZodError } from "zod";
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // GET USER ID FROM TOKEN
     // ============================================================
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

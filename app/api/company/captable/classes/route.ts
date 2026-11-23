@@ -10,7 +10,7 @@ import { logCompanyChange } from "@/lib/change-log";
 /** POST /api/company/captable/classes: add a class (Equity, Series A CCPS, iSAFE...). */
 export async function POST(request: Request) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = securityClassSchema.safeParse(body);

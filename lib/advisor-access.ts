@@ -5,6 +5,12 @@ import {
   ProAccessError,
   requireAuthenticatedUser,
 } from "@/lib/pro-access";
+import {
+  assertCanManageTeam,
+  assertCanWrite,
+  findMembership,
+  type AccessRole,
+} from "@/lib/seats";
 
 /**
  * Founder gets an auto-provisioned, effectively unlimited firm.
@@ -13,7 +19,30 @@ import {
 const FOUNDER_FIRM_EXPIRY = new Date("2099-12-31T00:00:00.000Z");
 const FOUNDER_CLIENT_LIMIT = 1_000_000;
 
-export async function requireAdvisorFirm() {
+const FIRM_SELECT = {
+  id: true,
+  name: true,
+  status: true,
+  expiresAt: true,
+  clientLimit: true,
+  brandName: true,
+  brandFooter: true,
+  ownerId: true,
+} as const;
+
+export type AdvisorAccessOptions = {
+  /** The request changes data: view-only members are refused. */
+  write?: boolean;
+  /** The request manages the team: only the owner or an admin. */
+  manageTeam?: boolean;
+};
+
+/**
+ * Resolves the advisor firm for the signed-in user: the EVC founder's own
+ * firm, a firm this user owns, or a firm this user was invited to.
+ * `role` is OWNER, ADMIN or VIEWER.
+ */
+export async function requireAdvisorFirm(opts: AdvisorAccessOptions = {}) {
   const user = await requireAuthenticatedUser();
 
   const isFounder =
@@ -49,21 +78,27 @@ export async function requireAdvisorFirm() {
       firm,
       isFounder: true,
       clientLimit: FOUNDER_CLIENT_LIMIT,
+      role: "OWNER" as AccessRole,
+      ownerId: user.id,
     };
   }
 
-  const firm = await prisma.advisorFirm.findUnique({
+  let role: AccessRole = "OWNER";
+  let firm = await prisma.advisorFirm.findUnique({
     where: { ownerId: user.id },
-    select: {
-      id: true,
-      name: true,
-      status: true,
-      expiresAt: true,
-      clientLimit: true,
-      brandName: true,
-      brandFooter: true,
-    },
+    select: FIRM_SELECT,
   });
+
+  if (!firm) {
+    const membership = await findMembership("ADVISOR", user);
+    if (membership?.firmId) {
+      firm = await prisma.advisorFirm.findUnique({
+        where: { id: membership.firmId },
+        select: FIRM_SELECT,
+      });
+      role = membership.role as AccessRole;
+    }
+  }
 
   if (!firm) {
     throw new ProAccessError(
@@ -73,19 +108,35 @@ export async function requireAdvisorFirm() {
     );
   }
 
-  if (firm.status !== "ACTIVE" || firm.expiresAt <= new Date()) {
+  // Members of the EVC founder's own firm share its unlimited plan.
+  const ownerIsEvc =
+    role !== "OWNER" &&
+    Boolean(process.env.FOUNDER_EMAIL) &&
+    (await prisma.user.findUnique({ where: { id: firm.ownerId }, select: { email: true } }))?.email ===
+      process.env.FOUNDER_EMAIL;
+
+  if (!ownerIsEvc && (firm.status !== "ACTIVE" || firm.expiresAt <= new Date())) {
     throw new ProAccessError(
-      "Your Advisor Console plan has expired. Please renew to continue.",
+      role === "OWNER"
+        ? "Your Advisor Console plan has expired. Please renew to continue."
+        : "Your firm's Advisor Console plan has expired. Ask the owner to renew it.",
       403,
       "ADVISOR_FIRM_EXPIRED"
     );
   }
 
+  if (opts.manageTeam) assertCanManageTeam(role);
+  if (opts.write) assertCanWrite(role);
+
+  const { ownerId, ...publicFirm } = firm;
+
   return {
     user,
-    firm,
+    firm: publicFirm,
     isFounder: false,
     clientLimit: firm.clientLimit,
+    role,
+    ownerId,
   };
 }
 

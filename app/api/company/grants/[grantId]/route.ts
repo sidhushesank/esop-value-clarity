@@ -40,7 +40,7 @@ export async function GET(_request: Request, { params }: Ctx) {
 /** PATCH: edit a grant while it is still a draft. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const existing = await findGrant(workspace.id, grantId);
@@ -116,7 +116,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only drafts can be deleted. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const existing = await findGrant(workspace.id, grantId);

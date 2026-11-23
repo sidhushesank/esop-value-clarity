@@ -22,7 +22,7 @@ export async function GET() {
 /** POST /api/company/schemes: record an ESOP scheme and its pool. */
 export async function POST(request: Request) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = esopSchemeSchema.safeParse(body);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { getUserSubscription } from "@/lib/subscription";
 
 export async function GET(
@@ -39,7 +39,7 @@ export async function GET(
     */
 
     const userId =
-      getUserIdFromToken(token);
+      await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

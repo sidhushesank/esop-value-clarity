@@ -12,10 +12,12 @@ import {
   PieChart,
   RefreshCw,
   Rocket,
+  Users,
 } from "lucide-react";
 
 import CapTablePanel from "@/components/company/CapTablePanel";
 import ChangeHistoryPanel from "@/components/history/ChangeHistoryPanel";
+import TeamPanel from "@/components/team/TeamPanel";
 import CompanyDetailsPanel from "@/components/company/CompanyDetailsPanel";
 import EsopPoolPanel from "@/components/company/EsopPoolPanel";
 import GrantsPanel from "@/components/company/GrantsPanel";
@@ -31,11 +33,12 @@ type WorkspaceResponse = {
   holderLimit?: number | null;
   optionHolders?: number;
   jurisdictionLocked?: boolean;
+  role?: "OWNER" | "ADMIN" | "VIEWER";
   code?: string;
   message?: string;
 };
 
-type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "DETAILS" | "HISTORY";
+type Tab = "CAPTABLE" | "POOL" | "GRANTS" | "DETAILS" | "HISTORY" | "TEAM";
 
 const TABS: { id: Tab; label: string; icon: ReactNode; soon?: boolean }[] = [
   { id: "CAPTABLE", label: "Cap table", icon: <PieChart size={15} /> },
@@ -43,6 +46,7 @@ const TABS: { id: Tab; label: string; icon: ReactNode; soon?: boolean }[] = [
   { id: "GRANTS", label: "Grants", icon: <Gift size={15} /> },
   { id: "DETAILS", label: "Company details", icon: <Building2 size={15} /> },
   { id: "HISTORY", label: "History", icon: <HistoryIcon size={15} /> },
+  { id: "TEAM", label: "Team", icon: <Users size={15} /> },
 ];
 
 export default function CompanyHomePage() {
@@ -192,7 +196,7 @@ export default function CompanyHomePage() {
             )}
           </div>
           <h1 className="mt-4 max-w-2xl text-2xl font-black leading-tight md:text-3xl">
-            Your cap table, your {words.pool.toLowerCase()} and every grant, in one place.
+            Your cap table, your {jurisdiction === "US" ? "option pool" : "ESOP pool"} and every grant, in one place.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
             Each employee gets a clear page showing what their options could be
@@ -205,6 +209,9 @@ export default function CompanyHomePage() {
               {info!.holderLimit ? ` of ${info!.holderLimit}` : ""}
             </span>
             {!isOwner && <span>Plan valid until {fmtDate(ws.expiresAt)}</span>}
+            {info!.role && info!.role !== "OWNER" && (
+              <span>You are {info!.role === "ADMIN" ? "an admin" : "a view-only member"} of this company</span>
+            )}
             <span>Company in {words.countryName} · amounts in {jurisdiction === "US" ? "US dollars" : "rupees"}</span>
           </div>
         </section>
@@ -233,11 +240,19 @@ export default function CompanyHomePage() {
           ))}
         </nav>
 
+        {info!.role === "VIEWER" && (
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+            You have <b>view-only</b> access: you can open and download everything here, but changes are blocked.
+            Ask the owner or an admin if you need something changed.
+          </div>
+        )}
+
         <JurisdictionProvider value={jurisdiction}>
           <div className="mt-5">
             {tab === "CAPTABLE" && <CapTablePanel />}
             {tab === "POOL" && <EsopPoolPanel />}
             {tab === "GRANTS" && <GrantsPanel companyName={ws.name} onChanged={() => void load()} />}
+            {tab === "TEAM" && <TeamPanel kind="company" />}
             {tab === "HISTORY" && (
               <ChangeHistoryPanel
                 endpoint="/api/company/history"
@@ -251,6 +266,7 @@ export default function CompanyHomePage() {
                   { value: "movement", label: "Share movements" },
                   { value: "import", label: "Imports" },
                   { value: "company", label: "Company details" },
+                  { value: "team", label: "Team" },
                 ]}
               />
             )}

@@ -3,7 +3,7 @@ import { PaymentStatus, SubscriptionSource } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { razorpay } from "@/lib/razorpay";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import { ADVISOR_PLAN, addMonths } from "@/lib/advisor-pricing";
 
 export const runtime = "nodejs";
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const token = request.cookies.get("token")?.value;
     if (!token) return fail("Unauthorized", 401);
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
     if (!userId) return fail("Invalid token", 401);
 
     const user = await prisma.user.findUnique({

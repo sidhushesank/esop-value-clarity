@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import TeamPanel from "@/components/team/TeamPanel";
+
 type CompanyType = "PRIVATE_LIMITED" | "UNLISTED_PUBLIC";
 
 type ClientRow = {
@@ -33,6 +35,7 @@ type FirmResponse = {
   success: boolean;
   firm?: { name: string; expiresAt: string };
   isFounder?: boolean;
+  role?: "OWNER" | "ADMIN" | "VIEWER";
   clientLimit?: number | null;
   activeClients?: number;
   code?: string;
@@ -80,6 +83,8 @@ export default function AdvisorHomePage() {
 
   const [firmName, setFirmName] = useState("");
   const [isFounder, setIsFounder] = useState(false);
+  const [role, setRole] = useState<"OWNER" | "ADMIN" | "VIEWER">("OWNER");
+  const [teamOpen, setTeamOpen] = useState(false);
   const [clientLimit, setClientLimit] = useState<number | null>(null);
   const [clients, setClients] = useState<ClientRow[]>([]);
 
@@ -124,6 +129,7 @@ export default function AdvisorHomePage() {
       setExpiresAt(firmData.isFounder ? null : firmData.firm.expiresAt);
       setFirmName(firmData.firm.name);
       setIsFounder(firmData.isFounder === true);
+      setRole(firmData.role ?? "OWNER");
       setClientLimit(firmData.clientLimit ?? null);
 
       const clientsRes = await fetch("/api/advisor/clients", {
@@ -351,7 +357,35 @@ export default function AdvisorHomePage() {
               {isFounder ? "Unlimited" : "Plan limit"}
             </span>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setTeamOpen((v) => !v)}
+            className="ml-3 mt-6 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white/[0.12]"
+          >
+            <Users size={16} className="text-slate-300" />
+            {teamOpen ? "Hide team" : "Team logins"}
+          </button>
+
+          {role !== "OWNER" && (
+            <p className="mt-4 text-xs font-semibold text-slate-400">
+              You are {role === "ADMIN" ? "an admin" : "a view-only member"} of {firmName}.
+            </p>
+          )}
         </section>
+
+        {role === "VIEWER" && (
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600">
+            You have <b>view-only</b> access: you can open every client and download reports, but changes are blocked.
+            Ask the owner or an admin if you need something changed.
+          </div>
+        )}
+
+        {teamOpen && (
+          <div className="mt-5">
+            <TeamPanel kind="advisor" />
+          </div>
+        )}
 
         {error && (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">

@@ -18,7 +18,7 @@ async function findScheme(workspaceId: string, schemeId: string) {
 /** PATCH: edit a scheme. The pool cannot shrink below options already issued. */
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { schemeId } = await params;
 
     const scheme = await findScheme(workspace.id, schemeId);
@@ -66,7 +66,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 /** DELETE: only a scheme with no grants can be removed. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { schemeId } = await params;
 
     const scheme = await findScheme(workspace.id, schemeId);

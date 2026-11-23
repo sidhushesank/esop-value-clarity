@@ -30,7 +30,7 @@ async function findGrant(workspaceId: string, grantId: string) {
 /** POST (multipart, field "file"): upload or replace the signed grant letter PDF. */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);
@@ -104,7 +104,7 @@ export async function GET(_request: Request, { params }: Ctx) {
 /** DELETE: remove the uploaded letter. */
 export async function DELETE(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const grant = await findGrant(workspace.id, grantId);

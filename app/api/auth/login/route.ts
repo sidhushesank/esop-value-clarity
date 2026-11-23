@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     // GENERATE JWT + RESPONSE
     // ============================================================
 
-    const token = generateToken(updatedUser.id);
+    const token = generateToken(updatedUser.id, user.passwordHash);
 
     const response = NextResponse.json(
       {

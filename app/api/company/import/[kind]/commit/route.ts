@@ -26,7 +26,7 @@ const IMPORT_NOTE = "Imported opening balance";
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace({ write: true });
     const kind = parseKind((await params).kind);
     const { form, sheet, mapping, missing } = await readImportForm(request, kind);
 

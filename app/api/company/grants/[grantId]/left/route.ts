@@ -17,7 +17,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const body = await request.json().catch(() => null);

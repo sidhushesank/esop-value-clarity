@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 import {
   calculateAdvancedESOP,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

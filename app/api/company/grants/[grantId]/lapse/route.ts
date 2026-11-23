@@ -14,7 +14,7 @@ type Ctx = { params: Promise<{ grantId: string }> };
  */
 export async function POST(_request: Request, { params }: Ctx) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
     const { grantId } = await params;
 
     const grant = await prisma.optionGrant.findFirst({

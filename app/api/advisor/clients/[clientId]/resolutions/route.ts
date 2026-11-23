@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
 export async function POST(request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId } = await params;
     await requireClientInFirm(firm.id, clientId);
 

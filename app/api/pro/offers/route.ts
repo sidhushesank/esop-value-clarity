@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 /* ============================================================
    RUNTIME
@@ -118,7 +118,7 @@ export async function GET(
     }
 
     const userId =
-      getUserIdFromToken(token);
+      await getSessionUserId(token);
 
     if (!userId) {
       return errorResponse(

@@ -32,7 +32,7 @@ async function loadEmployee(clientId: string, employeeId: string) {
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId, employeeId } = await params;
 
     await requireClientInFirm(firm.id, clientId);
@@ -77,7 +77,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 // Archive, not delete: the employee's events and audit trail are kept.
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
-    const { firm, user } = await requireAdvisorFirm();
+    const { firm, user } = await requireAdvisorFirm({ write: true });
     const { clientId, employeeId } = await params;
 
     await requireClientInFirm(firm.id, clientId);

@@ -6,7 +6,7 @@ import { advisorErrorResponse } from "@/lib/advisor-http";
 
 export async function GET() {
   try {
-    const { firm, isFounder, clientLimit } = await requireAdvisorFirm();
+    const { firm, isFounder, clientLimit, role } = await requireAdvisorFirm();
 
     const activeClients = await prisma.clientCompany.count({
       where: { firmId: firm.id, archivedAt: null },
@@ -16,6 +16,7 @@ export async function GET() {
       success: true,
       firm,
       isFounder,
+      role,
       clientLimit: isFounder ? null : clientLimit,
       activeClients,
     });

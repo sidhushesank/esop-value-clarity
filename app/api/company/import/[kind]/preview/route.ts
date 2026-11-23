@@ -22,7 +22,7 @@ const MAX_LISTED = 200;
  */
 export async function POST(request: Request, { params }: Ctx) {
   try {
-    const { workspace, holderLimit, isEvcOwner } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner } = await requireCompanyWorkspace({ write: true });
     const kind = parseKind((await params).kind);
     const { form, fileName, sheet, fields, mapping, missing } = await readImportForm(request, kind);
 

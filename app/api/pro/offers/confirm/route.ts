@@ -52,9 +52,7 @@ import {
   prisma,
 } from "@/lib/prisma";
 
-import {
-  getUserIdFromToken,
-} from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 
 import type {
   OfferScannerField,
@@ -626,7 +624,7 @@ export async function POST(
     }
 
     const userId =
-      getUserIdFromToken(
+      await getSessionUserId(
         token
       );
 

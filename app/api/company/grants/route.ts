@@ -29,7 +29,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace();
+    const { workspace, holderLimit, isEvcOwner, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = optionGrantSchema.safeParse(body);

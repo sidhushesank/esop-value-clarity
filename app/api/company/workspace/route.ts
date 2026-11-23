@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 /** GET /api/company/workspace: the signed-in company's workspace and plan state. */
 export async function GET() {
   try {
-    const { workspace, isEvcOwner, holderLimit } = await requireCompanyWorkspace();
+    const { workspace, isEvcOwner, holderLimit, role } = await requireCompanyWorkspace();
 
     const holders = await prisma.optionGrant.findMany({
       where: {
@@ -26,6 +26,7 @@ export async function GET() {
       success: true,
       workspace,
       isEvcOwner,
+      role,
       holderLimit: isEvcOwner ? null : holderLimit,
       optionHolders: holders.length,
       jurisdictionLocked: await hasEquityRecords(workspace.id),
@@ -53,7 +54,7 @@ async function hasEquityRecords(workspaceId: string): Promise<boolean> {
 /** PATCH /api/company/workspace: edit company details (country, name, IDs, dates, FMV). */
 export async function PATCH(request: Request) {
   try {
-    const { workspace, user } = await requireCompanyWorkspace();
+    const { workspace, user } = await requireCompanyWorkspace({ write: true });
 
     const body = await request.json().catch(() => null);
     const parsed = companyDetailsSchema.safeParse(body);

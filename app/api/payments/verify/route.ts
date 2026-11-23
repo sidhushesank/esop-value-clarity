@@ -17,7 +17,7 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import { razorpay } from "@/lib/razorpay";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/session";
 import {
   recordPaymentSuccessActivity,
 } from "@/lib/activity";
@@ -51,7 +51,7 @@ export async function POST(
     }
 
     const userId =
-      getUserIdFromToken(token);
+      await getSessionUserId(token);
 
     if (!userId) {
       return NextResponse.json(

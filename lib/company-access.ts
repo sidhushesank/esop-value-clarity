@@ -6,6 +6,12 @@ import {
   requireAuthenticatedUser,
 } from "@/lib/pro-access";
 import { STARTUP_PLAN } from "@/lib/company-pricing";
+import {
+  assertCanManageTeam,
+  assertCanWrite,
+  findMembership,
+  type AccessRole,
+} from "@/lib/seats";
 
 /**
  * ============================================================================
@@ -43,7 +49,26 @@ const WORKSPACE_SELECT = {
   fmvValuerName: true,
 } as const;
 
-export async function requireCompanyWorkspace() {
+export type CompanyAccessOptions = {
+  /** The request changes data: view-only members are refused. */
+  write?: boolean;
+  /** The request manages the team: only the owner or an admin. */
+  manageTeam?: boolean;
+};
+
+function checkRole(role: AccessRole, opts: CompanyAccessOptions) {
+  if (opts.manageTeam) assertCanManageTeam(role);
+  if (opts.write) assertCanWrite(role);
+}
+
+/**
+ * Resolves the company workspace for the signed-in user:
+ * 1. the EVC owner's own test workspace,
+ * 2. a workspace this user owns (bought),
+ * 3. a workspace this user was invited to as ADMIN or VIEWER.
+ * `role` says which: OWNER, ADMIN or VIEWER.
+ */
+export async function requireCompanyWorkspace(opts: CompanyAccessOptions = {}) {
   const user = await requireAuthenticatedUser();
 
   const isEvcOwner =
@@ -71,13 +96,27 @@ export async function requireCompanyWorkspace() {
       workspace,
       isEvcOwner: true,
       holderLimit: OWNER_HOLDER_LIMIT,
+      role: "OWNER" as AccessRole,
+      ownerId: user.id,
     };
   }
 
-  const workspace = await prisma.companyWorkspace.findUnique({
+  let role: AccessRole = "OWNER";
+  let workspace = await prisma.companyWorkspace.findUnique({
     where: { ownerId: user.id },
-    select: WORKSPACE_SELECT,
+    select: { ...WORKSPACE_SELECT, ownerId: true },
   });
+
+  if (!workspace) {
+    const membership = await findMembership("COMPANY", user);
+    if (membership?.workspaceId) {
+      workspace = await prisma.companyWorkspace.findUnique({
+        where: { id: membership.workspaceId },
+        select: { ...WORKSPACE_SELECT, ownerId: true },
+      });
+      role = membership.role as AccessRole;
+    }
+  }
 
   if (!workspace) {
     throw new ProAccessError(
@@ -87,19 +126,34 @@ export async function requireCompanyWorkspace() {
     );
   }
 
-  if (workspace.status !== "ACTIVE" || workspace.expiresAt <= new Date()) {
+  // Members of the EVC owner's own test workspace share its unlimited plan.
+  const ownerIsEvc =
+    role !== "OWNER" &&
+    Boolean(process.env.FOUNDER_EMAIL) &&
+    (await prisma.user.findUnique({ where: { id: workspace.ownerId }, select: { email: true } }))?.email ===
+      process.env.FOUNDER_EMAIL;
+
+  if (!ownerIsEvc && (workspace.status !== "ACTIVE" || workspace.expiresAt <= new Date())) {
     throw new ProAccessError(
-      `Your ${STARTUP_PLAN.name} has expired. Please renew to continue.`,
+      role === "OWNER"
+        ? `Your ${STARTUP_PLAN.name} has expired. Please renew to continue.`
+        : `This company's ${STARTUP_PLAN.name} has expired. Ask the owner to renew it.`,
       403,
       "COMPANY_WORKSPACE_EXPIRED"
     );
   }
 
+  checkRole(role, opts);
+
+  const { ownerId, ...publicWorkspace } = workspace;
+
   return {
     user,
-    workspace,
+    workspace: publicWorkspace,
     isEvcOwner: false,
     holderLimit: workspace.holderLimit,
+    role,
+    ownerId,
   };
 }
 
