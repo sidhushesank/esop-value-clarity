@@ -1,0 +1,254 @@
+{
+  "slug": "plum-esop-buyback-2026",
+  "publishedAt": "2026-11-23",
+  "updatedAt": "2026-11-23",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": [
+    "Employees",
+    "Former employees",
+    "Founders",
+    "HR"
+  ],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "Plum ESOP buyback 2026: ₹15 crore for 199 staff, explained",
+  "description": "Plum's first ESOP buyback (June 2026): ₹15 crore, 199 current and former staff, up to 25% of vested options. What it means and how it may be taxed.",
+  "keywords": [
+    "Plum ESOP buyback",
+    "Plum insurance ESOP",
+    "ESOP buyback 2026",
+    "startup ESOP liquidity India",
+    "ESOP buyback tax India",
+    "former employees ESOP buyback"
+  ],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "Plum, the Bengaluru employee-health-insurance startup, announced its first ESOP buyback on 2 June 2026, worth ₹15 crore in total.",
+    "It covers 199 people who held vested options as of 31 March 2026: 73 current employees and 126 former employees, including early team members and former interns.",
+    "Each eligible person could liquidate up to 25% of their vested ESOPs, and about 17 people were expected to receive more than ₹20 lakh each.",
+    "Because the payout falls after 1 April 2026, any gain on shares bought back is capital gains, while cash paid for options themselves is usually taxed like salary; check your own route with a CA."
+  ],
+  "heroStats": [
+    {
+      "label": "Buyback size",
+      "value": "₹15 crore"
+    },
+    {
+      "label": "Eligible people",
+      "value": "199 (73 current, 126 former)"
+    },
+    {
+      "label": "Cap per person",
+      "value": "Up to 25% of vested ESOPs"
+    },
+    {
+      "label": "Announced",
+      "value": "2 June 2026"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Event type",
+      "value": "Company-funded ESOP buyback (first for Plum)"
+    },
+    {
+      "label": "Context",
+      "value": "Followed a ₹193 crore Series B"
+    },
+    {
+      "label": "Tax lens",
+      "value": "Paid after 1 Apr 2026, under the Income-tax Act, 2025"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What Plum announced",
+      "body": [
+        "On 2 June 2026, Inc42 and Indian Startup News reported that Plum, an insurtech startup that sells group health insurance and employee benefits to companies, had announced an ESOP buyback worth ₹15 crore. Both outlets described it as Plum's first ESOP buyback. This post looks back at that announcement; it is not a new event this week.",
+        "According to both reports, the programme covers 199 people who held vested options as of 31 March 2026. Of these, 73 are current employees and 126 are former employees. Former interns and early team members who received options in the company's early years are included.",
+        "Eligible holders could liquidate up to 25% of their vested ESOPs. Both outlets reported that about 17 people were expected to receive more than ₹20 lakh each. Indian Startup News added that current employees would receive the full fair market value for their vested options, with no exercise cost and no discount; it did not say whether the same terms applied to former employees."
+      ],
+      "bullets": [
+        "Total pool: ₹15 crore",
+        "Record date for vested options: 31 March 2026",
+        "Eligible: 199 people (73 current, 126 former)",
+        "Cap: up to 25% of each person's vested ESOPs",
+        "Not disclosed in the reports: price per option, company valuation, payment date"
+      ]
+    },
+    {
+      "id": "context",
+      "eyebrow": "Background",
+      "title": "Why the buyback came when it did",
+      "body": [
+        "Inc42 reported that the buyback followed Plum's ₹193 crore (about $20.6 million) Series B. Indian Startup News said that round was led by Peak XV Partners, with Tanglin Venture Partners increasing its stake and GMO VenturePartners joining, and that it was Plum's first major raise since a $15.6 million Series A led by Tiger Global in 2021. Both reports put Plum's total funding at over $40 million.",
+        "Plum described the programme as designed to be employee-friendly, broad-based and inclusive, according to both reports. Inc42 placed it alongside other 2026 ESOP buybacks it had tracked, including Innovaccer, Emversity, CoinDCX, Atlys, Unacademy and Tractor Junction."
+      ]
+    },
+    {
+      "id": "what-it-means",
+      "eyebrow": "For employees",
+      "title": "What this means for the people holding Plum options",
+      "body": [
+        "Two details matter most. First, the programme includes former employees, who make up most of the eligible list (126 of 199). Many Indian ESOP plans let leavers keep vested options for a set window, and buybacks do not always include them, so this inclusion is worth noting for anyone comparing liquidity policies.",
+        "Second, the 25% cap means an eligible person keeps at least three-quarters of their vested holding. That is partial liquidity, not an exit: the remaining options or shares still depend on a future buyback, a secondary sale, an acquisition or an IPO."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How a payout like this is likely to be taxed",
+      "body": [
+        "The reports do not say how Plum structured the payment, and the tax depends on that structure. There are two common routes in India.",
+        "Route 1, cash for vested options (no shares issued): the company cancels part of your vested options and pays you cash, usually the fair market value minus your exercise price. This is generally treated as income from your employment and taxed at your slab rate, with the employer deducting TDS. Former employees can still have TDS deducted because the payment relates to past employment.",
+        "Route 2, exercise then buyback of shares: you exercise options and the company buys the shares back. The spread at exercise (fair market value minus exercise price) is a perquisite taxed at your slab rate. Then, because company buybacks paid from 1 April 2026 are taxed as capital gains, the buyback price minus the exercise-date fair market value is a capital gain. If buyback price equals that fair market value, the gain is nil. Unlisted shares held for more than 24 months are long-term and taxed at 12.5%; otherwise the gain is taxed at your slab rate."
+      ],
+      "warning": "Between 1 October 2024 and 31 March 2026, buyback proceeds were treated as deemed dividends in the shareholder's hands. Plum's announcement came after 1 April 2026, so the newer capital gains rules should apply to shares bought back, but confirm the payment date and route with a CA."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative example (not Plum's numbers)",
+      "body": [
+        "Assume an employee has 4,000 vested options with an exercise price of ₹10, and the buyback values each share at ₹1,010. These figures are invented for illustration and are not Plum's.",
+        "At the 25% cap, they can sell 1,000 options. The spread is ₹1,010 − ₹10 = ₹1,000 per option, so the gross payout is 1,000 × ₹1,000 = ₹10,00,000.",
+        "Under Route 1, all ₹10,00,000 is taxed as salary. At a 30% slab plus 4% cess (31.2%), tax is ₹3,12,000 and the net payout is ₹6,88,000, before any surcharge. Under Route 2 with a same-day buyback at ₹1,010, the perquisite is also ₹10,00,000 and the capital gain is nil, so the tax is about the same. The difference between routes shows up mainly when shares are held for a while before the buyback."
+      ],
+      "cards": [
+        {
+          "label": "Options sold",
+          "value": "1,000 (25% of 4,000)"
+        },
+        {
+          "label": "Gross payout",
+          "value": "₹10,00,000"
+        },
+        {
+          "label": "Tax at 31.2%",
+          "value": "₹3,12,000"
+        },
+        {
+          "label": "Net payout",
+          "value": "₹6,88,000"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Elsewhere",
+      "title": "Questions to ask if your company announces a buyback",
+      "body": [
+        "Whether or not you work at Plum, a buyback announcement is the moment to get written answers. Use the free ESOP calculator to model what your own vested options would fetch at the offered price and after tax."
+      ],
+      "bullets": [
+        "Is it cash for options, or exercise followed by a share buyback?",
+        "What price per share is being offered, and how was it valued?",
+        "What percentage of my vested options can I sell, and is participation optional?",
+        "Are former employees included, and on the same terms?",
+        "When exactly will I be paid, and how much TDS will be deducted?",
+        "Will the company issue a Form 16 or TDS certificate for the payout?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "A 25% cap is partial liquidity. Decide how much to sell based on your cash needs and confidence in the company, and confirm the tax route first."
+    },
+    {
+      "label": "Founder",
+      "value": "Including former employees and early interns is a design choice worth noting; it widens who benefits from a fixed pool."
+    },
+    {
+      "label": "HR",
+      "value": "Publish the route, price, cap, payment date and TDS treatment in one FAQ before the window opens."
+    },
+    {
+      "label": "CA",
+      "value": "Check whether the payout is option cancellation (salary) or a share buyback (perquisite plus capital gains), and the payment date versus 1 April 2026."
+    }
+  ],
+  "checklist": [
+    "Confirm how many of your options were vested on the record date",
+    "Ask whether the payout is cash for options or a share buyback",
+    "Get the price per share in writing",
+    "Estimate TDS and your net amount before choosing how much to sell",
+    "Keep the buyback letter and TDS certificate for your tax return"
+  ],
+  "mistakes": [
+    "Assuming you can sell all vested options when the cap is 25%",
+    "Treating the gross payout as take-home money",
+    "Assuming former employees are always excluded",
+    "Applying the old deemed-dividend rules to a payment made after 1 April 2026",
+    "Not reporting the payout because TDS was already deducted"
+  ],
+  "faq": [
+    {
+      "question": "How much is Plum's ESOP buyback?",
+      "answer": "Plum announced a ₹15 crore ESOP buyback on 2 June 2026, according to Inc42 and Indian Startup News."
+    },
+    {
+      "question": "Who is eligible for the Plum ESOP buyback?",
+      "answer": "199 people with vested options as of 31 March 2026: 73 current and 126 former employees, including former interns and early team members."
+    },
+    {
+      "question": "How much of their ESOPs can Plum employees sell?",
+      "answer": "Up to 25% of their vested ESOPs, according to both reports."
+    },
+    {
+      "question": "Is this Plum's first ESOP buyback?",
+      "answer": "Yes. Both reports described it as the company's first ESOP buyback."
+    },
+    {
+      "question": "How is an ESOP buyback taxed in India in 2026?",
+      "answer": "Cash paid for options is usually taxed as salary at your slab rate. If you exercise and the company buys back shares, the spread at exercise is a perquisite, and any further gain is capital gains for buybacks paid from 1 April 2026."
+    },
+    {
+      "question": "Do former employees pay tax on an ESOP buyback?",
+      "answer": "Yes. Former employees are taxed the same way as current ones; the company may still deduct TDS because the income relates to past employment."
+    }
+  ],
+  "related": [
+    "esop-buyback-india",
+    "unacademy-esop-buyback-2026",
+    "leaving-startup-esop-options"
+  ],
+  "sources": [
+    {
+      "title": "Inc42: Plum Insurance Announces ₹15 Cr ESOP Buyback (2 Jun 2026)",
+      "url": "https://inc42.com/buzz/plum-insurance-announces-%e2%82%b915-cr-esop-buyback/"
+    },
+    {
+      "title": "Indian Startup News: Plum announces Rs 15 crore ESOP buyback for current and former employees (2 Jun 2026)",
+      "url": "https://indianstartupnews.com/news/plum-announces-rs-15-crore-esop-buyback-for-current-and-former-employees-11899759"
+    },
+    {
+      "title": "Business Today: New share buyback rule from April 1 (1 Apr 2026)",
+      "url": "https://www.businesstoday.in/markets/story/bt-explainer-new-share-buyback-rule-from-april-1-is-less-taxing-for-shareholders-heres-how-523556-2026-04-01"
+    },
+    {
+      "title": "Treelife: ESOP treatment during an acquisition (tax on exercise and sale)",
+      "url": "https://treelife.in/taxation/esop-treatment-during-an-acquisition/"
+    }
+  ],
+  "hub": {
+    "summary": "Plum's first ESOP buyback (June 2026): ₹15 crore for 199 current and former staff, up to 25% of vested options, and how such payouts are taxed.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "Tax"
+    ],
+    "tags": [
+      "company news",
+      "Plum",
+      "ESOP buyback",
+      "liquidity",
+      "tax"
+    ],
+    "tools": "ESOP calculator"
+  }
+}

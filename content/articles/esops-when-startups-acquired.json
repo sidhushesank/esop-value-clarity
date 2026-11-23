@@ -1,0 +1,280 @@
+{
+  "slug": "esops-when-startup-acquired",
+  "publishedAt": "2026-11-23",
+  "updatedAt": "2026-11-23",
+  "category": "Liquidity",
+  "stage": "Exit",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOPs when a startup is acquired: what happens in India",
+  "description": "What happens to vested and unvested ESOPs when an Indian startup is acquired: cash-out, replacement, acceleration, share swaps, and the tax in 2026.",
+  "keywords": [
+    "what happens to ESOPs when company is acquired",
+    "ESOP acquisition India",
+    "unvested ESOPs acquisition",
+    "ESOP cash out acquisition tax",
+    "double trigger acceleration India",
+    "ESOP share swap tax"
+  ],
+  "icon": "BriefcaseBusiness",
+  "quickAnswer": [
+    "When an Indian startup is acquired, your ESOPs are handled however your ESOP scheme and the deal documents say; nothing happens automatically by law.",
+    "Vested options are most often cashed out for the deal price minus your exercise price, or replaced with options or awards in the buyer.",
+    "Unvested options may be cancelled, continue on their old schedule, be replaced by buyer awards, or vest early under an acceleration clause, which is usually double trigger.",
+    "Tax depends on the route: cash for options is usually salary income, exercised shares sold in the deal are capital gains, and a qualifying share swap can defer tax until you sell the new shares."
+  ],
+  "heroStats": [
+    {
+      "label": "Minimum vesting gap",
+      "value": "1 year from grant (Rule 12(6)(a))"
+    },
+    {
+      "label": "Unlisted long-term after",
+      "value": "24 months"
+    },
+    {
+      "label": "Long-term gains rate",
+      "value": "12.5%"
+    },
+    {
+      "label": "Who decides treatment",
+      "value": "Scheme + deal documents"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Vested options",
+      "value": "Cash-out, replacement or exercise and sell"
+    },
+    {
+      "label": "Unvested options",
+      "value": "Cancel, continue, replace or accelerate"
+    },
+    {
+      "label": "Exercised shares",
+      "value": "Sold like any shareholder's shares"
+    }
+  ],
+  "sections": [
+    {
+      "id": "short-answer",
+      "eyebrow": "Start here",
+      "title": "The short answer: read your scheme, then the deal",
+      "body": [
+        "Indian company law does not prescribe one outcome for employee stock options when a private company is acquired. What happens is set by two documents: your company's ESOP scheme (and your grant letter), and the definitive agreement between the buyer and the company or its shareholders. King Stubb & Kasiva notes that ESOP plans should contain change-of-control, merger and amalgamation provisions, and that where these are missing or vague, uncertainty follows.",
+        "So the first useful step when acquisition rumours start is to find the clauses in your scheme that mention change of control, merger, amalgamation, corporate action or acceleration. They tell you what the company can do without asking you."
+      ],
+      "bullets": [
+        "Your scheme sets the default rules for vested and unvested options",
+        "The deal documents set the price and the mechanics",
+        "Your grant letter may add individual terms, such as acceleration"
+      ]
+    },
+    {
+      "id": "law",
+      "eyebrow": "Indian rules",
+      "title": "The company law rules that still apply in a deal",
+      "body": [
+        "For unlisted companies, ESOPs are governed by section 62 of the Companies Act, 2013 and Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014. Listed companies follow SEBI's regulations instead. A few Rule 12 provisions shape what can happen in an acquisition.",
+        "Options are personal. Rule 12(8)(a) says options are not transferable to anyone else, and Rule 12(8)(b) bars pledging them. That is why a buyer cannot simply 'buy' your options; they have to be cancelled for cash, exercised into shares that are then sold, or replaced with new awards.",
+        "Terms can be changed, but not against you. Under Rule 12(5)(a), the company may vary the terms of options not yet exercised by special resolution, provided the change is not prejudicial to option holders. The notice must disclose the variation, the reasons and who benefits.",
+        "Vesting time can carry over in a merger. Rule 12(6)(a) requires at least one year between grant and vesting, but its proviso lets time held under a merged or amalgamated company's ESOP count towards that year when new options are granted in place of the old ones."
+      ],
+      "warning": "These citations are from Rule 12 as compiled on ca2013.com; check the official text and your scheme with a company secretary before relying on them."
+    },
+    {
+      "id": "vested",
+      "eyebrow": "Vested options",
+      "title": "What happens to vested options",
+      "body": [
+        "Advisers describe a small set of standard treatments. You may be offered more than one, or the deal may impose one."
+      ],
+      "cards": [
+        {
+          "label": "Cash-out",
+          "value": "Options cancelled; you receive the deal price per share minus your exercise price, in cash"
+        },
+        {
+          "label": "Exercise and sell",
+          "value": "You exercise before closing and sell the shares to the buyer like other shareholders"
+        },
+        {
+          "label": "Replacement",
+          "value": "Buyer swaps your options for its own options, RSUs or other awards of similar value"
+        },
+        {
+          "label": "Deferred payout",
+          "value": "Part of the payout held back and paid later, linked to staying on, performance, earn-outs or escrow"
+        }
+      ]
+    },
+    {
+      "id": "unvested",
+      "eyebrow": "Unvested options",
+      "title": "What happens to unvested options and the unallocated pool",
+      "body": [
+        "Unvested options are where outcomes differ most. Treelife lists four common results in a cash deal: they lapse, they continue on the original vesting schedule (often converted into buyer awards), they are replaced, or they accelerate under an acceleration clause.",
+        "Single-trigger acceleration means unvested options vest automatically when the deal closes. Double-trigger acceleration means they vest only if the deal happens and you are then let go without cause, or your role, pay or responsibilities are materially cut, usually within a protection window that Treelife puts at 12 to 18 months. Both Treelife and King Stubb & Kasiva describe double trigger as the arrangement buyers prefer, because it keeps people around after the deal.",
+        "If your scheme has no acceleration clause, the treatment is negotiated in the deal. The buyer may propose cancelling unvested options, with or without some cash. King Stubb & Kasiva also notes that unallocated pool options are usually cancelled at closing unless the buyer keeps them."
+      ],
+      "bullets": [
+        "No clause: negotiated, cancellation is possible",
+        "Single trigger: vest at closing (less common)",
+        "Double trigger: vest only if the deal happens and you lose your job or role",
+        "Replacement: buyer awards continue vesting on a similar schedule"
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax in 2026",
+      "title": "How each route is taxed under the Income-tax Act, 2025",
+      "body": [
+        "The Income-tax Act, 2025 replaced the 1961 Act from 1 April 2026. The basic ESOP structure did not change: there is tax when you exercise and tax when you sell.",
+        "Exercise: the difference between the fair market value of the share on the exercise date and your exercise price is a perquisite, taxed as salary at your slab rate, with the employer deducting TDS.",
+        "Selling exercised shares in the deal: the sale price minus the exercise-date fair market value is a capital gain. For unlisted shares, the gain is long-term if you held the shares for more than 24 months from exercise and is taxed at 12.5%; otherwise it is short-term and taxed at your slab rate. The holding period runs from exercise, not from grant or vesting.",
+        "Cash for unexercised options: when vested options are cancelled for cash, the payment relates to your employment and is generally taxed as salary with TDS. Treelife notes that a one-time payment for surrendering unvested options is less settled; it could be argued to be a capital receipt, but Treelife recommends treating it as a perquisite subject to TDS.",
+        "Share swaps: if you receive buyer shares instead of cash, Treelife says a swap that qualifies as an amalgamation under the Act is not treated as a transfer, so tax is deferred until you sell the new shares. A swap that does not qualify can be taxable at fair value even though you received no cash."
+      ],
+      "warning": "Escrow and earn-out amounts, share swaps and unvested-option payments are fact-specific. Get the tax characterisation of each payment in writing from the company and check it with your CA."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Worked example",
+      "title": "Illustrative example: one employee, three buckets",
+      "body": [
+        "These numbers are invented for illustration. Priya holds 10,000 options with an exercise price of ₹20. When the acquisition is announced, 6,000 are vested and 4,000 are unvested. Separately, she exercised 2,000 options in 2023 when the fair market value was ₹120, and has held those shares for more than 24 months. The buyer pays ₹520 per share in cash.",
+        "Vested options cashed out: 6,000 × (₹520 − ₹20) = ₹30,00,000. Taxed as salary; at a 30% slab plus 4% cess (31.2%) that is ₹9,36,000 of tax, leaving ₹20,64,000 before any surcharge.",
+        "Shares already held: 2,000 × (₹520 − ₹120) = ₹8,00,000 long-term capital gain. At 12.5% plus 4% cess (13%) that is ₹1,04,000 of tax. She also receives back the ₹2,40,000 value she was taxed on at exercise (2,000 × ₹120), which is not taxed again.",
+        "Unvested options: with no acceleration clause, they might be cancelled or replaced by buyer awards. With double trigger, they vest only if she is let go without cause within the protection window."
+      ],
+      "cards": [
+        {
+          "label": "Vested cash-out",
+          "value": "₹30,00,000 gross, ₹9,36,000 tax"
+        },
+        {
+          "label": "Held shares gain",
+          "value": "₹8,00,000, ₹1,04,000 tax"
+        },
+        {
+          "label": "Unvested 4,000",
+          "value": "Depends on clause and deal"
+        },
+        {
+          "label": "Total tax shown",
+          "value": "₹10,40,000"
+        }
+      ]
+    },
+    {
+      "id": "what-to-do",
+      "eyebrow": "Action",
+      "title": "What employees, founders and HR should do",
+      "body": [
+        "Employees should collect their grant letters, the scheme and a vesting statement, and work out the value of each bucket. The free ESOP calculator helps you model the payout at the deal price, and the cap table builder helps founders see how the pool, vested and unvested options translate into the per-share price.",
+        "Founders and HR should decide the treatment of each bucket early, explain it in writing, and check whether any change to option terms needs a special resolution under Rule 12(5). Telling employees late, or only after the deal is signed, is a common source of disputes."
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "Find the change-of-control clause in your scheme, and ask how each bucket (vested, unvested, already exercised) will be treated and taxed."
+    },
+    {
+      "label": "Founder",
+      "value": "Negotiate ESOP treatment as part of the deal, not after it, and remember options cannot be transferred to the buyer."
+    },
+    {
+      "label": "HR",
+      "value": "Prepare a per-employee statement of vested, unvested and exercised holdings, the price and the expected TDS."
+    },
+    {
+      "label": "CA",
+      "value": "Characterise each payment (option cash-out, share sale, swap, escrow, unvested compensation) and check the holding period from exercise."
+    }
+  ],
+  "checklist": [
+    "Read the change-of-control and acceleration clauses in your scheme and grant letter",
+    "List your vested, unvested and exercised holdings on the deal date",
+    "Ask for the price per share and how your payout is calculated",
+    "Ask how each payment will be taxed and how much TDS will be deducted",
+    "Check deadlines to exercise or accept, and whether escrow or earn-outs apply"
+  ],
+  "mistakes": [
+    "Assuming all options vest automatically when the company is sold",
+    "Missing an exercise deadline set for the deal",
+    "Counting the long-term holding period from grant instead of exercise",
+    "Treating the gross cash-out as take-home pay",
+    "Ignoring escrow or earn-out amounts that are paid later or not at all"
+  ],
+  "faq": [
+    {
+      "question": "What happens to my ESOPs if my startup is acquired?",
+      "answer": "It depends on your ESOP scheme and the deal. Vested options are usually cashed out or replaced by buyer awards; unvested options may be cancelled, continued, replaced or accelerated."
+    },
+    {
+      "question": "Do unvested ESOPs vest when a company is acquired in India?",
+      "answer": "Not automatically. They vest early only if your scheme or grant letter has an acceleration clause, or the buyer agrees to it in the deal."
+    },
+    {
+      "question": "What is double trigger acceleration?",
+      "answer": "Unvested options vest only if two things happen: the company is acquired and you are then terminated without cause or your role is materially reduced, usually within 12 to 18 months."
+    },
+    {
+      "question": "How is an ESOP cash-out in an acquisition taxed in India?",
+      "answer": "Cash paid for cancelled vested options is generally taxed as salary at your slab rate with TDS. Gains on shares you had already exercised are capital gains."
+    },
+    {
+      "question": "Can the company change my ESOP terms before an acquisition?",
+      "answer": "Under Rule 12(5) of the Share Capital Rules, an unlisted company can vary unexercised options by special resolution only if the change is not prejudicial to option holders."
+    },
+    {
+      "question": "Is a share swap taxable for ESOP holders?",
+      "answer": "A swap that qualifies as an amalgamation can defer tax until you sell the new shares. A non-qualifying swap can be taxed at fair value even without cash."
+    }
+  ],
+  "related": [
+    "leaving-startup-esop-options",
+    "esop-valuation-india",
+    "esop-buyback-india"
+  ],
+  "sources": [
+    {
+      "title": "Treelife: ESOP treatment during an acquisition (vesting, payout, tax)",
+      "url": "https://treelife.in/taxation/esop-treatment-during-an-acquisition/"
+    },
+    {
+      "title": "King Stubb & Kasiva: Guide to ESOP treatment in M&A transactions",
+      "url": "https://ksandk.com/labour-employment/guide-to-esop-treatment-in-ma-transactions/"
+    },
+    {
+      "title": "Rule 12, Companies (Share Capital and Debentures) Rules, 2014 (ca2013.com compilation)",
+      "url": "https://ca2013.com/rule-12-companies-share-capital-and-debentures-rules-2014/"
+    }
+  ],
+  "hub": {
+    "summary": "What happens to vested, unvested and exercised ESOPs when an Indian startup is acquired, the Rule 12 limits, acceleration clauses and 2026 tax.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "CA",
+      "Tax"
+    ],
+    "tags": [
+      "acquisition",
+      "exit",
+      "acceleration",
+      "ESOP tax",
+      "share swap"
+    ],
+    "tools": "ESOP calculator"
+  }
+}
