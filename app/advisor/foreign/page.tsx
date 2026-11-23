@@ -10,7 +10,7 @@ import { BTN_DARK, BTN_LIGHT, CARD, INPUT, LABEL, readJson } from "@/components/
 type Row = { id: string; name: string; email: string | null; createdAt: string; _count: { transactions: number } };
 type Cov = {
   rates: { currency: string; shared: boolean; from: string | null; to: string | null; days: number }[];
-  prices: { symbol: string; from: string | null; to: string | null; days: number }[];
+  prices: { symbol: string; shared: boolean; from: string | null; to: string | null; days: number }[];
 };
 
 export default function ForeignEquityPage() {
@@ -178,15 +178,17 @@ export default function ForeignEquityPage() {
         <section className={`${CARD} mt-6`}>
           <h2 className="text-lg font-black">Rates and prices</h2>
           <p className="mt-1 text-sm leading-6 text-slate-500">
-            Every rupee figure needs the SBI TT buying rate for that day. Schedule FA peak and closing values also need
-            daily closing prices for each share. Upload once; every client uses them.
+            Fetched automatically when you open a client: SBI TT buying rates from the public SBI FX RateKeeper archive
+            (every day since January 2020) and daily share prices and splits from Yahoo Finance. Upload only to fill a gap
+            (rates before 2020, or a share the price source doesn&apos;t know) or to use your own figures, which take
+            priority.
           </p>
 
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <div className="rounded-2xl border border-slate-200 p-4">
               <p className="font-black">SBI TT buying rates</p>
               <div className="mt-2 space-y-1 text-xs font-semibold text-slate-500">
-                {usd.length === 0 && <p className="text-amber-700">No USD rates yet.</p>}
+                {usd.length === 0 && <p className="text-slate-400">None yet: fetched when you open a client.</p>}
                 {cov.rates.map((r) => (
                   <p key={`${r.currency}${r.shared}`}>
                     {r.currency} ({r.shared ? "EVC shared" : "your firm"}): {r.days} days, {r.from} to {r.to}
@@ -194,8 +196,8 @@ export default function ForeignEquityPage() {
                 ))}
               </div>
               <p className="mt-3 text-xs leading-5 text-slate-500">
-                File with a Date column and a TT BUY (or TTBR) column, e.g. the public SBI reference-rate archive. Your
-                own rates win over EVC&apos;s shared rates for the same day.
+                To add rates: a file with a Date column and a TT BUY (or TTBR) column. Your rates win over the automatic ones
+                for the same day.
               </p>
               {canEdit && (
                 <div className="mt-3 space-y-3">
@@ -221,15 +223,16 @@ export default function ForeignEquityPage() {
             <div className="rounded-2xl border border-slate-200 p-4">
               <p className="font-black">Daily closing prices</p>
               <div className="mt-2 space-y-1 text-xs font-semibold text-slate-500">
-                {cov.prices.length === 0 && <p className="text-amber-700">No prices yet.</p>}
+                {cov.prices.length === 0 && <p className="text-slate-400">None yet: fetched when you open a client.</p>}
                 {cov.prices.map((p) => (
-                  <p key={p.symbol}>
-                    {p.symbol}: {p.days} days, {p.from} to {p.to}
+                  <p key={`${p.symbol}${p.shared}`}>
+                    {p.symbol} ({p.shared ? "automatic" : "your firm"}): {p.days} days, {p.from} to {p.to}
                   </p>
                 ))}
               </div>
               <p className="mt-3 text-xs leading-5 text-slate-500">
-                A price-history download (Date and Close columns) for one share, covering the whole calendar year.
+                To add prices: a price-history download (Date and Close columns) for one share. Use split-adjusted closes
+                (what Yahoo and Nasdaq downloads give).
               </p>
               {canEdit && (
                 <div className="mt-3 space-y-3">

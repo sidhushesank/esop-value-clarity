@@ -66,6 +66,9 @@ export async function buildFxWorkbook(input: {
     sum,
     "Estimates for a CA to review, not tax advice. Long-term = held more than 24 months (foreign shares count as unlisted in India), taxed at 12.5% + 4% cess; short-term at the slab rate shown; surcharge, set-off of losses and other income are ignored (verify)."
   );
+  sum.addRow([
+    "Data: SBI TT buying rates from the public SBI FX RateKeeper archive (github.com/sahilgupta/sbi-fx-ratekeeper) unless your firm uploaded its own; share prices and splits from Yahoo Finance (split-adjusted closes). Share counts are shown in today's shares after any split.",
+  ]).font = { italic: true, color: { argb: "FF64748B" } };
 
   /* Capital gains (Schedule CG) */
   const cg = wb.addWorksheet("Capital gains (CG)");
@@ -235,6 +238,7 @@ export async function buildFxWorkbook(input: {
     { header: "Broker", key: "broker", width: 16 },
     { header: "Shares", key: "qty", width: 10, style: { numFmt: NUM } },
     { header: "Value / price per share (USD)", key: "price", width: 14, style: { numFmt: USD } },
+    { header: "Value from", key: "vsrc", width: 16 },
     { header: "Cost per share (INR)", key: "cps", width: 14, style: { numFmt: '"Rs." #,##0.00' } },
     { header: "Cost basis", key: "src", width: 14 },
     { header: "TTBR", key: "rate", width: 10 },
@@ -250,8 +254,18 @@ export async function buildFxWorkbook(input: {
       broker: l.broker,
       qty: l.quantity,
       price: l.priceUsd,
+      vsrc: l.valueSource === "STATEMENT" ? "Statement" : l.valueSource === "MARKET_CLOSE" ? "Market close" : "Missing",
       cps: l.costInrPerShare,
-      src: l.costSource === "FORM16" ? "Form 16 value" : l.costSource === "TTBR" ? "Value x TTBR" : "Rate missing",
+      src:
+        l.costSource === "FORM16"
+          ? "Form 16 value"
+          : l.costSource === "TTBR"
+            ? "Value x TTBR"
+            : l.costSource === "AT_SALE"
+              ? "At each sale's rate"
+              : l.costSource === "MISSING_VALUE"
+                ? "Value missing"
+                : "Rate missing",
       rate: l.rateUsed?.ttbr ?? "",
       left: l.remaining,
     });
@@ -337,12 +351,15 @@ export async function buildFxTemplate(): Promise<Uint8Array> {
   ];
   header(ws);
   ws.addRow(["Vest", "15-03-2024", "GOOGL", "Alphabet Inc", "Schwab", "1234", 50, 142.5, "", "", "USD", "", ""]);
-  ws.addRow(["Buy", "30-06-2024", "MSFT", "Microsoft Corp", "Fidelity", "5678", 10, 380, "", "", "USD", "", ""]);
+  ws.addRow(["Vest", "15-06-2024", "GOOGL", "Alphabet Inc", "Schwab", "1234", 50, "", "", "", "USD", "", ""]);
+  ws.addRow(["ESPP", "30-06-2024", "MSFT", "Microsoft Corp", "Fidelity", "5678", 10, 380, "", "", "USD", "", ""]);
+  ws.addRow(["Buy", "05-08-2024", "MSFT", "Microsoft Corp", "Fidelity", "5678", 4, 402.1, "", "", "USD", "", ""]);
   ws.addRow(["Sell", "10-06-2025", "GOOGL", "Alphabet Inc", "Schwab", "1234", 20, 175.25, "", 4.95, "USD", "", ""]);
   ws.addRow(["Dividend", "16-06-2025", "GOOGL", "Alphabet Inc", "Schwab", "1234", "", "", 6, "", "USD", "", ""]);
   ws.addRow(["Tax withheld", "16-06-2025", "GOOGL", "Alphabet Inc", "Schwab", "1234", "", "", 1.5, "", "USD", "", ""]);
   ws.addRow([]);
-  ws.addRow(["Type: Vest (RSU release), Buy (ESPP / ESOP exercise / purchase), Sell, Dividend, Tax withheld. Vest price = value per share at vest. A same-day 'sell to cover' is a Vest row plus a Sell row."]);
+  ws.addRow(["Type: Vest (RSU release), ESPP or Exercise (cost = market value that day, the amount taxed as perquisite), Buy (market purchase, cost = price paid), Sell, Dividend, Tax withheld."]);
+  ws.addRow(["Vest price = value per share at vest; leave blank to use that day's market close. A same-day 'sell to cover' is a Vest row plus a Sell row. Rows with other actions (wires, interest, journals) are skipped."]);
   ws.addRow(["Lot ref (optional): on a Sell row, the lot it came from if the broker shows it; otherwise oldest lots are used first. Cost INR per share (optional): the Form 16 perquisite value per share."]);
   const buf = await wb.xlsx.writeBuffer();
   return new Uint8Array(buf as ArrayBuffer);

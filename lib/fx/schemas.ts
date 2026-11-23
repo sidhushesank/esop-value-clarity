@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const rule = z.enum(["SAME_DAY", "PREV_MONTH_END"]);
+const costRule = z.enum(["SAME_DAY", "PREV_MONTH_END", "AT_SALE_RATE"]);
 
 export const fxClientCreateSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(120),
@@ -13,7 +14,7 @@ export const fxClientUpdateSchema = z.object({
   email: z.string().trim().email("Enter a valid email.").max(200).optional().or(z.literal("")),
   notes: z.string().trim().max(1000).optional(),
   slabRate: z.number().min(0, "Slab rate can't be negative.").max(0.5, "Slab rate looks too high (max 50%).").optional(),
-  costRateRule: rule.optional(),
+  costRateRule: costRule.optional(),
   saleRateRule: rule.optional(),
   dividendRateRule: rule.optional(),
 });
@@ -35,11 +36,14 @@ export const fxTxnSchema = z
     currency: z.string().trim().regex(/^[A-Za-z]{3}$/, "Currency should be a 3-letter code.").optional(),
     lotRef: z.string().trim().max(120).optional(),
     costInrPerShare: optNum,
+    /** ESPP purchase / option exercise: cost = market value that day. */
+    fmvCost: z.boolean().optional(),
   })
   .superRefine((v, ctx) => {
     const shares = v.type === "VEST" || v.type === "BUY" || v.type === "SELL";
     if (shares && !(v.quantity && v.quantity > 0)) ctx.addIssue({ code: "custom", message: "Quantity is needed." });
-    if (shares && !(v.priceUsd && v.priceUsd > 0)) ctx.addIssue({ code: "custom", message: "Price per share is needed." });
+    const valueFromMarket = v.type === "VEST" || (v.type === "BUY" && v.fmvCost);
+    if (shares && !valueFromMarket && !(v.priceUsd && v.priceUsd > 0)) ctx.addIssue({ code: "custom", message: "Price per share is needed." });
     if (!shares && !(v.amountUsd && v.amountUsd > 0)) ctx.addIssue({ code: "custom", message: "Amount is needed." });
   });
 

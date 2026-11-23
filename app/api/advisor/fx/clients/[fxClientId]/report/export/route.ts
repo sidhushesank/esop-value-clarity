@@ -8,6 +8,7 @@ import { buildFxWorkbook } from "@/lib/fx/excel";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ fxClientId: string }> };
 
@@ -17,7 +18,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const ctx = await requireAdvisorFirm();
     const { fxClientId } = await params;
     const client = await requireFxClient(ctx.firm.id, fxClientId);
-    const { txns, report } = await buildClientReport(ctx.firm.id, client);
+    const { txns, report } = await buildClientReport(ctx.firm.id, client, { sync: true });
     const bytes = await buildFxWorkbook({
       firmName: ctx.firm.brandName || ctx.firm.name,
       clientName: client.name,

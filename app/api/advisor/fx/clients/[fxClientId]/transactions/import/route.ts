@@ -62,7 +62,14 @@ export async function POST(request: Request, { params }: RouteContext) {
         ? `Dates detected as ${found === "MDY" ? "MM/DD/YYYY (US style)" : "DD/MM/YYYY"}.`
         : "Dates are real Excel dates, so no day/month guess was needed.";
     }
-    const { valid, errors, mapping, gainsReport } = parseTransactions(headers, rows, { broker, dateOrder });
+    const { valid, errors, mapping, gainsReport, skipped } = parseTransactions(headers, rows, { broker, dateOrder });
+    const skippedCount = skipped.reduce((a, [, n]) => a + n, 0);
+    const skipNote = skippedCount
+      ? `Skipped ${skippedCount} row(s) the tax pack doesn't use: ${skipped
+          .slice(0, 12)
+          .map(([label, n]) => `${label} (${n})`)
+          .join(", ")}${skipped.length > 12 ? ", ..." : ""}. Check none of these is a vest, purchase, sale, dividend or tax row.`
+      : null;
     const modeNote = gainsReport
       ? "Read as a realised gains report: each row became one lot (acquired) and its sale. Shares still held are not in such a report; add them from the holdings statement."
       : null;
@@ -70,7 +77,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       field: gainsReport && f.key === "date" ? "Date sold" : gainsReport && f.key === "price" ? "Proceeds" : f.label,
       column: headers[mapping[f.key] as number],
     }));
-    const notes = [dateNote, modeNote].filter(Boolean);
+    const notes = [dateNote, modeNote, skipNote].filter(Boolean);
 
     if (errors.length) {
       return NextResponse.json(

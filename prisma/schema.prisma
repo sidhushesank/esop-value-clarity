@@ -1791,6 +1791,7 @@ enum FxTxnType {
 enum FxRateRule {
   SAME_DAY
   PREV_MONTH_END
+  AT_SALE_RATE
 }
 
 model FxClient {
@@ -1830,6 +1831,8 @@ model FxTransaction {
   currency        String    @default("USD")
   lotRef          String?
   costInrPerShare Float?
+  basisDate       DateTime?
+  fmvCost         Boolean   @default(false)
   source          String?
   createdAt       DateTime  @default(now())
 
@@ -1851,7 +1854,8 @@ model FxRate {
   @@index([currency, date])
 }
 
-// Daily closing prices for Schedule FA peak / closing values, per firm.
+// Daily closing prices (split-adjusted) for vest values and Schedule FA.
+// firmId "" = fetched automatically and shared; a firm's own upload wins.
 model FxPrice {
   firmId    String
   symbol    String
@@ -1860,4 +1864,22 @@ model FxPrice {
   updatedAt DateTime @updatedAt
 
   @@id([firmId, symbol, date])
+}
+
+// Stock splits, fetched with prices. ratio 20 = 20-for-1.
+model FxSplit {
+  symbol    String
+  date      DateTime
+  ratio     Float
+  updatedAt DateTime @updatedAt
+
+  @@id([symbol, date])
+}
+
+// When each automatic data source was last fetched (so we don't fetch on every page view).
+model FxSync {
+  key      String   @id
+  syncedAt DateTime
+  ok       Boolean
+  message  String?
 }

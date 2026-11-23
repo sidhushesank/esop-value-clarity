@@ -10,7 +10,9 @@ export default function TxnAdd({ fxClientId, onAdded }: { fxClientId: string; on
   const [f, setF] = useState(EMPTY);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const shares = f.type === "VEST" || f.type === "BUY" || f.type === "SELL";
+  const isEspp = f.type === "ESPP";
+  const apiType = isEspp ? "BUY" : f.type;
+  const shares = apiType === "VEST" || apiType === "BUY" || apiType === "SELL";
   const n = (v: string) => (v.trim() === "" ? null : Number(v));
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setF({ ...f, [k]: e.target.value });
@@ -25,6 +27,8 @@ export default function TxnAdd({ fxClientId, onAdded }: { fxClientId: string; on
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...f,
+          type: apiType,
+          fmvCost: isEspp,
           quantity: shares ? n(f.quantity) : null,
           priceUsd: shares ? n(f.priceUsd) : null,
           amountUsd: shares ? null : n(f.amountUsd),
@@ -52,7 +56,8 @@ export default function TxnAdd({ fxClientId, onAdded }: { fxClientId: string; on
           <span className={LABEL}>Type</span>
           <select className={INPUT} value={f.type} onChange={set("type")}>
             <option value="VEST">Vest (RSU)</option>
-            <option value="BUY">Buy / ESPP / exercise</option>
+            <option value="ESPP">ESPP purchase / option exercise</option>
+            <option value="BUY">Market purchase</option>
             <option value="SELL">Sell</option>
             <option value="DIVIDEND">Dividend</option>
             <option value="TAX_WITHHELD">Tax withheld</option>
@@ -85,7 +90,16 @@ export default function TxnAdd({ fxClientId, onAdded }: { fxClientId: string; on
               <input className={INPUT} inputMode="decimal" value={f.quantity} onChange={set("quantity")} />
             </label>
             <label>
-              <span className={LABEL}>{f.type === "VEST" ? "Value per share at vest" : f.type === "BUY" ? "Price paid per share" : "Sale price per share"} ({f.currency})</span>
+              <span className={LABEL}>
+                {f.type === "VEST"
+                  ? "Value per share at vest (blank = market close)"
+                  : isEspp
+                    ? "Price paid (info; cost = market close)"
+                    : f.type === "BUY"
+                      ? "Price paid per share"
+                      : "Sale price per share"}{" "}
+                ({f.currency})
+              </span>
               <input className={INPUT} inputMode="decimal" value={f.priceUsd} onChange={set("priceUsd")} />
             </label>
           </>
@@ -107,7 +121,7 @@ export default function TxnAdd({ fxClientId, onAdded }: { fxClientId: string; on
             </label>
           </>
         )}
-        {(f.type === "VEST" || f.type === "BUY") && (
+        {(f.type === "VEST" || f.type === "BUY" || isEspp) && (
           <>
             <label>
               <span className={LABEL}>Lot ref (optional)</span>

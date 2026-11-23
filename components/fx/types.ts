@@ -1,5 +1,6 @@
 export type RateHit = { ttbr: number; rateDate: string };
 export type Warning = { level: "BLOCK" | "WARN" | "INFO"; message: string };
+export type DataStatus = { key: string; label: string; ok: boolean; message: string; skipped?: boolean };
 
 export type FxClient = {
   id: string;
@@ -7,7 +8,7 @@ export type FxClient = {
   email: string | null;
   notes: string | null;
   slabRate: number;
-  costRateRule: "SAME_DAY" | "PREV_MONTH_END";
+  costRateRule: "SAME_DAY" | "PREV_MONTH_END" | "AT_SALE_RATE";
   saleRateRule: "SAME_DAY" | "PREV_MONTH_END";
   dividendRateRule: "SAME_DAY" | "PREV_MONTH_END";
   updatedAt: string;
@@ -28,6 +29,7 @@ export type Txn = {
   currency: string;
   lotRef: string | null;
   costInrPerShare: number | null;
+  fmvCost?: boolean;
 };
 
 type Money = { proceeds: number; cost: number; fees: number; gain: number };

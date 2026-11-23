@@ -168,15 +168,37 @@ function mapHeaders(headers: string[]) {
   return map;
 }
 
-export function parseType(v: unknown): FxTxnType | null {
-  const t = norm(String(v ?? ""));
+export type ActionClass =
+  | { kind: "use"; type: FxTxnType; fmvCost: boolean }
+  | { kind: "skip"; label: string }
+  | null;
+
+/**
+ * Reads the Type / Action column. Actions the tax pack doesn't use (cash
+ * transfers, interest, journals, splits) come back as "skip" and are listed
+ * for the user rather than failing the import.
+ */
+export function classifyAction(v: unknown): ActionClass {
+  const raw = String(v ?? "").trim();
+  const t = norm(raw);
   if (!t) return null;
-  if (/(tax|withh|nra)/.test(t)) return "TAX_WITHHELD";
-  if (/(div)/.test(t)) return "DIVIDEND";
-  if (/^(sell|sale|sold)|sale$|sold$|^ss$/.test(t)) return "SELL";
-  if (/(vest|release|rsu|deposit|stockplan|lapse|award)/.test(t)) return "VEST";
-  if (/(buy|purchase|espp|exercise|bought)/.test(t)) return "BUY";
-  return null;
+  if (/split/.test(t)) return { kind: "skip", label: raw };
+  // Cashless exercise: shares bought and sold the same day, nothing held (perquisite only, in Form 16).
+  if (/exercise.*sell|exercisesell|sameday|cashless/.test(t)) return { kind: "skip", label: `${raw} (cashless exercise: no shares held)` };
+  if (/(tax|withh|^nra)/.test(t) && !/taxable/.test(t)) return { kind: "use", type: "TAX_WITHHELD", fmvCost: false };
+  if (/reinvest(ed|ment)?shares?/.test(t)) return { kind: "use", type: "BUY", fmvCost: false };
+  if (/div/.test(t)) return { kind: "use", type: "DIVIDEND", fmvCost: false };
+  if (/^(sell|sale|sold)|sale$|sold$|^ss$|selltocover|salestocover/.test(t)) return { kind: "use", type: "SELL", fmvCost: false };
+  if (/(espp|exercise|option)/.test(t)) return { kind: "use", type: "BUY", fmvCost: true };
+  if (/(vest|release|rsu|deposit|stockplan|lapse|award|restricted)/.test(t)) return { kind: "use", type: "VEST", fmvCost: false };
+  if (/(buy|purchase|bought|reinvest)/.test(t)) return { kind: "use", type: "BUY", fmvCost: false };
+  return { kind: "skip", label: raw };
+}
+
+/** Kept for callers that only need the type. */
+export function parseType(v: unknown): FxTxnType | null {
+  const c = classifyAction(v);
+  return c && c.kind === "use" ? c.type : null;
 }
 
 export type FxTxnInput = {
@@ -193,6 +215,8 @@ export type FxTxnInput = {
   currency: string;
   lotRef: string | null;
   costInrPerShare: number | null;
+  basisDate: Date | null;
+  fmvCost: boolean;
 };
 
 export function parseTransactions(
@@ -214,11 +238,19 @@ export function parseTransactions(
 
   const valid: FxTxnInput[] = [];
   const errors: { rowNumber: number; errors: string[] }[] = [];
+  const skipped = new Map<string, number>();
+  const skip = (label: string) => skipped.set(label, (skipped.get(label) ?? 0) + 1);
 
   for (const r of rows) {
     const e: string[] = [];
-    const type = parseType(get(r, "type"));
-    if (!type) e.push(`Type "${str(get(r, "type")) ?? ""}" should be Vest, Buy, Sell, Dividend or Tax withheld.`);
+    const action = classifyAction(get(r, "type"));
+    if (action && action.kind === "skip") {
+      skip(action.label);
+      continue;
+    }
+    const type = action ? action.type : null;
+    const fmvCost = action ? action.fmvCost : false;
+    if (!type) e.push("Type / Action is empty (use Vest, ESPP, Exercise, Buy, Sell, Dividend or Tax withheld).");
     const d = parseDateOrdered(get(r, "date"), order);
     if (!d.ok) e.push(`Date ${d.error}.`);
     const symbol = str(get(r, "symbol"))?.toUpperCase().replace(/\s+/g, "") ?? null;
@@ -240,11 +272,20 @@ export function parseTransactions(
     const fees = num("fees", "Fees");
     const costInr = num("costInr", "Cost INR per share");
 
+    if ((type === "VEST" || type === "BUY") && !quantity) {
+      // A cash movement that happens to share a word with a share event (e.g. "Funds deposit").
+      skip(`${str(get(r, "type"))} (no share quantity)`);
+      continue;
+    }
     if (type === "VEST" || type === "BUY" || type === "SELL") {
       quantity = quantity === null ? null : Math.abs(quantity);
-      if (!quantity) e.push("Quantity is needed for vests, buys and sales.");
+      if (!quantity) e.push("Quantity is needed for a sale.");
       if ((price === null || price <= 0) && amount && quantity) price = Math.abs(amount) / quantity;
-      if (price === null || price <= 0) e.push(`Price per share is needed (${type === "VEST" ? "value at vest" : type === "BUY" ? "purchase price" : "sale price"}).`);
+      if (price !== null && price <= 0) price = null;
+      // Vest / ESPP / exercise values can come from the market close; a sale or a market purchase needs its own price.
+      if (price === null && (type === "SELL" || (type === "BUY" && !fmvCost))) {
+        e.push(`Price per share is needed (${type === "SELL" ? "sale price" : "purchase price"}).`);
+      }
     }
     if (type === "DIVIDEND" || type === "TAX_WITHHELD") {
       amount = amount === null ? null : Math.abs(amount);
@@ -272,9 +313,11 @@ export function parseTransactions(
       currency,
       lotRef: str(get(r, "lotRef")),
       costInrPerShare: costInr,
+      basisDate: null,
+      fmvCost,
     });
   }
-  return { valid, errors, mapping: map, gainsReport: false as const };
+  return { valid, errors, mapping: map, gainsReport: false as const, skipped: [...skipped.entries()] };
 }
 
 /* ------------------------------------------------------------------ */
@@ -338,6 +381,7 @@ function parseGainsReport(headers: string[], rows: Row[], defaults: { broker?: s
 
   const valid: FxTxnInput[] = [];
   const errors: { rowNumber: number; errors: string[] }[] = [];
+  const skipped = new Map<string, number>();
   const mapping = {
     type: col.plan, date: col.sold, symbol: col.symbol, company: col.company, broker: col.broker,
     account: col.account, quantity: col.qty, price: col.procPs ?? col.procTot, amount: null,
@@ -371,7 +415,9 @@ function parseGainsReport(headers: string[], rows: Row[], defaults: { broker?: s
     let procPs = numOf(col.procPs, "Proceeds per share");
     const procTot = numOf(col.procTot, "Proceeds");
     if (procPs === null && procTot !== null && qty) procPs = procTot / qty;
-    if (costPs === null) e.push("Cost basis is empty.");
+    const plan = norm(String(cell(r, col.plan) ?? ""));
+    const fmvCost = /(espp|exercise|option|iso|nso|nqso)/.test(plan);
+    if (costPs === null && !fmvCost) e.push("Cost basis is empty.");
     if (procPs === null) e.push("Proceeds are empty.");
     const fees = numOf(col.fees, "Fees");
     const costInr = numOf(col.costInr, "Cost INR per share");
@@ -380,8 +426,7 @@ function parseGainsReport(headers: string[], rows: Row[], defaults: { broker?: s
       errors.push({ rowNumber: r.rowNumber, errors: e });
       continue;
     }
-    const plan = norm(String(cell(r, col.plan) ?? ""));
-    const acqType: FxTxnType = /(espp|purchase|buy|exercise|option|iso|nso|nqso)/.test(plan) ? "BUY" : "VEST";
+    const acqType: FxTxnType = fmvCost || /(purchase|buy)/.test(plan) ? "BUY" : "VEST";
     const acqDate = (acq as { ok: true; value: Date }).value;
     const soldDate = (sold as { ok: true; value: Date }).value;
     // Each row is its own lot, so the sale is matched to exactly the shares the broker reported.
@@ -396,10 +441,11 @@ function parseGainsReport(headers: string[], rows: Row[], defaults: { broker?: s
       currency,
       lotRef,
     };
-    valid.push({ ...base, type: acqType, date: acqDate, priceUsd: costPs, feesUsd: null, costInrPerShare: costInr });
-    valid.push({ ...base, type: "SELL", date: soldDate, priceUsd: procPs, feesUsd: fees, costInrPerShare: null });
+    // Gains reports state share counts as of the sale, so splits are applied from the sale date.
+    valid.push({ ...base, type: acqType, date: acqDate, priceUsd: costPs, feesUsd: null, costInrPerShare: costInr, basisDate: soldDate, fmvCost });
+    valid.push({ ...base, type: "SELL", date: soldDate, priceUsd: procPs, feesUsd: fees, costInrPerShare: null, basisDate: soldDate, fmvCost: false });
   }
-  return { valid, errors, mapping, gainsReport: true as const };
+  return { valid, errors, mapping, gainsReport: true as const, skipped: [...skipped.entries()] };
 }
 
 /* ------------------------------------------------------------------ */

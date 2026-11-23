@@ -10,6 +10,8 @@ import { fxClientUpdateSchema, validationError } from "@/lib/fx/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The first view of a client may fetch SBI rates and share prices.
+export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ fxClientId: string }> };
 
@@ -19,10 +21,11 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const { firm, role } = await requireAdvisorFirm();
     const { fxClientId } = await params;
     const client = await requireFxClient(firm.id, fxClientId);
-    const { txns, report } = await buildClientReport(firm.id, client);
+    const { txns, report, dataStatus } = await buildClientReport(firm.id, client, { sync: true });
     return NextResponse.json({
       success: true,
       client,
+      dataStatus,
       canEdit: role !== "VIEWER",
       transactions: txns.map((t) => ({ ...t, date: iso(t.date) })),
       // Dates as "YYYY-MM-DD" (toJSON runs before a replacer sees the value, so check the holder).

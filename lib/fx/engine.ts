@@ -27,6 +27,8 @@
 
 export type FxTxnType = "VEST" | "BUY" | "SELL" | "DIVIDEND" | "TAX_WITHHELD";
 export type RateRule = "SAME_DAY" | "PREV_MONTH_END";
+/** Cost can also be converted at the sale's rate (gain worked out in USD, then converted: Rule 206 view). */
+export type CostRule = RateRule | "AT_SALE_RATE";
 
 export type FxTxn = {
   id: string;
@@ -43,10 +45,14 @@ export type FxTxn = {
   currency: string;
   lotRef: string | null;
   costInrPerShare: number | null;
+  /** Date the quantity and price are expressed as of (gains reports state the sale-date share count). Null = the transaction date. */
+  basisDate?: Date | null;
+  /** ESPP purchase / option exercise: cost = market value on that day (the amount taxed as perquisite), not the price paid. */
+  fmvCost?: boolean;
 };
 
 export type FxSettings = {
-  costRateRule: RateRule;
+  costRateRule: CostRule;
   saleRateRule: RateRule;
   dividendRateRule: RateRule;
   /** Client's marginal slab rate (e.g. 0.3) for STCG and the FTC estimate. */
@@ -55,8 +61,13 @@ export type FxSettings = {
 
 /** Rate table: currency -> sorted [isoDate, ttbr][] */
 export type RateTable = Map<string, { date: string; ttbr: number }[]>;
-/** Price table: symbol -> sorted [isoDate, close][] */
+/** Price table: symbol -> sorted [isoDate, close][], split-adjusted to today's share count. */
 export type PriceTable = Map<string, { date: string; close: number }[]>;
+/** Splits: symbol -> sorted [isoDate, ratio] (ratio 20 = 20-for-1). */
+export type SplitTable = Map<string, { date: string; ratio: number }[]>;
+
+/** The free SBI TT rate archive starts in January 2020. */
+export const SBI_ARCHIVE_START = "2020-01-01";
 
 export type FxWarning = { level: "BLOCK" | "WARN" | "INFO"; message: string };
 
@@ -166,7 +177,9 @@ export type Lot = {
   quantity: number;
   priceUsd: number;
   costInrPerShare: number | null;
-  costSource: "FORM16" | "TTBR" | "MISSING_RATE";
+  costSource: "FORM16" | "TTBR" | "AT_SALE" | "MISSING_RATE" | "MISSING_VALUE";
+  /** Where the per-share value came from. */
+  valueSource: "STATEMENT" | "MARKET_CLOSE" | "MISSING";
   rateUsed: RateHit | null;
   /** Shares left after all sales. */
   remaining: number;
@@ -291,9 +304,11 @@ export function computeFxReport(
   settings: FxSettings,
   rates: RateTable,
   prices: PriceTable,
-  today: Date = new Date()
+  today: Date = new Date(),
+  splits: SplitTable = new Map()
 ): FxReport {
   const warnings: FxWarning[] = [];
+  const notedMarketValue = new Set<string>();
   const ratesUsed = new Map<string, { currency: string; date: string; ttbr: number }>();
   const useRate = (cur: string, date: Date, rule: RateRule, what: string): RateHit | null => {
     const hit = rateFor(rates, cur, date, rule);
@@ -301,7 +316,10 @@ export function computeFxReport(
       const wanted = rule === "PREV_MONTH_END" ? prevMonthEnd(date) : date;
       warnings.push({
         level: "BLOCK",
-        message: `No SBI TT buying rate for ${cur} on or just before ${iso(wanted)} (needed for ${what}). Upload rates covering that date.`,
+        message:
+          iso(wanted) < SBI_ARCHIVE_START && cur === "USD"
+            ? `No SBI TT buying rate for ${iso(wanted)} (needed for ${what}). The free SBI archive starts in 2020: get this rate from SBI or the client's bank certificate and upload it (Individuals page, "Upload rates").`
+            : `No SBI TT buying rate for ${cur} on or just before ${iso(wanted)} (needed for ${what}). Use "Refresh market data", or upload rates covering that date.`,
       });
       return null;
     }
@@ -309,7 +327,35 @@ export function computeFxReport(
     return hit;
   };
 
-  const sorted = [...txns].sort((a, b) => a.date.getTime() - b.date.getTime() || a.id.localeCompare(b.id));
+  /* ---- 0. Stock splits: express every share count in today's shares ---- */
+  const todayIso = iso(today);
+  const applied = new Map<string, string>();
+  const adjusted = txns.map((t) => {
+    if (t.type === "DIVIDEND" || t.type === "TAX_WITHHELD") return t;
+    const basis = iso(t.basisDate ?? t.date);
+    let f = 1;
+    for (const s of splits.get(t.symbol) ?? []) {
+      if (s.date > basis && s.date <= todayIso && s.ratio > 0) {
+        f *= s.ratio;
+        applied.set(`${t.symbol}|${s.date}`, `${t.symbol} ${s.ratio >= 1 ? `${round2(s.ratio)}-for-1` : `1-for-${round2(1 / s.ratio)}`} split on ${s.date}`);
+      }
+    }
+    if (f === 1) return t;
+    return {
+      ...t,
+      quantity: t.quantity * f,
+      priceUsd: t.priceUsd != null ? t.priceUsd / f : null,
+      costInrPerShare: t.costInrPerShare != null ? t.costInrPerShare / f : null,
+    };
+  });
+  for (const msg of applied.values()) {
+    warnings.push({
+      level: "INFO",
+      message: `${msg}: earlier share counts are multiplied (and per-share prices divided) so every figure is in today's shares. Totals in rupees don't change.`,
+    });
+  }
+
+  const sorted = [...adjusted].sort((a, b) => a.date.getTime() - b.date.getTime() || a.id.localeCompare(b.id));
   const label = (t: FxTxn) => ({
     company: t.company?.trim() || t.symbol,
     broker: t.broker?.trim() || "Broker not given",
@@ -321,16 +367,55 @@ export function computeFxReport(
   for (const t of sorted) {
     if (t.type !== "VEST" && t.type !== "BUY") continue;
     const l = label(t);
-    const price = t.priceUsd ?? 0;
+    const what = t.fmvCost ? "ESPP purchase / exercise" : t.type === "VEST" ? "vest" : "purchase";
+    // Value per share: the statement's figure, else the market close that day.
+    let price: number | null = t.priceUsd != null && t.priceUsd > 0 && !t.fmvCost ? t.priceUsd : null;
+    let valueSource: Lot["valueSource"] = price != null ? "STATEMENT" : "MISSING";
+    const hasForm16 = Boolean(t.costInrPerShare && t.costInrPerShare > 0);
+    if (price == null) {
+      const close = priceOn(prices, t.symbol, t.date);
+      if (close != null) {
+        price = close;
+        valueSource = "MARKET_CLOSE";
+        if (!hasForm16) {
+          const key = `${t.symbol}|${t.fmvCost ? "fmv" : "vest"}`;
+          if (!notedMarketValue.has(key)) {
+            notedMarketValue.add(key);
+            warnings.push({
+              level: "WARN",
+              message: t.fmvCost
+                ? `${t.symbol} ESPP purchases / exercises use the market close on the purchase date as cost (the value taxed as a perquisite), not the discounted price paid. If Form 16 shows a different value, enter it as "Cost INR per share (Form 16)".`
+                : `${t.symbol} vests with no value in the statement use the market close on the vest date. Employers sometimes use another price (e.g. the previous close): enter the Form 16 value per share where it differs.`,
+            });
+          }
+        }
+      } else if (t.priceUsd != null && t.priceUsd > 0) {
+        price = t.priceUsd;
+        valueSource = "STATEMENT";
+        warnings.push({
+          level: "WARN",
+          message: `No market price for ${t.symbol} on ${iso(t.date)}, so the ${what} uses the price in the statement (${round2(t.priceUsd)}). For ESPP / exercises cost should be the market value that day: check it.`,
+        });
+      }
+    }
     let rate: RateHit | null = null;
     let costPerShare: number | null = null;
     let source: Lot["costSource"] = "TTBR";
-    if (t.costInrPerShare && t.costInrPerShare > 0) {
-      costPerShare = t.costInrPerShare;
+    if (hasForm16) {
+      costPerShare = t.costInrPerShare as number;
       source = "FORM16";
-      rate = rateFor(rates, t.currency, t.date, settings.costRateRule); // for Schedule FA only
+      rate = rateFor(rates, t.currency, t.date, "SAME_DAY"); // for Schedule FA only
+    } else if (price == null) {
+      source = "MISSING_VALUE";
+      warnings.push({
+        level: "BLOCK",
+        message: `${t.symbol} ${what} on ${iso(t.date)} has no value per share and no market price for that day. Add the price (value at vest / market value) or the Form 16 value per share.`,
+      });
+    } else if (settings.costRateRule === "AT_SALE_RATE") {
+      source = "AT_SALE"; // converted per sale, at the sale's rate
+      rate = rateFor(rates, t.currency, t.date, "SAME_DAY");
     } else {
-      rate = useRate(t.currency, t.date, settings.costRateRule, `the cost of the ${t.type === "VEST" ? "vest" : "purchase"} of ${t.symbol} on ${iso(t.date)}`);
+      rate = useRate(t.currency, t.date, settings.costRateRule, `the cost of the ${what} of ${t.symbol} on ${iso(t.date)}`);
       if (rate) costPerShare = price * rate.ttbr;
       else source = "MISSING_RATE";
     }
@@ -343,9 +428,10 @@ export function computeFxReport(
       ...l,
       currency: t.currency,
       quantity: t.quantity,
-      priceUsd: price,
+      priceUsd: price ?? 0,
       costInrPerShare: costPerShare,
       costSource: source,
+      valueSource,
       rateUsed: rate,
       remaining: t.quantity,
     });
@@ -380,7 +466,14 @@ export function computeFxReport(
       const share = totalQty > 0 ? q / totalQty : 0;
       const proceeds = saleRate && t.priceUsd != null ? q * t.priceUsd * saleRate.ttbr : null;
       const fees = saleRate ? (t.feesUsd ?? 0) * share * saleRate.ttbr : null;
-      const cost = lot.costInrPerShare != null ? q * lot.costInrPerShare : null;
+      const cost =
+        lot.costSource === "AT_SALE"
+          ? saleRate
+            ? q * lot.priceUsd * saleRate.ttbr
+            : null
+          : lot.costInrPerShare != null
+            ? q * lot.costInrPerShare
+            : null;
       const months = wholeMonths(lot.date, t.date);
       const longTerm = t.date.getTime() > addMonthsUtc(lot.date, 24).getTime();
       pieces.push({
@@ -549,7 +642,8 @@ export function computeFxReport(
       // Initial value: shares acquired x price x TTBR on acquisition date.
       const acqRate = rateFor(rates, lot.currency, lot.date, "SAME_DAY");
       if (!acqRate && lot.currency !== "INR") missing.push(`TTBR on ${iso(lot.date)}`);
-      const initial = acqRate ? lot.quantity * lot.priceUsd * acqRate.ttbr : null;
+      if (lot.valueSource === "MISSING") missing.push(`value per share on ${iso(lot.date)}`);
+      const initial = acqRate && lot.valueSource !== "MISSING" ? lot.quantity * lot.priceUsd * acqRate.ttbr : null;
 
       let peak: number | null = null;
       let peakDate: string | null = null;

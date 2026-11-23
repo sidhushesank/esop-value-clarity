@@ -12,13 +12,14 @@ import {
   Landmark,
   ListOrdered,
   Receipt,
+  RefreshCw,
   Settings2,
   Trash2,
 } from "lucide-react";
 
 import TxnAdd from "@/components/fx/TxnAdd";
 import TxnImport from "@/components/fx/TxnImport";
-import type { FxClient, Report, Txn } from "@/components/fx/types";
+import type { DataStatus, FxClient, Report, Txn } from "@/components/fx/types";
 import { BTN_DARK, BTN_LIGHT, CARD, INPUT, LABEL, inr, num, readJson } from "@/components/fx/ui";
 import ChangeHistoryPanel from "@/components/history/ChangeHistoryPanel";
 
@@ -55,6 +56,8 @@ export default function FxClientPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<TabKey>("txns");
   const [faYear, setFaYear] = useState<number | null>(null);
+  const [dataStatus, setDataStatus] = useState<DataStatus[]>([]);
+  const [syncing, setSyncing] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -74,6 +77,7 @@ export default function FxClientPage() {
       setTxns(data.transactions as Txn[]);
       setReport(data.report as Report);
       setCanEdit(Boolean(data.canEdit));
+      setDataStatus((data.dataStatus as DataStatus[]) ?? []);
     } catch {
       setError("We could not connect. Please check your connection and retry.");
     } finally {
@@ -84,6 +88,18 @@ export default function FxClientPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function refreshData() {
+    setSyncing(true);
+    try {
+      const res = await fetch(`/api/advisor/fx/clients/${fxClientId}/sync`, { method: "POST", credentials: "include" });
+      const data = await readJson(res);
+      if (res.ok && data.success) setDataStatus((data.dataStatus as DataStatus[]) ?? []);
+      await load();
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   async function deleteTxn(id: string) {
     const res = await fetch(`/api/advisor/fx/clients/${fxClientId}/transactions/${id}`, { method: "DELETE", credentials: "include" });
@@ -150,6 +166,30 @@ export default function FxClientPage() {
         </header>
 
         {error && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+
+        {dataStatus.length > 0 && (
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-black">Market data (fetched automatically)</p>
+              <button type="button" className={BTN_LIGHT} disabled={syncing} onClick={() => void refreshData()}>
+                <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+                {syncing ? "Fetching..." : "Refresh market data"}
+              </button>
+            </div>
+            <ul className="mt-2 space-y-1 text-xs font-semibold">
+              {dataStatus.map((d) => (
+                <li key={d.key} className={d.ok ? "text-slate-500" : "text-red-600"}>
+                  {d.ok ? "OK" : "Failed"}: {d.label}. {d.message}
+                  {!d.ok && " You can upload this data on the Individuals page instead."}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+              SBI TT buying rates from the public SBI FX RateKeeper archive (daily since 2020). Share prices and splits from
+              Yahoo Finance. Rates or prices your firm uploads take priority.
+            </p>
+          </div>
+        )}
 
         {report.warnings.length > 0 && (
           <div className={`mt-5 rounded-2xl border px-4 py-3 ${blocks.length ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}>
@@ -430,7 +470,12 @@ export default function FxClientPage() {
 
 const RULES = [
   { value: "SAME_DAY", label: "Rate on the same day" },
-  { value: "PREV_MONTH_END", label: "Last day of previous month (Rule 115)" },
+  { value: "PREV_MONTH_END", label: "Last day of previous month (Rule 115 / 206)" },
+];
+const COST_RULES = [
+  { value: "SAME_DAY", label: "Rate on the vest / purchase day (matches Form 16)" },
+  { value: "PREV_MONTH_END", label: "Last day of the month before the vest / purchase" },
+  { value: "AT_SALE_RATE", label: "Same rate as the sale (gain worked out in USD, then converted)" },
 ];
 
 function SettingsPanel({ client, canEdit, onSaved }: { client: FxClient; canEdit: boolean; onSaved: () => void }) {
@@ -484,7 +529,7 @@ function SettingsPanel({ client, canEdit, onSaved }: { client: FxClient; canEdit
 
   const ruleSelect = (k: "costRateRule" | "saleRateRule" | "dividendRateRule") => (
     <select className={INPUT} disabled={!canEdit} value={s[k]} onChange={(e) => setS({ ...s, [k]: e.target.value as FxClient[typeof k] })}>
-      {RULES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+      {(k === "costRateRule" ? COST_RULES : RULES).map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
     </select>
   );
 
@@ -501,8 +546,10 @@ function SettingsPanel({ client, canEdit, onSaved }: { client: FxClient; canEdit
         <label className="sm:col-span-2"><span className={LABEL}>Notes</span><textarea className={INPUT} rows={3} disabled={!canEdit} value={s.notes} onChange={(e) => setS({ ...s, notes: e.target.value })} /></label>
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-500">
-        Defaults: cost at the vest/buy date rate (matches the Form 16 perquisite), sale and dividends at the last day of
-        the previous month. Change these if your view differs; every figure updates.
+        Defaults: cost at the vest / purchase-day rate (the rate the employer used for the Form 16 perquisite), sale and
+        dividends at the last day of the previous month (Rule 115, now Rule 206). Practitioners differ on cost: some use
+        the previous month-end, some work the gain out in USD and convert it at the sale&apos;s rate. Pick your view; every
+        figure updates.
       </p>
       {canEdit && (
         <div className="mt-4 flex flex-wrap items-center gap-3">
