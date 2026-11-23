@@ -522,8 +522,14 @@ function GrantRow({
         <td className="px-2 py-2">{m(row.unrecognised)}</td>
         <td className="px-2 py-2">
           {canEdit && (
-            <button type="button" className="text-slate-400 hover:text-slate-900" title="Valuation inputs" onClick={onEdit}>
-              {editing ? <X size={15} /> : <Pencil size={15} />}
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-slate-300"
+              title="Valuation inputs for this grant"
+              onClick={onEdit}
+            >
+              {editing ? <X size={13} /> : <Pencil size={13} />}
+              {editing ? "Close" : "Edit values"}
             </button>
           )}
         </td>

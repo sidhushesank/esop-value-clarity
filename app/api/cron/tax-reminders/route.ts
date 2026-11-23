@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { sendAdvisorReminderEmail } from "@/lib/mail";
 import { sendAdvisorPlanEmail } from "@/lib/advisor-billing-mail";
 import { sendStartupPlanEndingReminders } from "@/lib/company/plan-reminders";
+import { sendComplianceReminders } from "@/lib/compliance/reminders";
 import { computeClientLedger, dayStart } from "@/lib/advisor/tax/ledger-data";
 import {
   buildReminderEmail,
@@ -169,6 +170,18 @@ export async function GET(request: Request) {
   const startup = await sendStartupPlanEndingReminders(now);
   failures += startup.failures;
 
+  // Compliance calendar (W2c): PAS-3, MGT-14, TDS on exercises, exit windows,
+  // valuations, and foreign-equity advance tax / ITR / Form 67. Ledger TDS
+  // deadlines above are not repeated.
+  let compliance = { emails: 0, items: 0, failures: 0 };
+  try {
+    compliance = await sendComplianceReminders(now);
+  } catch (error) {
+    failures += 1;
+    console.error("[compliance-reminders] run failed", error);
+  }
+  failures += compliance.failures;
+
   return NextResponse.json({
     success: true,
     firms: firms.length,
@@ -176,6 +189,8 @@ export async function GET(request: Request) {
     reminders,
     expiryEmails,
     startupExpiryEmails: startup.sent,
+    complianceEmails: compliance.emails,
+    complianceItems: compliance.items,
     failures,
   });
 }

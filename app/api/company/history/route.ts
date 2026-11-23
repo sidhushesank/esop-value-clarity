@@ -6,7 +6,7 @@ import { listChanges } from "@/lib/change-log";
 
 export const dynamic = "force-dynamic";
 
-const TYPES = new Set(["company", "class", "holder", "movement", "scheme", "grant", "exercise", "expense", "import", "team"]);
+const TYPES = new Set(["company", "class", "holder", "movement", "scheme", "grant", "exercise", "expense", "calendar", "import", "team"]);
 
 /** GET /api/company/history?before=<iso>&type=<entityType>: change history, newest first. */
 export async function GET(request: Request) {

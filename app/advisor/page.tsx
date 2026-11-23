@@ -8,6 +8,7 @@ import {
   Briefcase,
   Building2,
   FileText,
+  CalendarDays,
   Globe2,
   Plus,
   RefreshCw,
@@ -375,6 +376,15 @@ export default function AdvisorHomePage() {
           >
             <Globe2 size={16} className="text-slate-300" />
             Foreign equity tax
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/advisor/calendar")}
+            className="ml-3 mt-6 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white/[0.12]"
+          >
+            <CalendarDays size={16} className="text-slate-300" />
+            Compliance calendar
           </button>
 
           {role !== "OWNER" && (

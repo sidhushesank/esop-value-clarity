@@ -1994,3 +1994,36 @@ model GrantValuation {
 
   @@index([workspaceId])
 }
+
+// ─── W2c: compliance calendar ───
+// An item marked done by hand (for items with no date field of their own,
+// e.g. advance tax paid, ITR filed, exit window handled).
+model ComplianceDone {
+  id      String      @id @default(cuid())
+  scope   ChangeScope
+  // CompanyWorkspace id (COMPANY) or AdvisorFirm id (ADVISOR)
+  ownerId String
+  itemKey String
+  doneOn  DateTime    @db.Date
+  userId  String?
+  note    String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([ownerId, itemKey])
+  @@index([ownerId])
+}
+
+// Reminder emails already sent, one row per item and step (30 / 7 / 1 / 0 days).
+model ComplianceReminderLog {
+  id         String      @id @default(cuid())
+  scope      ChangeScope
+  ownerId    String
+  itemKey    String
+  offsetDays Int
+  sentTo     String
+  sentAt     DateTime    @default(now())
+
+  @@unique([ownerId, itemKey, offsetDays])
+  @@index([ownerId])
+}
