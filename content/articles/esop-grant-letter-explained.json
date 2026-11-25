@@ -1,0 +1,172 @@
+{
+  "slug": "esop-grant-letter-explained",
+  "publishedAt": "2026-11-25",
+  "updatedAt": "2026-11-25",
+  "category": "ESOP basics",
+  "stage": "Got an offer",
+  "audience": ["Employees", "HR", "Founders"],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP grant letter explained: 10 clauses to check before you sign",
+  "description": "How to read an ESOP grant letter in India: options, exercise price, vesting, cliff, exercise window, leaver terms, lock-in and tax, with a worked ₹ example.",
+  "keywords": ["ESOP grant letter", "ESOP grant letter explained", "how to read ESOP grant letter", "ESOP grant letter India", "stock option grant letter clauses", "ESOP offer letter"],
+  "icon": "FileSearch",
+  "quickAnswer": [
+    "An ESOP grant letter tells you how many options you have, the price you will pay per share, when they vest, and how long you have to exercise them.",
+    "In an Indian private company it works under the ESOP scheme approved by shareholders, so the letter should be read together with the scheme document, which wins if the two differ.",
+    "Company law sets a minimum one-year gap between grant and vesting, bars transfer or pledge of options, and vests all granted options on death or permanent incapacity.",
+    "The clauses that decide what you actually take home are the exercise price, the post-exit exercise window, leaver and lapse terms, and how you will pay the tax due at exercise."
+  ],
+  "heroStats": [
+    {"label": "Minimum vesting period", "value": "1 year from grant"},
+    {"label": "Tax at exercise", "value": "Salary perquisite"},
+    {"label": "Unlisted LTCG holding period", "value": "Over 24 months"},
+    {"label": "Unlisted LTCG rate", "value": "12.5%"}
+  ],
+  "modelCards": [
+    {"label": "Read first", "value": "Number of options, exercise price, vesting schedule"},
+    {"label": "Read second", "value": "Exercise window after you leave, lapse and leaver terms"},
+    {"label": "Ask for", "value": "The scheme document, latest fair value and total shares outstanding"}
+  ],
+  "sections": [
+    {
+      "id": "what-it-is",
+      "eyebrow": "The basics",
+      "title": "What an ESOP grant letter is, and what sits behind it",
+      "body": [
+        "A grant letter is the company's written offer of stock options to you. It is personal: your name, your number of options, your price, your vesting dates. It is not a share certificate, and until you vest and exercise you hold a right to buy shares, not shares.",
+        "In an unlisted Indian company the letter sits on top of an ESOP scheme that shareholders approve by special resolution under Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014. The scheme sets the rules for everyone: pool size, eligibility, vesting, exercise period, lapse conditions and what happens when people leave. Listed companies follow SEBI's share-based employee benefit regulations instead.",
+        "Most letters say the scheme governs if there is a conflict. That makes the scheme document as important as the letter. If you were handed only the letter, ask for the scheme."
+      ]
+    },
+    {
+      "id": "clauses",
+      "eyebrow": "Clause by clause",
+      "title": "The 10 clauses to find in your grant letter",
+      "body": [
+        "Letters vary in layout, but almost all of them cover the points below. The legal backstops come from Rule 12, which lists what the scheme must disclose to shareholders and fixes a few rights you cannot sign away."
+      ],
+      "bullets": [
+        "Grant date: the date the board or committee granted the options. Vesting runs from here, and Rule 12 requires at least one year between grant and vesting.",
+        "Number of options: usually one option equals one equity share, but check the ratio and whether it adjusts for splits or bonus issues.",
+        "Exercise price: what you pay per share. Unlisted companies are free to set it under their accounting policies, so it can be face value or close to a recent valuation.",
+        "Vesting schedule: often four years with a one-year cliff, then monthly or quarterly. Some letters tie part of vesting to performance.",
+        "Exercise period: how long vested options stay open, both while you work there and after you leave. This is the clause people miss most often.",
+        "Leaver terms: unvested options lapse on resignation or termination; the scheme sets how long you have to exercise vested ones. Some schemes treat misconduct exits differently.",
+        "Lapse conditions: the events that cancel vested options, such as termination for cause or not exercising in time.",
+        "Lock-in and transfer: the company may set a lock-in on shares issued on exercise. Options themselves cannot be transferred, pledged or mortgaged.",
+        "Liquidity terms: buyback, drag-along, tag-along or right-of-first-refusal clauses on the shares you get after exercise.",
+        "Tax and payment mechanics: how you pay the exercise price, how TDS on the perquisite will be collected, and whether cashless exercise or a trust route exists."
+      ]
+    },
+    {
+      "id": "fixed-by-law",
+      "eyebrow": "Your floor",
+      "title": "What the law fixes, whatever the letter says",
+      "body": [
+        "Rule 12 applies to unlisted companies that are not covered by SEBI's ESOP regulations. A few of its points protect employees directly and override weaker wording in a letter."
+      ],
+      "bullets": [
+        "Minimum vesting: at least one year between grant and vesting.",
+        "No shareholder rights before exercise: no dividend or vote until shares are issued to you.",
+        "Death: all options granted up to that date vest in your legal heirs or nominees.",
+        "Permanent incapacity: all options granted up to that date vest on that day.",
+        "Resignation or termination: unvested options lapse on the day you leave; vested ones can be exercised within the period in the board-approved scheme.",
+        "Changes: the company can vary unexercised options only by special resolution and only if the change is not prejudicial to option holders."
+      ],
+      "warning": "Rule 12 wording here is summarised from a compliance compilation of the rules as amended, not the gazette text. Check your scheme and the current rules with a CS or lawyer for anything you plan to rely on."
+    },
+    {
+      "id": "who-can-get",
+      "eyebrow": "Eligibility",
+      "title": "Who can receive ESOPs in a private company",
+      "body": [
+        "Rule 12 allows grants to permanent employees in India or abroad, directors other than independent directors, and employees or directors of a subsidiary or holding company. It excludes promoters, people in the promoter group, and directors who hold more than 10% of the equity directly or indirectly.",
+        "Recognised startups get an exception: those exclusions do not apply for up to ten years from incorporation or registration, so founders of an eligible startup can hold ESOPs. Consultants and advisers are not employees under the rule, which is why they often get other instruments."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "The tax the grant letter rarely spells out",
+      "body": [
+        "Nothing is taxed when you receive or vest options. Tax arises at exercise: the difference between fair market value on the exercise date and the price you pay is a salary perquisite, and your employer deducts TDS. For unlisted shares, fair market value comes from a merchant banker valuation as of the exercise date or a date up to 180 days before it, according to the Income Tax Department.",
+        "When you later sell, the gain over that fair market value is a capital gain, with the holding period running from allotment. Unlisted shares held more than 24 months are long-term and taxed at 12.5%; otherwise the gain is taxed at slab rates. A company buyback paid on or after 1 April 2026 is also taxed as capital gains.",
+        "Employees of eligible startups can have TDS on the perquisite deferred until the earliest of 48 months from the end of the relevant assessment year, leaving the company, or selling the shares. The Income-tax Act, 2025 replaced the 1961 Act from 1 April 2026, so confirm current section references with a CA."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "Worked example: what a grant letter means in rupees",
+      "body": [
+        "The numbers below are illustrative only, to show how the clauses combine. They are not any company's terms.",
+        "Your letter grants 4,800 options at an exercise price of ₹50, vesting over four years with a one-year cliff: 1,200 vest at month 12, then 100 a month for 36 months (1,200 + 3,600 = 4,800).",
+        "You resign at month 30. Vested options are 1,200 + 18 × 100 = 3,000; the other 1,800 lapse. If the scheme gives you 90 days to exercise and fair value is ₹350, exercise costs 3,000 × ₹50 = ₹1,50,000. The perquisite is 3,000 × (₹350 − ₹50) = ₹9,00,000. At a 30% slab plus 4% cess (31.2%, ignoring surcharge), tax is ₹2,80,800. Total cash needed within the window: ₹4,30,800, for shares you may not be able to sell for years.",
+        "Run your own grant through the free ESOP calculator before you sign or resign."
+      ],
+      "cards": [
+        {"label": "Vested at month 30", "value": "3,000 options"},
+        {"label": "Exercise cost", "value": "₹1,50,000"},
+        {"label": "Perquisite tax (31.2%)", "value": "₹2,80,800"},
+        {"label": "Total cash in window", "value": "₹4,30,800"}
+      ]
+    },
+    {
+      "id": "what-to-ask",
+      "eyebrow": "Before you sign",
+      "title": "What to ask HR before you sign",
+      "body": [
+        "A grant letter rarely tells you what the options are worth. To judge that, you need the company's total share count and a recent valuation, then you can see your percentage and model dilution."
+      ],
+      "bullets": [
+        "Can I see the ESOP scheme document, not just the letter?",
+        "How many fully diluted shares exist, so I can work out my percentage?",
+        "What is the latest fair market value used for perquisite tax?",
+        "How long can I exercise vested options after I leave?",
+        "Has the company run a buyback before, and who was eligible?",
+        "Does the company qualify for startup perquisite tax deferral?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Employee", "value": "Find four numbers: options, exercise price, vesting dates and the post-exit exercise window. Then work out the tax at exercise before you count on any gain."},
+    {"label": "Founder", "value": "A clear letter that matches the scheme, with a worked example, earns more trust than a bigger number nobody understands."},
+    {"label": "HR", "value": "Send the scheme with the letter, state the exercise window in plain words, and keep the SH-6 register in step with every grant."},
+    {"label": "CA", "value": "Check the letter against the shareholder-approved scheme, the Rule 12 disclosures and the fair value method used for perquisite TDS."}
+  ],
+  "checklist": [
+    "Ask for and read the ESOP scheme document.",
+    "Note grant date, options, exercise price and vesting dates.",
+    "Find the exercise window after resignation.",
+    "Read lapse, leaver, lock-in and buyback clauses.",
+    "Estimate exercise cost plus perquisite tax with the ESOP calculator."
+  ],
+  "mistakes": [
+    "Signing without seeing the scheme document that governs the letter.",
+    "Judging the grant by option count instead of percentage of the company.",
+    "Missing a short post-exit exercise window.",
+    "Forgetting that exercise triggers salary tax even with no buyer for the shares.",
+    "Assuming the cliff can be shorter than one year or that options can be transferred."
+  ],
+  "faq": [
+    {"question": "What should an ESOP grant letter contain?", "answer": "Your name, grant date, number of options, exercise price, vesting schedule, exercise period during and after employment, lapse and leaver conditions, and a reference to the ESOP scheme that governs it."},
+    {"question": "Is an ESOP grant letter legally binding in India?", "answer": "It records the grant made under a shareholder-approved scheme, so it gives you rights on the terms of that scheme. If the letter and scheme conflict, the scheme usually prevails. Have a lawyer check anything unusual."},
+    {"question": "What is the minimum vesting period for ESOPs in India?", "answer": "For unlisted companies under Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014, there must be at least one year between grant and vesting."},
+    {"question": "What happens to my ESOPs if I resign?", "answer": "Unvested options lapse on the day you leave. Vested options can be exercised within the period set in the scheme; if you miss it, they usually lapse."},
+    {"question": "Are ESOPs taxed when they are granted?", "answer": "No. Tax arises when you exercise, on the gap between fair market value and your exercise price, and again as capital gains when you sell the shares."},
+    {"question": "Can I sell or transfer my ESOP options?", "answer": "No. Under Rule 12, options cannot be transferred, pledged or mortgaged, and only you can exercise them. You can sell shares after exercise, subject to the company's articles and any lock-in."}
+  ],
+  "related": ["vesting-schedule", "esop-exercise-cost", "should-i-negotiate-esops"],
+  "sources": [
+    {"title": "Rule 12, Companies (Share Capital and Debentures) Rules, 2014 (as amended, ca2013.com compilation)", "url": "https://ca2013.com/rule-12-companies-share-capital-and-debentures-rules-2014/"},
+    {"title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"},
+    {"title": "Income Tax Department: Salient features of the new Income-tax Act", "url": "https://www.incometaxindia.gov.in/documents/d/guest/english-salient-features-of-new-income-tax-act-pdf"}
+  ],
+  "hub": {
+    "summary": "A clause-by-clause guide to reading an Indian ESOP grant letter: options, exercise price, vesting, exercise window, leaver terms, what Rule 12 fixes, and the tax at exercise.",
+    "audience": ["Employee", "HR", "Founder", "Tax"],
+    "tags": ["grant letter", "vesting", "exercise window", "ESOP tax", "Rule 12"],
+    "tools": "ESOP calculator"
+  }
+}

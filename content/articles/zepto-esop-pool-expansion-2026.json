@@ -1,0 +1,155 @@
+{
+  "slug": "zepto-esop-pool-expansion-2026",
+  "publishedAt": "2026-11-25",
+  "updatedAt": "2026-11-25",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": ["Employees", "Founders", "HR"],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "Zepto ESOP pool expansion: trust loan, IPO pause, what it means",
+  "description": "Zepto grew its ESOP pool in Oct 2025 and Jun 2026 and gave its ESOP trust a ₹700 Cr loan. What it means for employees and how the shares are taxed.",
+  "keywords": ["Zepto ESOP", "Zepto ESOP pool", "Zepto employee stock option trust", "Zepto IPO ESOP", "ESOP trust loan India", "ESOP pool expansion"],
+  "icon": "Layers3",
+  "quickAnswer": [
+    "In October 2025 Zepto added about 39.4 lakh options to its ESOP pool, taking it to about 1.2 crore options, valued by Inc42 and Entrackr at roughly $527 million.",
+    "At the same time it approved an interest-free loan of up to ₹700 crore to the Zepto Employee Stock Option Trust so employees could buy or subscribe to shares under its ESOP plan.",
+    "Its updated IPO filing of June 2026 was reported to add another 246.5 million options to the pool, but in late July 2026 Zepto was reported to have put the IPO on hold amid valuation talks.",
+    "For employees, a bigger pool and a funded trust do not create cash by themselves: exercise is still taxed as salary on the gap between fair value and price paid, and the shares stay unlisted until a listing or buyback."
+  ],
+  "heroStats": [
+    {"label": "Options added, Oct 2025", "value": "≈39.4 lakh"},
+    {"label": "Pool value reported, Oct 2025", "value": "≈$527 Mn"},
+    {"label": "Interest-free loan to ESOP trust", "value": "Up to ₹700 Cr"},
+    {"label": "Options added in UDRHP, Jun 2026", "value": "246.5 Mn (reported)"}
+  ],
+  "modelCards": [
+    {"label": "Event type", "value": "ESOP pool expansion and trust funding (not a buyback)"},
+    {"label": "When", "value": "Oct 2025 board actions; Jun 2026 UDRHP; Jul 2026 IPO reported paused"},
+    {"label": "Employee tax trigger", "value": "Perquisite at exercise; capital gains when shares are sold"}
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The facts",
+      "title": "What Zepto did, and when",
+      "body": [
+        "This is not new this week. The core events happened in October 2025 and June 2026, and we cover them now because the questions they raise for employees are still live while Zepto stays unlisted.",
+        "On 16 October 2025 Entrackr reported, citing Zepto's filing with the Registrar of Companies, that the board had passed a resolution adding 39.39 lakh options to the ESOP pool, bringing the total to 122.90 lakh options. Entrackr estimated the new options at about ₹1,486 crore and the full pool at about ₹4,637 crore ($527 million). Inc42 reported the addition on 22 October 2025 as about $170 million and the pool at about $527 million. These dollar values are the publications' estimates, not figures Zepto announced.",
+        "Both reports said Zepto would extend an interest-free loan of up to ₹700 crore to its employee stock option trust. Entrackr said the money was to help the trust buy or subscribe to shares under the Zepto Share Option Plan I; Inc42 described the aim as letting employees exercise and buy vested shares without a heavy upfront outlay. The moves came alongside a $450 million round led by CalPERS that Inc42 said valued Zepto at about $7 billion."
+      ],
+      "bullets": [
+        "16 Oct 2025: Entrackr reports the pool expansion and ₹700 crore trust loan from RoC filings.",
+        "8 Jun 2026: Zepto files an updated DRHP with SEBI for a ₹8,010 crore fresh issue plus an offer for sale, per Business Today.",
+        "9 Jun 2026: NewsBytes reports the UDRHP adds 246.5 million options; Outlook Business describes the expansion as nearly 20%.",
+        "30–31 Jul 2026: Entrackr and Outlook Money, citing Moneycontrol, report the IPO has been put on hold and a pre-IPO round of over ₹1,000 crore is likely."
+      ]
+    },
+    {
+      "id": "ipo-filing",
+      "eyebrow": "The 2026 update",
+      "title": "What the June 2026 filing added",
+      "body": [
+        "NewsBytes reported on 9 June 2026 that Zepto was increasing its ESOP pool by 246.5 million options, taking it to 1.47 billion options subject to shareholder approval. It also reported that 1,725 employees received stock options in FY26, down from 2,351 in FY25, and that senior executives received some of the largest grants.",
+        "The June 2026 counts are far larger than the October 2025 count of about 1.2 crore options. The reports we read do not explain the gap; a change in share structure such as a split or bonus issue between the two dates would explain it, but we have not verified that, so the two numbers should not be compared directly.",
+        "Outlook Money reported on 31 July 2026, citing Moneycontrol, that Zepto had paused its IPO amid a gap between its valuation expectations and what domestic funds were offering, and planned to return to the market once profitability improved. Entrackr said it had asked Zepto for comment; no company response was reported."
+      ]
+    },
+    {
+      "id": "what-it-means",
+      "eyebrow": "For employees",
+      "title": "What a bigger pool and a funded trust mean for staff",
+      "body": [
+        "A larger pool means more options are available to grant. It does not change the terms of options already granted, and it dilutes every existing holder slightly, employees included, when those options are eventually exercised.",
+        "The trust loan matters more in practice. When a company lends to its ESOP trust, the trust can hold shares and let employees exercise through it, which can reduce the cash an employee has to find on day one. How that works for any one employee depends on the trust deed and scheme rules, which have not been published.",
+        "With the IPO on hold, shares bought on exercise remain unlisted. Cash comes only from a listing, a company or trust buyback, or a permitted secondary sale. Zepto has not announced an ESOP buyback in the sources we reviewed."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How Zepto-style ESOP shares are likely to be taxed",
+      "body": [
+        "On exercise, the difference between the share's fair market value on the exercise date and the price the employee pays is taxed as a salary perquisite, and the employer deducts TDS. For an unlisted company, fair market value is set by a merchant banker as of the exercise date or a date up to 180 days earlier, per the Income Tax Department.",
+        "On a later sale, the gain over that fair market value is a capital gain, and the holding period runs from the allotment date. Unlisted shares held more than 24 months are long-term and taxed at 12.5%; otherwise the gain is taxed at slab rates. If the shares are listed by the time they are sold, listed-share rules apply instead, so check the position at the time of sale.",
+        "If the trust later buys shares back, a buyback paid on or after 1 April 2026 is taxed as capital gains under current law. The Income-tax Act, 2025 replaced the 1961 Act from 1 April 2026; confirm section references for your return with a CA."
+      ],
+      "warning": "Startup tax deferral on the perquisite applies only to eligible startups with the required certification. Do not assume it applies to Zepto; ask payroll."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "A worked example (not Zepto's numbers)",
+      "body": [
+        "These numbers are invented to show the mechanics. They are not Zepto's exercise price, valuation or any employee's grant.",
+        "Say an employee exercises 2,000 vested options at ₹10 each when the merchant-banker fair value is ₹500. Exercise cost is 2,000 × ₹10 = ₹20,000. The perquisite is 2,000 × (₹500 − ₹10) = ₹9,80,000. At a 30% slab plus 4% cess (31.2%, ignoring surcharge), tax is about ₹3,05,760, collected through payroll.",
+        "If the shares are later sold at ₹650 more than 24 months after allotment while still unlisted, the gain is 2,000 × (₹650 − ₹500) = ₹3,00,000. At 12.5% that is ₹37,500, or ₹39,000 with 4% cess. You can model your own numbers with the free ESOP calculator."
+      ],
+      "cards": [
+        {"label": "Exercise cost", "value": "₹20,000"},
+        {"label": "Perquisite tax (31.2%)", "value": "≈₹3,05,760"},
+        {"label": "LTCG tax on sale (with cess)", "value": "₹39,000"}
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Questions to ask",
+      "title": "What employees anywhere should ask after a pool expansion",
+      "body": [
+        "These questions apply to any company that grows its pool or funds an ESOP trust, not just Zepto."
+      ],
+      "bullets": [
+        "Do new grants come from the expanded pool, and does any of it change my existing grant?",
+        "Can I exercise through the trust, and on what terms: loan, repayment, interest, or cashless?",
+        "Who values the shares at exercise, and on what date?",
+        "If the IPO is delayed, is there any buyback or secondary window, and who is eligible?",
+        "How long is my post-exit exercise window, and does it change after listing?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Employee", "value": "A larger pool or trust loan is a signal, not cash. Find out how you would exercise, what it would cost in tax, and when you could actually sell."},
+    {"label": "Founder", "value": "Funding an ESOP trust can ease employees' exercise cost, but staff will still ask about liquidity if a listing slips. Plan the message before they ask."},
+    {"label": "HR", "value": "When pool or trust news is public, employees need a short note on what changed for them and what did not."},
+    {"label": "CA", "value": "Check fair value timing, TDS on exercise through a trust, and whether a later buyback falls under the post-1 April 2026 capital gains rules."}
+  ],
+  "checklist": [
+    "Read your grant letter and the scheme's exercise window.",
+    "Ask HR whether exercise can go through the ESOP trust and on what terms.",
+    "Get the latest fair market value used for perquisite tax.",
+    "Estimate perquisite tax before exercising with the ESOP calculator.",
+    "Track the allotment date: it starts the capital gains holding period."
+  ],
+  "mistakes": [
+    "Reading a pool's dollar value as what your own options are worth.",
+    "Assuming a funded trust means a buyback is coming.",
+    "Comparing option counts across dates without checking for splits or bonus issues.",
+    "Forgetting that exercise is taxed even if you cannot sell the shares.",
+    "Assuming startup tax deferral applies without confirming eligibility."
+  ],
+  "faq": [
+    {"question": "How big is Zepto's ESOP pool?", "answer": "Entrackr reported 122.90 lakh options after the October 2025 expansion, valued at about $527 million by Entrackr and Inc42. NewsBytes reported in June 2026 that the updated IPO filing took the pool to 1.47 billion options, pending shareholder approval. The two counts appear to use different share structures, so compare them with care."},
+    {"question": "What is Zepto's ₹700 crore ESOP trust loan?", "answer": "Entrackr and Inc42 reported in October 2025 that Zepto approved an interest-free loan of up to ₹700 crore to its employee stock option trust, to help the trust buy or subscribe to shares under its ESOP plan so employees could exercise without a large upfront cost."},
+    {"question": "Did Zepto postpone its IPO?", "answer": "Entrackr and Outlook Money reported on 30–31 July 2026, citing Moneycontrol, that Zepto had put its IPO on hold amid valuation talks and could raise over ₹1,000 crore in a pre-IPO round. No company statement was reported."},
+    {"question": "How are ESOPs in an unlisted company taxed in India?", "answer": "The gap between fair market value and exercise price is taxed as salary when you exercise. When you sell, the gain over that fair value is a capital gain: long-term at 12.5% if the unlisted shares were held over 24 months from allotment, otherwise at slab rates."},
+    {"question": "Does an ESOP pool expansion dilute existing employees?", "answer": "Yes, slightly, once the new options are granted and exercised, because more shares share the same company. It does not reduce the number of options you already hold."}
+  ],
+  "related": ["esop-buyback-india", "dilution-explained", "esop-exercise-cost"],
+  "sources": [
+    {"title": "Entrackr: Zepto expands ESOP pool by $169 Mn; total pool at $527 Mn (16 Oct 2025)", "url": "https://entrackr.com/exclusive/exclusive-zepto-expands-esop-pool-by-169-mn-total-pool-at-527-mn-10569067"},
+    {"title": "Inc42: Quick Commerce Major Zepto Expands ESOP Pool By $170 Mn (22 Oct 2025)", "url": "https://inc42.com/buzz/quick-commerce-major-zepto-expands-esop-pool-by-170-mn"},
+    {"title": "Outlook Business: Zepto Expands Employee Rewards with $170 Mn ESOPs, ₹700 Cr Loan Facility (22 Oct 2025)", "url": "https://www.outlookbusiness.com/news/zepto-expands-employee-rewards-with-170-mn-esops-700-cr-loan-facility"},
+    {"title": "Business Today: Zepto files UDRHP for IPO (9 Jun 2026)", "url": "https://www.businesstoday.in/markets/ipo-corner/story/zepto-files-udrhp-for-ipo-ed-summons-to-promoters-disclosed-key-details-you-should-know-535685-2026-06-09"},
+    {"title": "Outlook Business: Inside Zepto's updated DRHP (9 Jun 2026)", "url": "https://www.outlookbusiness.com/corporate/inside-zeptos-updated-drhp-ipo-size-investor-selloff-risks-and-growth-plans"},
+    {"title": "NewsBytes: Zepto boosts ESOP to 1.47 billion options as grants fall (9 Jun 2026)", "url": "https://www.newsbytesapp.com/news/business/zepto-boosts-esop-to-147-billion-options-as-grants-fall/tldr"},
+    {"title": "Entrackr: Zepto postpones IPO, may raise Rs 1,000 Cr in pre-IPO round (30 Jul 2026)", "url": "https://entrackr.com/news/zepto-postpones-ipo-may-raise-rs-1000-cr-in-pre-ipo-round-12213382"},
+    {"title": "Outlook Money: Zepto pauses IPO plans (31 Jul 2026)", "url": "https://www.outlookmoney.com/invest/zepto-pauses-ipo-plans-set-to-raise-rs-1000-crore-in-pre-ipo-funding"},
+    {"title": "Income Tax Department: Taxation of Employee Stock Option Plan (ESOP)", "url": "https://www.incometaxindia.gov.in/w/taxation-of-employee-stock-option-plan-esop-"}
+  ],
+  "hub": {
+    "summary": "Zepto expanded its ESOP pool, funded its ESOP trust with an interest-free loan of up to ₹700 crore, then paused its IPO. What employees should know about exercise, tax and liquidity.",
+    "audience": ["Employee", "Founder", "HR", "Tax"],
+    "tags": ["company news", "Zepto", "ESOP pool", "ESOP trust", "IPO"],
+    "tools": "ESOP calculator"
+  }
+}
