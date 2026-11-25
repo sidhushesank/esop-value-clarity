@@ -44,6 +44,13 @@ const nextConfig: NextConfig = {
         destination: "https://esopvalueclarity.com/:path*",
         permanent: true,
       },
+      // The pricing comparison page first went live under a misspelt URL.
+      // Send that address (and any links to it) to the correct one.
+      {
+        source: "/esop-managment-software-pricing",
+        destination: "/esop-management-software-pricing",
+        permanent: true,
+      },
     ];
   },
 };

@@ -14,6 +14,8 @@ import Link from "next/link";
 import Footer from "@/components/sections/Footer";
 import StartupDeskSection from "@/components/home/StartupDeskSection";
 import CapTableToolSection from "@/components/home/CapTableToolSection";
+import { STARTUP_PLAN } from "@/lib/company-pricing";
+import { ADVISOR_PLAN } from "@/lib/advisor-pricing";
 import { calculateAdvancedTax } from "@/lib/esop/tax";
 import {
   Area,
@@ -386,8 +388,46 @@ const FAQ_GROUPS = [
         a: "Yes. You can switch regimes and the whole model, including take-home at every exit, recalculates.",
       },
       {
+        q: "Does EVC handle NRI and RNOR ESOP tax?",
+        a: "Yes. Choose Resident, RNOR or Non-resident, or let EVC work it out from your days in India under section 6. For a non-resident, only the share of the perquisite earned while working in India is taxed in India, and the section 87A rebate does not apply.",
+      },
+      {
+        q: "How are foreign RSUs and ESPP taxed in India?",
+        a: "The value at vest (or the ESPP discount) is taxed as salary and becomes the cost. On sale, the gain is converted at the SBI TT buying rate: long-term after 24 months at 12.5% without indexation, short-term at slab rates. Holdings go in Schedule FA every calendar year, and US tax withheld on dividends is claimed through Form 67.",
+      },
+      {
         q: "Is this tax advice?",
         a: "No. EVC gives planning estimates for decision support. For filing, or for a decision with large tax consequences, speak to a qualified CA.",
+      },
+    ],
+  },
+  {
+    key: "firms",
+    label: "Startups & CA firms",
+    items: [
+      {
+        q: "Is there ESOP software for CA and CS firms in India?",
+        a: "Yes. EVC's Advisor Console manages ESOP work across client companies: registers, approvals and valuations, a diligence report, the perquisite and TDS ledger, foreign RSU capital gains for individual clients, and one compliance calendar for every client.",
+      },
+      {
+        q: "Which broker files does the Foreign Equity Tax Pack read?",
+        a: "Excel or CSV downloads of either a transaction history or a realised gains report, from any broker: Morgan Stanley at Work (E*TRADE), Charles Schwab and Fidelity are the most common. Columns are matched by name. PDF statements and contract notes are not read.",
+      },
+      {
+        q: "Does EVC prepare Schedule FA?",
+        a: "It computes the Schedule FA A3 and A2 figures for each calendar year: initial value, peak value (checked every trading day), closing value and sale proceeds, each at the SBI TT buying rate of its own date. Country, address and cash balances are filled from the statement.",
+      },
+      {
+        q: "Does EVC calculate the ESOP expense under Ind AS 102?",
+        a: "Yes. The Startup plan's expense report follows Ind AS 102, the ICAI Guidance Note and ASC 718: Black-Scholes or your valuer's value, graded or straight-line, leaver reversals, quarterly figures and the journal entry, in Excel and PDF.",
+      },
+      {
+        q: "Which ESOP filings does the compliance calendar track?",
+        a: "PAS-3 within 30 days of allotment, MGT-14 for the scheme resolution, TDS on the perquisite, quarterly TDS returns, Form 16, deferred TDS for eligible startups, leavers' exercise windows, option expiries and valuation age, plus advance tax, ITR and Form 67 for individuals. Reminders go out at 30, 7 and 1 day before, and on the day.",
+      },
+      {
+        q: "Does EVC file PAS-3, MGT-14 or TDS returns?",
+        a: "No. EVC computes, tracks and reminds. Filing stays with your CS or CA on the MCA and TRACES portals; the filing date entered in EVC closes the item.",
       },
     ],
   },
@@ -752,6 +792,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ======================= PRODUCTS (what EVC does, in full) ======================= */}
+      <ProductsSection />
+
+      {/* ======================= COMPLIANCE CALENDAR ======================= */}
+      <ComplianceSection />
 
       {/* ======================= STARTUP EQUITY DESK ======================= */}
       <CapTableToolSection />
@@ -3202,6 +3248,286 @@ function DataFlow() {
 }
 
 /* ============================================================
+   PRODUCTS: what EVC does, in full (answer-first for search
+   and AI answer engines: plain sentences, real features only)
+============================================================ */
+
+const nfIN = new Intl.NumberFormat("en-IN");
+
+const PRODUCTS: {
+  key: string;
+  icon: typeof Building2;
+  name: string;
+  forWho: string;
+  price: string;
+  summary: string;
+  features: string[];
+  cta: { label: string; href: string };
+  second: { label: string; href: string };
+}[] = [
+  {
+    key: "startups",
+    icon: Building2,
+    name: "Startup Equity Desk",
+    forWho: "For founders and finance teams",
+    price: `₹${nfIN.format(STARTUP_PLAN.priceRupees)} / year · ${STARTUP_PLAN.includedOptionHolders} option holders`,
+    summary:
+      "Runs a startup's ESOP programme end to end: the cap table, the ESOP pool, every grant, exercises through to allotment, the ESOP expense for the accounts and every filing date.",
+    features: [
+      "Cap table with share classes and an ESOP pool that updates with every grant",
+      "Grants with vesting schedules and a private page for each employee, with online Accept",
+      "Exercises recorded through allotment, with PAS-3, TDS on the perquisite (including startup deferral) and Form 3921 for US companies tracked",
+      "ESOP expense report under Ind AS 102, the ICAI Guidance Note and ASC 718: Black-Scholes or valuer value, graded or straight-line, leaver reversals, journal entry, Excel and PDF",
+      "Compliance calendar with email reminders for PAS-3, MGT-14, TDS, leaver windows, option expiries and valuation age",
+      "Import your existing Excel cap table and grants",
+      "Team logins (owner, admin, view only) and a full change history",
+      "Indian or US company: rupees or dollars, Indian or US rules",
+    ],
+    cta: { label: "See the Startup plan", href: "/pricing#startup" },
+    second: { label: "Book a founder walkthrough", href: "/meeting" },
+  },
+  {
+    key: "employees",
+    icon: UserRound,
+    name: "ESOP calculator and EVC PRO",
+    forWho: "For employees holding ESOPs or RSUs",
+    price: "Free calculator · PRO from ₹2,999 a month",
+    summary:
+      "Shows what an ESOP grant is really worth: what has vested, what exercising costs, the tax at exercise and at sale, and what you keep in rupees.",
+    features: [
+      "Upload the grant letter: every field is read from it and confirmed by you",
+      "Vesting and cliff on one timeline, and what lapses if you leave",
+      "Exercise cost, perquisite tax and capital gains, old or new regime, with surcharge, marginal relief and cess",
+      "Resident, RNOR or NRI: the tax follows your status, with a days-in-India check and the India share of the perquisite for NRIs",
+      "Dilution across funding rounds and Bear, Base and Bull exit values",
+      "Offer Intelligence: two job offers compared on the same basis",
+      "A one-page PDF report",
+    ],
+    cta: { label: "Model your grant free", href: "/simulator" },
+    second: { label: "Compare Free and PRO", href: "/pricing#pro" },
+  },
+  {
+    key: "firms",
+    icon: Landmark,
+    name: "Advisor Console",
+    forWho: "For CA and CS firms",
+    price: `₹${nfIN.format(ADVISOR_PLAN.priceRupees)} / year · ${ADVISOR_PLAN.includedClients} client companies`,
+    summary:
+      "Runs a firm's ESOP practice across clients: company registers and approvals, a diligence report, the employer's perquisite and TDS ledger, and capital gains on foreign RSUs and ESPP for individual clients.",
+    features: [
+      "Client companies with grant, exercise and cap table registers imported from Excel",
+      "Approvals and valuations: special resolution, MGT-14, merchant banker value within 180 days of exercise",
+      "ESOP Diligence Pack: checks against the Companies Act and tax rules, a readiness score, PDF and Excel, and passcode-protected client links",
+      "Tax-Event Ledger: perquisite and TDS for every exercise, net-pay shortfall, the startup deferral clock, sale and buyback gains, and exports for the 24Q return and Form 16",
+      "Foreign Equity Tax Pack: Morgan Stanley (E*TRADE), Schwab or Fidelity exports become lots, converted at SBI TT buying rates, split into STCG and LTCG with Schedule CG date buckets",
+      "Schedule FA A3 and A2 for each calendar year, with the peak value checked every trading day; dividends, US tax withheld and the credit for Form 67",
+      "One compliance calendar across every client, with email reminders and a Google or Outlook (.ics) export",
+      "Team logins and change history for every client",
+    ],
+    cta: { label: "Book a demo", href: "/meeting" },
+    second: { label: "See Advisor pricing", href: "/pricing#advisor" },
+  },
+];
+
+function ProductsSection() {
+  return (
+    <section id="products" className="mx-auto max-w-[1200px] px-4 py-24 sm:px-6 md:py-32">
+      <Reveal>
+        <Eyebrow>What EVC does</Eyebrow>
+        <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+          Three products. One ESOP system for India.
+        </h2>
+        <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+          ESOP Value Clarity (EVC) is ESOP software built in India for Indian tax and company law. Startups use it to
+          run their cap table, ESOP grants and filings. Employees use it to see what a grant is worth after tax. CA and
+          CS firms use it to run ESOP compliance and foreign share taxation for their clients.
+        </p>
+      </Reveal>
+
+      <div className="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        {PRODUCTS.map((p, i) => {
+          const Icon = p.icon;
+          return (
+            <Reveal key={p.key} delay={i * 90}>
+              <article className="flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-7 shadow-[0_40px_90px_-70px_rgba(4,38,83,0.7)]">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#042653] text-[#F2B421]">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[#B7800E]">{p.forWho}</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-[#020d1f]">{p.name}</h3>
+                <p className="mt-1 text-sm font-medium text-slate-500">{p.price}</p>
+                <p className="mt-4 text-[15px] leading-7 text-slate-700">{p.summary}</p>
+                <ul className="mt-5 space-y-2.5">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex gap-2.5 text-sm leading-6 text-slate-700">
+                      <Check className="mt-1 h-4 w-4 shrink-0 text-[#B7800E]" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto flex flex-col gap-2 pt-7 sm:flex-row lg:flex-col xl:flex-row">
+                  <Link
+                    href={p.cta.href}
+                    className="evc-btn-gold group inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#F2B421] px-5 text-sm font-semibold text-[#020d1f] transition hover:-translate-y-0.5"
+                  >
+                    {p.cta.label}
+                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    href={p.second.href}
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-semibold text-[#042653] transition hover:border-[#042653]"
+                  >
+                    {p.second.label}
+                  </Link>
+                </div>
+              </article>
+            </Reveal>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   COMPLIANCE CALENDAR: what it tracks and why it matters
+   (penalties stated with their source; "verify" where needed)
+============================================================ */
+
+const TRACKED: { group: string; items: { title: string; due: string }[] }[] = [
+  {
+    group: "Company filings (MCA)",
+    items: [
+      { title: "PAS-3, return of allotment", due: "30 days after shares are allotted on exercise" },
+      { title: "MGT-14 for the ESOP scheme's special resolution", due: "30 days after the resolution" },
+    ],
+  },
+  {
+    group: "Employer tax",
+    items: [
+      { title: "TDS on the ESOP perquisite", due: "7th of the next month (30 April for March)" },
+      { title: "Quarterly salary TDS return", due: "31 Jul, 31 Oct, 31 Jan, 31 May" },
+      { title: "Form 16 with the perquisite", due: "15 June after the year" },
+      { title: "Deferred TDS for eligible startups", due: "14 days after the window ends, a sale or leaving" },
+    ],
+  },
+  {
+    group: "ESOP events",
+    items: [
+      { title: "Leaver's exercise window ends", due: "Leaving date + the scheme's window" },
+      { title: "Options expire", due: "Expiry date in the grant" },
+      { title: "Valuation too old for exercises", due: "180 days after the valuation date" },
+    ],
+  },
+  {
+    group: "Individuals with foreign shares",
+    items: [
+      { title: "Advance tax instalments", due: "15 Jun, 15 Sep, 15 Dec, 15 Mar" },
+      { title: "Income tax return with Schedule FA", due: "31 July (non-audit cases)" },
+      { title: "Form 67 for foreign tax credit", due: "With the return" },
+    ],
+  },
+];
+
+const RISKS: { text: string; source: { label: string; href: string } }[] = [
+  {
+    text: "A late PAS-3 costs the company and each officer in default ₹1,000 a day, up to ₹1 lakh each, plus MCA additional fees of up to 12 times the normal fee.",
+    source: { label: "Companies Act s.39(5)", href: "https://www.taxclue.in/tools/pas-3-late-filing-penalty-calculator" },
+  },
+  {
+    text: "A late MGT-14 costs ₹10,000 plus ₹100 a day, up to ₹2 lakh for the company, with separate penalties on officers.",
+    source: { label: "Companies Act s.117(2)", href: "https://www.taxscan.in/top-stories/delay-of-215-days-in-filing-board-resolution-in-form-mgt-14-mca-imposes-penalty-1437235" },
+  },
+  {
+    text: "Foreign assets left out of Schedule FA can draw a ₹10 lakh penalty, except where foreign movable assets total up to ₹20 lakh.",
+    source: { label: "Black Money Act s.43", href: "https://taxguru.in/?p=925008" },
+  },
+];
+
+function ComplianceSection() {
+  return (
+    <section id="compliance-calendar" className="relative overflow-hidden bg-[#020d1f] py-24 text-white md:py-32">
+      <div className="evc-grid pointer-events-none absolute inset-0 opacity-60" />
+      <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div>
+            <Reveal>
+              <EyebrowDark>Compliance calendar</EyebrowDark>
+              <h2 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                Every ESOP deadline, one list, reminders before it slips.
+              </h2>
+              <p className="mt-5 text-lg leading-8 text-slate-300">
+                EVC builds the calendar from the records you already keep: allotments, resolutions, valuations, grants,
+                exercises and foreign share sales. Nobody types a date twice.
+              </p>
+            </Reveal>
+
+            <Reveal delay={100}>
+              <ul className="mt-8 space-y-3 text-sm leading-6 text-slate-300">
+                <li className="flex gap-3">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#F2B421]" />
+                  One email digest at 30 days, 7 days and 1 day before, and on the due date.
+                </li>
+                <li className="flex gap-3">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F2B421]" />
+                  Mark done, or enter the filing date, and the reminders stop. Every mark is logged.
+                </li>
+                <li className="flex gap-3">
+                  <Download className="mt-0.5 h-4 w-4 shrink-0 text-[#F2B421]" />
+                  Add every open date to Google or Outlook with one .ics file.
+                </li>
+                <li className="flex gap-3">
+                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#F2B421]" />
+                  For a startup in the Startup Equity Desk, and across every client in the Advisor Console.
+                </li>
+              </ul>
+            </Reveal>
+
+            <Reveal delay={160}>
+              <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F2B421]">Why it matters</p>
+                <ul className="mt-3 space-y-3">
+                  {RISKS.map((r) => (
+                    <li key={r.source.label} className="text-sm leading-6 text-slate-300">
+                      {r.text}{" "}
+                      <a href={r.source.href} target="_blank" rel="noopener" className="whitespace-nowrap text-slate-400 underline decoration-white/20 underline-offset-2 hover:text-white">
+                        {r.source.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-[11px] leading-5 text-slate-500">
+                  Amounts as published; confirm the current position with your CS or CA. EVC computes, tracks and
+                  reminds; it does not file on the MCA or TRACES portals.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+
+          <Reveal delay={120}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {TRACKED.map((g) => (
+                <div key={g.group} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{g.group}</p>
+                  <ul className="mt-3 space-y-3">
+                    {g.items.map((it) => (
+                      <li key={it.title}>
+                        <p className="text-sm font-semibold text-white">{it.title}</p>
+                        <p className="text-xs leading-5 text-slate-400">{it.due}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
    AUDIENCES WITH WORKFLOWS (tabs)
 ============================================================ */
 
@@ -4120,4 +4446,4 @@ const PAGE_CSS = `
   .evc-home .evc-rise, .evc-home .evc-stagger { opacity: 1; }
   .evc-home .evc-fill { width: var(--to); }
 }
-`;
+`;

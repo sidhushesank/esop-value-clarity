@@ -11,12 +11,12 @@ import { softwareSchema } from "@/lib/schema";
  * State only what each vendor publishes, link it, and say plainly where EVC is
  * the wrong fit. That honesty is what makes the page citable.
  *
- * BEFORE PUBLISHING: open each competitor's own pricing page and fill/confirm the
- * "Published price" column. The values below come from G2 listings on 22 Nov 2026.
+ * "Published price" column: from G2 / Capterra listings, checked 25 Nov 2026.
+ * Re-check each vendor's own site when updating this page.
  */
 
 const URL = "https://esopvalueclarity.com/esop-management-software-pricing";
-const UPDATED = "2026-11-22";
+const UPDATED = "2026-11-25";
 
 export const metadata: Metadata = {
   title: "ESOP Management Software Pricing in India (2026): What Startups Actually Pay",
@@ -46,9 +46,9 @@ const rows = [
   },
   {
     vendor: "Hissa",
-    published: "VERIFY ON HISSA'S SITE BEFORE PUBLISHING",
+    published: "Not published. Price on request after a demo",
     bestFor: "Companies that also want access to employee-share secondary liquidity (Hissa runs an ESOP secondary fund)",
-    source: { title: "Capterra: Hissa", url: "https://www.capterra.com/p/10040917/Hissa/" },
+    source: { title: "G2: Hissa pricing", url: "https://www.g2.com/products/hissa/pricing" },
   },
 ];
 

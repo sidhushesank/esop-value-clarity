@@ -124,3 +124,159 @@
     @apply bg-background text-foreground;
   }
 }
+/* ------------------------------------------------------------------
+   Long-form public pages (pricing comparison, buyback tracker):
+   .prose-page, the AnswerFirst block (.answer-first) and wide tables
+   (.table-scroll). Plain semantic HTML styled here so the pages stay
+   server-rendered and readable without JavaScript.
+------------------------------------------------------------------ */
+@layer components {
+  .prose-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 6rem;
+    color: #1e293b;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+  .prose-page h1 {
+    margin: 0 0 1.5rem;
+    color: #020d1f;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+  .prose-page h2 {
+    margin: 2.75rem 0 0.75rem;
+    color: #020d1f;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+  .prose-page h3 {
+    margin: 2rem 0 0.5rem;
+    color: #020d1f;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .prose-page p {
+    margin: 0 0 1rem;
+  }
+  .prose-page ul,
+  .prose-page ol {
+    margin: 0 0 1.25rem;
+    padding-left: 1.4rem;
+  }
+  .prose-page ul {
+    list-style: disc;
+  }
+  .prose-page ol {
+    list-style: decimal;
+  }
+  .prose-page li {
+    margin: 0.35rem 0;
+  }
+  .prose-page a {
+    color: #0b4aa2;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: rgba(11, 74, 162, 0.3);
+    text-underline-offset: 3px;
+  }
+  .prose-page a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .answer-first {
+    margin: 0 0 2rem;
+    padding: 1.5rem 1.5rem 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #f2b421;
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 30px 70px -55px rgba(4, 38, 83, 0.55);
+  }
+  .answer-first h2 {
+    margin: 0 0 0.6rem;
+    font-size: 1.2rem;
+  }
+  .answer-first__answer {
+    color: #0f172a;
+    font-size: 1.075rem;
+  }
+  .answer-first__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .answer-first__facts > div {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.75rem;
+    background: #f1f5f9;
+  }
+  .answer-first__facts dt {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .answer-first__facts dd {
+    margin: 0.2rem 0 0;
+    color: #020d1f;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .answer-first__meta,
+  .answer-first__sources {
+    margin: 0.4rem 0 0;
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .table-scroll {
+    margin: 1.5rem 0 2rem;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    background: #ffffff;
+  }
+  .table-scroll table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .table-scroll caption {
+    padding: 0.85rem 1rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-align: left;
+    caption-side: top;
+  }
+  .table-scroll th,
+  .table-scroll td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    text-align: left;
+    vertical-align: top;
+  }
+  .table-scroll thead th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .table-scroll tbody th {
+    color: #020d1f;
+    font-weight: 700;
+  }
+}
