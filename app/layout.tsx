@@ -180,6 +180,12 @@ const jsonLd = {
         addressRegion: "Telangana",
         addressCountry: "IN",
       },
+      // Official EVC profiles. sameAs is how search and AI engines link these to the site.
+      sameAs: [
+        "https://www.linkedin.com/company/esop-value-clarity/",
+        "https://www.youtube.com/@esopvalueclarity",
+        "https://www.producthunt.com/products/esop-value-clarity",
+      ],
       areaServed: { "@type": "Country", name: "India" },
       knowsAbout: [
         "Employee stock options (ESOPs) in India",
@@ -290,4 +296,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+}

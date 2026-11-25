@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How ESOP Value Clarity collects, stores and protects your grant data, documents and account information.",
+    "How ESOP Value Clarity handles personal data across the ESOP calculator, EVC PRO, Startup Equity Desk and Advisor Console, and your rights under the DPDP Act, 2023.",
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: "Privacy Policy | ESOP Value Clarity",
     description:
-      "How ESOP Value Clarity collects, stores and protects your grant data, documents and account information.",
+      "How ESOP Value Clarity handles personal data across the ESOP calculator, EVC PRO, Startup Equity Desk and Advisor Console, and your rights under the DPDP Act, 2023.",
     url: "/privacy",
     type: "website",
     siteName: "ESOP Value Clarity",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Privacy Policy | ESOP Value Clarity",
     description:
-      "How ESOP Value Clarity collects, stores and protects your grant data, documents and account information.",
+      "How ESOP Value Clarity handles personal data across the ESOP calculator, EVC PRO, Startup Equity Desk and Advisor Console, and your rights under the DPDP Act, 2023.",
     images: ["/og-image.png"],
   },
 };
