@@ -1014,7 +1014,7 @@ function HeroShowcase({ employee }: { employee: HeroEmployeeSample }) {
       <div className="evc-grid pointer-events-none absolute inset-0 -z-10" />
       <div className="evc-beam pointer-events-none absolute -top-40 left-1/2 -z-10 h-[520px] w-[900px] -translate-x-1/2" />
 
-      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:pb-20">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-start lg:pb-20">
         {/* ---------------- copy ---------------- */}
         <div>
           <p
@@ -1134,7 +1134,7 @@ function HeroShowcase({ employee }: { employee: HeroEmployeeSample }) {
 
         {/* ---------------- product window ---------------- */}
         <div
-          className="evc-rise"
+          className="evc-rise lg:sticky lg:top-24 lg:mt-12"
           style={{ animationDelay: "240ms" }}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
