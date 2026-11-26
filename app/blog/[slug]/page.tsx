@@ -365,6 +365,7 @@ const articles = {
     audience: ["Employees", "CAs", "Founders"],
     readTime: "5 min read",
     videoTime: "3 min video",
+    updatedAt: "2026-11-26",
     title: "ESOP Exercise Price (Strike Price): Meaning, Cost and Tax in India",
     description:
       "What the ESOP exercise price (strike price) means, how Indian companies set it, and the full cash you need to exercise, including perquisite tax. Worked ₹ example inside.",
@@ -462,7 +463,7 @@ const articles = {
         ],
         bullets: [
           "Exercise in tranches, a portion each year, to spread the tax across years and slabs.",
-          "Check whether you qualify for the deferral available to employees of eligible startups: tax at exercise can be postponed to the earliest of 48 months from the end of the assessment year, the sale of the shares, or leaving the company.",
+          "Check whether you qualify for the deferral available to employees of eligible startups: tax at exercise can be postponed to the earliest of 60 months from the end of the tax year of allotment (48 months for shares allotted before 1 April 2026), the sale of the shares, or leaving the company.",
           "Ask whether the company offers cashless exercise at a buyback or sale, where shares are sold and the proceeds cover the price and tax.",
           "If you are leaving, compare the cost of exercising with the length of the exercise window before deciding.",
         ],
@@ -520,6 +521,16 @@ const articles = {
         question: "How do I calculate the total cost of exercising my ESOPs?",
         answer:
           "Add two amounts: options × exercise price, paid to the company, and the tax on options × (FMV − exercise price) at your slab rate plus cess. The free ESOP calculator on this site does this for you.",
+      },
+      {
+        question: "What is the exercise period in ESOP?",
+        answer:
+          "It is the time you have to exercise vested options. While you work at the company it usually runs until the options expire. After you leave, the scheme sets a separate window, anywhere from 30 days to several years, and some Indian schemes allow exercise only at a liquidity event. Vested options not exercised in time can lapse.",
+      },
+      {
+        question: "What is the difference between the exercise price and the FMV?",
+        answer:
+          "The exercise price is the fixed amount you pay per share, set at grant. The FMV (fair market value) is what a share is worth on the exercise date, from a Category I merchant banker valuation for unlisted companies. The gap between them, times the options exercised, is the perquisite taxed as salary.",
       },
       {
         question: "What if I cannot afford to exercise my vested options?",
@@ -1351,6 +1362,7 @@ const articles = {
     audience: ["Employees", "Founders", "HR"],
     readTime: "6 min read",
     videoTime: "3 min video",
+    updatedAt: "2026-11-26",
     title: "ESOP Vesting Schedule in India: 1-Year Cliff, 4-Year Vesting and Examples",
     description:
       "How an ESOP vesting schedule works in India: the one-year cliff, monthly and yearly vesting, the legal minimum of one year before vesting, worked examples, and what happens to vested and unvested options when you leave.",
@@ -1363,6 +1375,10 @@ const articles = {
       "vested and unvested options",
       "unvested ESOP meaning",
       "vesting in ESOP",
+      "1 year cliff vesting",
+      "1/48 monthly vesting",
+      "vesting date meaning",
+      "maximum vesting period for ESOP",
     ],
     icon: Clock3,
     quickAnswer: [
@@ -1496,6 +1512,26 @@ const articles = {
         question: "What is a one-year cliff?",
         answer:
           "Nothing vests for the first year. On the first anniversary of your vesting start date, a year's worth vests at once, usually 25% of a four-year grant, and the rest vests gradually afterwards.",
+      },
+      {
+        question: "What does 1/48 monthly vesting with a 1-year cliff mean?",
+        answer:
+          "The grant vests over 48 months, one forty-eighth each month, but nothing vests until month 12. At the 12-month cliff, 12/48 (25%) vests at once. After that, 1/48 of the grant vests every month until month 48.",
+      },
+      {
+        question: "If my ESOPs vest over 4 years, how much vests each year?",
+        answer:
+          "With a one-year cliff and monthly vesting after it: 25% at the end of year 1, then about 2.08% a month, so 50% by the end of year 2, 75% by year 3 and 100% by year 4. With yearly vesting, 25% vests on each anniversary instead.",
+      },
+      {
+        question: "What does vesting date mean?",
+        answer:
+          "A vesting date is a date on which some of your options vest and become yours to exercise. The first is usually the first anniversary of your vesting start date (the cliff). After that there is a vesting date every month, quarter or year, depending on your schedule.",
+      },
+      {
+        question: "What is the maximum vesting period for ESOPs in India?",
+        answer:
+          "Indian rules set a minimum of one year between grant and vesting, but no maximum. The company's ESOP scheme decides the period. Four years is the most common, and some companies use five.",
       },
       {
         question: "Can ESOPs vest in less than one year in India?",
@@ -1831,7 +1867,7 @@ const articles = {
       "esop-valuation-india",
     ],
   },
-} satisfies Record<string, Article>;
+} satisfies Record<string, ArticleWithMeta>;
 
 /* ============================================================
    New articles: one JSON file each in content/articles/.
@@ -2895,4 +2931,4 @@ function RelatedArticles({
       </div>
     </section>
   );
-}
+}

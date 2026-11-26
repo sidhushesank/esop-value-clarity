@@ -28,6 +28,12 @@ const articles = [
 const SITE_UPDATED = new Date("2026-11-25");
 const LEGAL_UPDATED = new Date("2026-10-01");
 const ARTICLES_UPDATED = new Date("2026-11-18");
+// Articles edited after ARTICLES_UPDATED. Keep in step with `updatedAt` on the
+// article in app/blog/[slug]/page.tsx.
+const ARTICLE_UPDATED: Record<string, Date> = {
+  "esop-exercise-cost": new Date("2026-11-26"),
+  "vesting-schedule": new Date("2026-11-26"),
+};
 // The buyback tracker carries its own "last updated" date in its data file.
 const TRACKER_UPDATED = new Date(TRACKER_LAST_UPDATED);
 
@@ -48,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/disclaimer`, lastModified: LEGAL_UPDATED, changeFrequency: "yearly", priority: 0.3 },
     ...articles.map((slug) => ({
       url: `${BASE_URL}/blog/${slug}`,
-      lastModified: ARTICLES_UPDATED,
+      lastModified: ARTICLE_UPDATED[slug] ?? ARTICLES_UPDATED,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
