@@ -66,6 +66,8 @@ const LINK_COLUMNS: {
       { label: "ESOP exercise price", href: "/blog/esop-exercise-cost" },
       { label: "ESOP valuation in India", href: "/blog/esop-valuation-india" },
       { label: "ESOP vs RSU", href: "/blog/esop-vs-rsu" },
+      { label: "ESOP taxation in India", href: "/blog/esop-taxation-india" },
+      { label: "Dilution explained", href: "/blog/dilution-explained" },
     ],
   },
   {
@@ -83,6 +85,9 @@ const LINK_COLUMNS: {
       { label: "About", href: "/about" },
       { label: "Pricing", href: "/pricing" },
       { label: "Blog", href: "/blog" },
+      { label: "ESOP Buyback Tracker 2026", href: "/esop-buyback-tracker" },
+      { label: "ESOP software pricing compared", href: "/esop-management-software-pricing" },
+      { label: "TaxBuddy partnership", href: "/partners/taxbuddy" },
       { label: "Book a meeting", href: "/meeting" },
     ],
   },
@@ -406,6 +411,16 @@ export default function Footer() {
             </div>
 
             <div className="mt-6 flex gap-2">
+              <SocialLink href="https://www.linkedin.com/company/esop-value-clarity/" label="ESOP Value Clarity on LinkedIn">
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
+                </svg>
+              </SocialLink>
+              <SocialLink href="https://www.youtube.com/@esopvalueclarity" label="ESOP Value Clarity on YouTube">
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z" />
+                </svg>
+              </SocialLink>
               <SocialLink href="https://x.com/SheshankSi60747" label="ESOP Value Clarity founder on X">
                 <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M18.244 2H21.5l-7.12 8.138L22.75 22h-6.554l-5.13-6.708L5.2 22H1.94l7.614-8.702L1.5 2h6.72l4.64 6.116L18.244 2z" />
