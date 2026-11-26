@@ -1,0 +1,281 @@
+{
+  "slug": "esop-vs-sweat-equity",
+  "publishedAt": "2026-11-26",
+  "updatedAt": "2026-11-26",
+  "category": "ESOP basics",
+  "stage": "Got an offer",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR",
+    "CAs"
+  ],
+  "readTime": "8 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP vs sweat equity in India: rules, limits and tax (2026)",
+  "description": "ESOPs are options you buy later; sweat equity is shares you get now. Compare limits, lock-in, eligibility and tax under the Income-tax Act, 2025.",
+  "keywords": [
+    "ESOP vs sweat equity",
+    "sweat equity shares India",
+    "sweat equity tax",
+    "sweat equity lock-in",
+    "section 54 sweat equity",
+    "Rule 8 sweat equity limit",
+    "sweat equity for startups"
+  ],
+  "icon": "Scale",
+  "quickAnswer": [
+    "An ESOP is an option to buy shares later at a set price after vesting; sweat equity is shares issued now, at a discount or for non-cash consideration such as know-how or value added.",
+    "Sweat equity in unlisted companies is capped at 15% of paid-up capital or ₹5 crore of issue value a year, whichever is higher, and 25% overall; startups can go up to 50% within 10 years of incorporation.",
+    "Sweat equity shares are locked in for three years, while ESOPs need at least one year between grant and vesting and have no statutory lock-in on the shares.",
+    "Both are taxed as a salary perquisite: sweat equity when the shares are allotted, ESOPs when you exercise, on fair market value minus what you paid."
+  ],
+  "heroStats": [
+    {
+      "label": "Sweat equity annual cap",
+      "value": "15% or ₹5 Cr, whichever higher"
+    },
+    {
+      "label": "Overall cap",
+      "value": "25% (startups 50% for 10 yrs)"
+    },
+    {
+      "label": "Sweat equity lock-in",
+      "value": "3 years"
+    },
+    {
+      "label": "ESOP minimum vesting",
+      "value": "1 year"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "ESOP taxed",
+      "value": "At exercise, then on sale"
+    },
+    {
+      "label": "Sweat equity taxed",
+      "value": "At allotment, then on sale"
+    },
+    {
+      "label": "Promoters",
+      "value": "Sweat equity allowed; ESOP only in startups"
+    }
+  ],
+  "sections": [
+    {
+      "id": "basics",
+      "eyebrow": "The difference",
+      "title": "ESOP vs sweat equity in one minute",
+      "body": [
+        "Both are ways for an Indian company to give people a share of ownership, and both are governed by the Companies Act, 2013 and the Companies (Share Capital and Debentures) Rules, 2014. They work very differently.",
+        "An ESOP is an option. You get the right, not the obligation, to buy shares at a fixed exercise price once the options vest. Nothing is owned until you exercise and pay. Rule 12 governs ESOPs in unlisted companies.",
+        "Sweat equity is shares. Section 2(88) of the Companies Act defines sweat equity shares as equity shares issued to directors or employees at a discount or for consideration other than cash, for providing know-how, intellectual property rights or value additions. Section 54 and Rule 8 govern them. You own the shares from allotment."
+      ],
+      "cards": [
+        {
+          "label": "ESOP",
+          "value": "Option now, shares later, pay at exercise"
+        },
+        {
+          "label": "Sweat equity",
+          "value": "Shares now, at a discount or for non-cash contribution"
+        }
+      ]
+    },
+    {
+      "id": "rules",
+      "eyebrow": "The law",
+      "title": "How each is approved and capped",
+      "body": [
+        "Sweat equity needs a special resolution of shareholders that states the number of shares, the current market price, any consideration and the class of directors or employees. For unlisted companies, Rule 8 says the shares must be allotted within twelve months of the resolution.",
+        "Rule 8 caps sweat equity at 15% of existing paid-up equity capital in a year, or shares with an issue value of ₹5 crore, whichever is higher. Total sweat equity cannot exceed 25% of paid-up equity capital at any time. A startup can issue up to 50% of its paid-up capital within ten years of incorporation, a limit the government extended from five years in June 2020.",
+        "Both the shares and the intellectual property, know-how or value addition being paid for must be valued by a registered valuer.",
+        "ESOPs also need a special resolution, plus a separate one for any person granted options equal to 1% or more of issued capital in a year. Rule 12 does not set a percentage cap on the pool. It does require at least one year between grant and vesting."
+      ]
+    },
+    {
+      "id": "who",
+      "eyebrow": "Eligibility",
+      "title": "Who can receive each",
+      "body": [
+        "For sweat equity, Rule 8 covers permanent employees working in India or abroad, directors including whole-time directors, and employees or directors of a subsidiary or holding company. An earlier requirement of at least one year's service was omitted in 2018. Promoters are not excluded, which is why founders sometimes use sweat equity to recognise their own contribution.",
+        "For ESOPs, Rule 12 covers similar employees and directors, plus those of an associate company, but excludes independent directors, promoters and the promoter group, and directors who hold more than 10% of the company directly or indirectly. In a startup, the promoter and 10%-director exclusions do not apply for ten years from incorporation.",
+        "Consultants and advisors who are not employees or directors do not fit the definitions for either. Companies that want to reward them usually use other instruments, which a CA or lawyer should structure."
+      ]
+    },
+    {
+      "id": "lock-in",
+      "eyebrow": "Liquidity",
+      "title": "Lock-in, vesting and when you can sell",
+      "body": [
+        "Sweat equity shares are locked in and non-transferable for three years from allotment. You own them on day one but cannot sell them in that period, even in a buyback or secondary round, unless the rules are changed for you.",
+        "ESOPs vest over time, with a minimum of one year from grant. After you exercise, the company decides any lock-in on the shares; Rule 12 leaves this to the scheme. In practice, liquidity for unlisted ESOP shares depends on buybacks, secondary sales or an IPO.",
+        "There is a useful side effect for sweat equity in an unlisted company: because you cannot sell for three years, any sale after the lock-in will usually meet the 24-month test for long-term capital gains."
+      ],
+      "warning": "Read your sweat equity allotment letter for the lock-in date. Agreeing to sell before it ends can breach the rules."
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How ESOPs and sweat equity are taxed in 2026",
+      "body": [
+        "Section 17 of the Income-tax Act, 2025, which applies from 1 April 2026, lists the value of any specified security or sweat equity shares given free or at a concessional rate by a current or former employer as a perquisite. The value is fair market value minus what you actually paid.",
+        "Timing is the big difference. Sweat equity is taxed in the year the shares are allotted, even though you cannot sell them for three years. An ESOP is taxed only when you choose to exercise, so you control when the tax arises.",
+        "When you later sell, the capital gain is the sale price minus the fair market value already taxed as a perquisite. For unlisted shares, a holding of more than 24 months is long-term and taxed at 12.5%; a shorter holding is taxed at your slab rate. If the company buys the shares back and pays on or after 1 April 2026, that is also taxed under capital gains.",
+        "Employees of eligible DPIIT-recognised startups can defer the perquisite tax on both ESOPs and sweat equity, subject to conditions. Confirm the current deferral period and eligibility with a CA before relying on it."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "Same value, different cash flow",
+      "body": [
+        "These figures are illustrative only. Assume an unlisted company where a registered valuer puts fair market value at ₹500 a share, and the employee is already in the 30% slab (31.2% with cess, ignoring surcharge).",
+        "Sweat equity: 2,000 shares allotted free. Perquisite is 2,000 × ₹500 = ₹10,00,000. Tax at 31.2% is ₹3,12,000, due in the year of allotment, while the shares are locked in for three years.",
+        "ESOP: 2,000 options at a ₹10 strike, vesting over four years. If the employee exercises all of them when fair market value is still ₹500, the perquisite is (₹500 − ₹10) × 2,000 = ₹9,80,000. Tax is ₹3,05,760, plus ₹20,000 to exercise, but only in the year the employee chooses to exercise.",
+        "The ownership is similar; the cash flow is not. Sweat equity gives certainty of ownership with an immediate tax bill. ESOPs give choice over timing but carry vesting risk. You can model the ESOP side in the free ESOP calculator and the dilution in the cap table builder."
+      ],
+      "cards": [
+        {
+          "label": "Sweat equity tax",
+          "value": "₹3,12,000 at allotment"
+        },
+        {
+          "label": "ESOP tax",
+          "value": "₹3,05,760 at exercise"
+        },
+        {
+          "label": "ESOP exercise cost",
+          "value": "₹20,000"
+        }
+      ]
+    },
+    {
+      "id": "choose",
+      "eyebrow": "Which to use",
+      "title": "When companies use each",
+      "body": [
+        "ESOPs suit broad employee programmes: they reward people who stay, cost nothing until exercise and have no statutory pool cap in unlisted companies.",
+        "Sweat equity suits a specific contribution the company wants to recognise now, such as technology or IP brought in by a founder or director, or a key person who should own shares immediately. The tax at allotment, the valuation work and the three-year lock-in make it less suited to large groups."
+      ],
+      "bullets": [
+        "Large team, long-term retention: ESOP.",
+        "Founder or director contributing IP or know-how: sweat equity.",
+        "Promoter in a company more than ten years old: sweat equity, since ESOPs are not available to promoters there.",
+        "Employee who cannot afford tax now: ESOP, or check eligibility for startup deferral."
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "If offered sweat equity, plan for the tax in the year of allotment and the three-year lock-in. With ESOPs, you choose when to exercise but must stay to vest."
+    },
+    {
+      "label": "Founder",
+      "value": "Use ESOPs for the team and sweat equity for specific contributions. Watch the 15% or ₹5 crore annual cap and the 25% or 50% overall cap."
+    },
+    {
+      "label": "HR",
+      "value": "Explain the difference in writing: when the employee owns shares, when tax is due and when they can sell."
+    },
+    {
+      "label": "CA",
+      "value": "Check registered valuer reports for both shares and IP, the special resolution, Rule 8 limits and the perquisite value and TDS in the year of allotment."
+    }
+  ],
+  "checklist": [
+    "Confirm whether you are getting options or shares.",
+    "Find the fair market value and the date it was set.",
+    "Work out the tax and when it is due.",
+    "Check vesting (ESOP) or the three-year lock-in (sweat equity).",
+    "Ask whether startup tax deferral applies to you."
+  ],
+  "mistakes": [
+    "Thinking sweat equity is tax-free because no cash changes hands.",
+    "Expecting to sell sweat equity shares within three years.",
+    "Assuming promoters can get ESOPs in any company.",
+    "Skipping the registered valuer for the IP or know-how.",
+    "Issuing sweat equity beyond the Rule 8 limits."
+  ],
+  "faq": [
+    {
+      "question": "What is the difference between ESOP and sweat equity?",
+      "answer": "An ESOP is an option to buy shares later at a set price after vesting. Sweat equity is shares issued now, at a discount or for non-cash consideration such as know-how or value added."
+    },
+    {
+      "question": "Is sweat equity taxable in India?",
+      "answer": "Yes. Its value, fair market value minus anything you paid, is a salary perquisite in the year of allotment. On sale, the gain over that value is taxed as capital gains."
+    },
+    {
+      "question": "What is the lock-in period for sweat equity shares?",
+      "answer": "Three years from the date of allotment under Rule 8 of the Companies (Share Capital and Debentures) Rules, 2014."
+    },
+    {
+      "question": "How much sweat equity can a company issue?",
+      "answer": "Up to 15% of paid-up equity capital or ₹5 crore of issue value a year, whichever is higher, and 25% overall. A startup can issue up to 50% within ten years of incorporation."
+    },
+    {
+      "question": "Can a founder get sweat equity shares?",
+      "answer": "Yes, promoters and directors are not excluded from sweat equity, provided shareholders pass a special resolution and the limits and valuation rules are met."
+    },
+    {
+      "question": "Can promoters get ESOPs in India?",
+      "answer": "Not in most companies. Rule 12 excludes promoters, the promoter group and directors with over 10%, but a startup can grant them ESOPs for ten years from incorporation."
+    }
+  ],
+  "related": [
+    "what-is-an-esop",
+    "esop-vs-rsu",
+    "vesting-schedule"
+  ],
+  "sources": [
+    {
+      "title": "Rule 8, Companies (Share Capital and Debentures) Rules, 2014 (ca2013.com)",
+      "url": "https://ca2013.com/rule/rule-8-companies-share-capital-and-debentures-rules-2014-2/"
+    },
+    {
+      "title": "Rule 12, Companies (Share Capital and Debentures) Rules, 2014 (ca2013.com)",
+      "url": "https://ca2013.com/rule-12-companies-share-capital-and-debentures-rules-2014/"
+    },
+    {
+      "title": "TaxGuru: Sweat equity shares under the Companies Act, 2013",
+      "url": "https://taxguru.in/company-law/sweat-equity-share-companies-act-2013.html"
+    },
+    {
+      "title": "Business Standard: Govt allows startups to issue sweat equity for 10 years after registration (9 Jun 2020)",
+      "url": "https://www.business-standard.com/article/companies/govt-allows-startups-to-issue-sweat-equity-for-10-years-after-registration-120060901350_1.html"
+    },
+    {
+      "title": "Income-tax Act, 2025, Section 17: Perquisite (eztax.in)",
+      "url": "https://eztax.in/income-tax-act-2025/section-17"
+    },
+    {
+      "title": "Treelife: Sweat equity in India",
+      "url": "https://treelife.in/legal/sweat-equity-in-india/"
+    },
+    {
+      "title": "ClearTax: ESOP vs sweat equity shares",
+      "url": "https://cleartax.in/s/esop-vs-sweat-equity-shares"
+    }
+  ],
+  "hub": {
+    "summary": "ESOPs are options you exercise later; sweat equity is shares you get now. Compare Rule 8 and Rule 12 limits, lock-in, eligibility and tax.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "CA",
+      "Tax"
+    ],
+    "tags": [
+      "sweat equity",
+      "ESOP basics",
+      "tax",
+      "Companies Act",
+      "founders"
+    ],
+    "tools": "ESOP calculator"
+  }
+}

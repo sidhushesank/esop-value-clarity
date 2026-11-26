@@ -1,0 +1,260 @@
+{
+  "slug": "boba-bhai-esop-cash-out-2026",
+  "publishedAt": "2026-11-26",
+  "updatedAt": "2026-11-26",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": [
+    "Employees",
+    "Founders",
+    "HR"
+  ],
+  "readTime": "5 min read",
+  "videoTime": "3 min video",
+  "title": "Boba Bhai ESOP cash-out 2026: ₹3 crore for six early employees",
+  "description": "Boba Bhai let six early employees sell 25% of vested ESOPs for about ₹3 crore after its Series B. What it means and how the payout may be taxed.",
+  "keywords": [
+    "Boba Bhai ESOP",
+    "Boba Bhai ESOP buyback",
+    "Boba Bhai Series B",
+    "ESOP cash-out India",
+    "ESOP liquidity Series B",
+    "ESOP buyback tax 2026"
+  ],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "On 25 November 2026, Entrepreneur India and Indian Startup News reported that Bengaluru QSR chain Boba Bhai ran an ESOP liquidity event worth about ₹3 crore.",
+    "Six early employees took part, and each could sell up to 25% of their vested ESOPs.",
+    "It followed Boba Bhai's $18 million Series B with Left Lane Capital, BIG Capital and existing investor Titan Capital.",
+    "Neither report says whether the company or investors bought the ESOPs, so the tax depends on the route and on when the money was paid."
+  ],
+  "heroStats": [
+    {
+      "label": "Total cash-out",
+      "value": "About ₹3 crore"
+    },
+    {
+      "label": "Employees",
+      "value": "6 early team members"
+    },
+    {
+      "label": "Cap per person",
+      "value": "25% of vested ESOPs"
+    },
+    {
+      "label": "Context",
+      "value": "$18M Series B, Nov 2026"
+    }
+  ],
+  "modelCards": [
+    {
+      "label": "Average per person",
+      "value": "About ₹50 lakh (₹3 Cr ÷ 6)"
+    },
+    {
+      "label": "Buyer",
+      "value": "Not disclosed"
+    },
+    {
+      "label": "Price per share",
+      "value": "Not disclosed"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What Boba Bhai announced",
+      "body": [
+        "Boba Bhai, the Bengaluru-based bubble tea and Korean-inspired street food chain founded by Dhruv Kohli in October 2023, said it facilitated an ESOP liquidity event of about ₹3 crore. Entrepreneur India and Indian Startup News both reported it on 25 November 2026.",
+        "Six early employees took part. Each could sell up to 25% of their vested ESOP holdings. Indian Startup News worked out an average of roughly ₹50 lakh per person by dividing ₹3 crore by six; that is an average, not what any one person received.",
+        "The cash-out came shortly after an $18 million Series B. Entrepreneur India names Left Lane Capital, BIG Capital and existing investor Titan Capital as backers; Indian Startup News says Left Lane led the round and that the company had raised about ₹40 crore in March 2026.",
+        "The company described itself as one of few Indian startups to offer such liquidity at Series B and said it intends to offer ESOP liquidity again in future funding rounds. That is a stated intention, not a commitment with dates."
+      ],
+      "cards": [
+        {
+          "label": "Reported on",
+          "value": "25 November 2026"
+        },
+        {
+          "label": "Who could sell",
+          "value": "Six early employees, vested ESOPs only"
+        },
+        {
+          "label": "Limit",
+          "value": "Up to 25% of vested holdings"
+        }
+      ]
+    },
+    {
+      "id": "what-we-dont-know",
+      "eyebrow": "Gaps",
+      "title": "What the reports do not say",
+      "body": [
+        "Neither report gives the price per share, the company valuation, the strike price, how the six people were chosen, or whether former employees could take part.",
+        "Most importantly for tax, neither says who paid. It could be a company buyback, a secondary sale to the new Series B investors, or a cash settlement of options. Indian Startup News calls it a buyback in its headline, but the company's own statement, as reported, only says employees monetised 25% of vested holdings."
+      ],
+      "warning": "Do not assume the route. The same ₹3 crore can be taxed very differently depending on whether options were exercised and who bought the shares."
+    },
+    {
+      "id": "employees",
+      "eyebrow": "For employees",
+      "title": "What this means for people holding ESOPs",
+      "body": [
+        "A 25% cap is common in Indian liquidity events. It lets employees take some cash off the table while keeping most of their upside. Plum's June 2026 buyback, for example, also allowed up to 25% of vested options.",
+        "For employees at early-stage consumer brands, the bigger signal is timing. Liquidity at Series B is earlier than many employees expect, and a stated plan to repeat it gives existing ESOP holders something to ask about. Until it is written into the scheme or announced, it remains an intention.",
+        "If you hold ESOPs elsewhere, the practical lesson is to know your vested count, strike price and the latest fair market value before any window opens, so you can decide quickly how much to sell."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How a payout like this is likely taxed",
+      "body": [
+        "Tax depends on the route and on when the money is paid. Since the payout was reported in November 2026, the Income-tax Act, 2025 applies.",
+        "Route 1, exercise then sale (to the company or to investors): on exercise, the gap between fair market value and the strike price is a perquisite taxed as salary at your slab rate, with TDS by the employer. When the shares are sold, the gain over that fair market value is a capital gain. Sold the same day at the same value, that gain is close to nil.",
+        "Route 2, company buyback of shares: for buybacks paid from 1 April 2026, the shareholder is taxed under capital gains, not as deemed dividend. Unlisted shares held more than 24 months are long-term at 12.5%; otherwise the gain is taxed at slab rate.",
+        "Route 3, cash for unexercised options: when a company pays cash to cancel vested options without issuing shares, it is generally treated as employment income at slab rate. Confirm the exact treatment with a CA."
+      ],
+      "bullets": [
+        "Ask your employer which route applies before you accept.",
+        "Check whether TDS has already been deducted and how it shows in Form 16.",
+        "Keep the valuation report date and fair market value used; you need it for your ITR."
+      ]
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "A rupee example (not Boba Bhai's numbers)",
+      "body": [
+        "These numbers are made up to show the arithmetic. They are not Boba Bhai's price, valuation or any employee's holding.",
+        "Say an employee has 4,000 vested options with a strike price of ₹10, and the liquidity price is ₹1,000 a share. Selling 25% means 1,000 options.",
+        "Gross proceeds are 1,000 × ₹1,000 = ₹10,00,000. Exercise cost is 1,000 × ₹10 = ₹10,000. Under Route 1, the perquisite is (₹1,000 − ₹10) × 1,000 = ₹9,90,000. If the employee is already in the 30% slab, tax with 4% cess is 31.2% × ₹9,90,000 = ₹3,08,880, ignoring surcharge.",
+        "Net cash is ₹10,00,000 − ₹10,000 − ₹3,08,880 = ₹6,81,120. The employee still holds 3,000 vested options. You can run your own numbers in the free ESOP calculator."
+      ],
+      "cards": [
+        {
+          "label": "Gross proceeds",
+          "value": "₹10,00,000"
+        },
+        {
+          "label": "Tax at 31.2%",
+          "value": "₹3,08,880"
+        },
+        {
+          "label": "Net in hand",
+          "value": "₹6,81,120"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Checklist",
+      "title": "Questions employees elsewhere should ask",
+      "body": [
+        "If your company announces a liquidity window, these questions get you the facts you need."
+      ],
+      "bullets": [
+        "Who is buying: the company, an ESOP trust or investors?",
+        "Do I need to exercise first, and who funds the exercise price and TDS?",
+        "What price per share is offered, and what fair market value is used for the perquisite?",
+        "What share of my vested holding can I sell, and can former employees take part?",
+        "When will the money be paid, and is there a plan for future windows?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {
+      "label": "Employee",
+      "value": "A 25% window lets you take cash while keeping most of your upside. Find out the route before you sell, because it decides your tax."
+    },
+    {
+      "label": "Founder",
+      "value": "Early, capped liquidity is one way to reward early hires. Be clear on route, price and eligibility so employees can plan."
+    },
+    {
+      "label": "HR",
+      "value": "Publish who is eligible, the cap, the price, the payment date and how TDS will be handled before the window opens."
+    },
+    {
+      "label": "CA",
+      "value": "Confirm whether options were exercised, who the buyer was and the payment date before advising on perquisite, capital gains or salary treatment."
+    }
+  ],
+  "checklist": [
+    "Note your vested option count and strike price.",
+    "Get the price per share and the fair market value used.",
+    "Confirm the route: buyback, secondary sale or option cash-out.",
+    "Work out tax and net cash before you commit.",
+    "Keep the paperwork for your ITR."
+  ],
+  "mistakes": [
+    "Assuming every ESOP cash-out is taxed as capital gains.",
+    "Forgetting that exercise creates a salary perquisite even if you sell the same day.",
+    "Reading an average payout as what each person received.",
+    "Treating a plan for future windows as a guarantee.",
+    "Not checking whether TDS has already been deducted."
+  ],
+  "faq": [
+    {
+      "question": "How much did Boba Bhai pay employees for ESOPs?",
+      "answer": "About ₹3 crore in total across six early employees, as reported on 25 November 2026. The per-share price was not disclosed."
+    },
+    {
+      "question": "How much of their ESOPs could Boba Bhai employees sell?",
+      "answer": "Up to 25% of their vested ESOP holdings."
+    },
+    {
+      "question": "Was the Boba Bhai ESOP cash-out a buyback?",
+      "answer": "The reports do not confirm the route or name the buyer. One outlet calls it a buyback in its headline, but the company's statement only says employees monetised part of their vested holdings."
+    },
+    {
+      "question": "Is ESOP buyback money taxed as capital gains in 2026?",
+      "answer": "For company buybacks of shares paid from 1 April 2026, yes, under capital gains. Exercising options first still creates a salary perquisite, and cash paid to cancel options is generally employment income."
+    },
+    {
+      "question": "Will Boba Bhai offer more ESOP liquidity?",
+      "answer": "The company said it intends to offer ESOP liquidity in future funding rounds. No dates or amounts were given."
+    }
+  ],
+  "related": [
+    "esop-buyback-india",
+    "esop-exercise-cost",
+    "what-is-an-esop"
+  ],
+  "sources": [
+    {
+      "title": "Entrepreneur India: Boba Bhai Enables INR 3 Cr ESOP Cash-Out for Early Employees (25 Nov 2026)",
+      "url": "https://india.entrepreneur.com/business-news/boba-bhai-enables-inr-3-cr-esop-cash-out-for-early-employees"
+    },
+    {
+      "title": "Indian Startup News: Boba Bhai pays Rs 3 crore to its earliest employees in ESOP cash-out (25 Nov 2026)",
+      "url": "https://indianstartupnews.com/news/loss-making-bubble-tea-chain-boba-bhai-pays-rs-3-crore-to-its-earliest-employees-in-esop-cash-out-12840274"
+    },
+    {
+      "title": "BW Disrupt: Plum rolls out Rs 15 Cr maiden ESOP buyback",
+      "url": "https://www.bwdisrupt.com/article/plum-rolls-out-rs-15-cr-maiden-esop-buyback-for-current-former-employees-609111"
+    },
+    {
+      "title": "Income-tax Act, 2025, Section 17: Perquisite (eztax.in)",
+      "url": "https://eztax.in/income-tax-act-2025/section-17"
+    }
+  ],
+  "hub": {
+    "summary": "Boba Bhai let six early employees sell up to 25% of vested ESOPs for about ₹3 crore after its Series B. What it means and how such payouts are taxed.",
+    "audience": [
+      "Employee",
+      "Founder",
+      "HR",
+      "Tax"
+    ],
+    "tags": [
+      "company news",
+      "Boba Bhai",
+      "ESOP buyback",
+      "ESOP liquidity",
+      "tax"
+    ],
+    "tools": "ESOP calculator"
+  }
+}
