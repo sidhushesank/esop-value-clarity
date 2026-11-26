@@ -936,7 +936,7 @@ export default function PricingPage() {
       {/* =====================================================
           THE RECEIPT
       ====================================================== */}
-      <Receipt />
+      <ReceiptSection />
 
       {/* =====================================================
           THE PRICE OF NOT PAYING
@@ -1732,7 +1732,7 @@ const RECEIPTS: Record<ReceiptKey, { title: string; price: number; per: string; 
   },
 };
 
-function Receipt() {
+function ReceiptSection() {
   const [key, setKey] = useState<ReceiptKey>("ADVISOR");
   const [run, setRun] = useState(0);
   const r = RECEIPTS[key];
