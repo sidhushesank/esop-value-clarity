@@ -818,6 +818,12 @@ export default function HomePage() {
       {/* ======================= WHY EVC ======================= */}
       <WhyChooseUs />
 
+      {/* ======================= WHY NOT JUST BUILD IT WITH AI ======================= */}
+      <BuildWithAiSection />
+
+      {/* ======================= WORTH THE MONEY ======================= */}
+      <WorthItSection />
+
       {/* ======================= OBJECTIONS ======================= */}
       <Objections />
 
@@ -827,37 +833,8 @@ export default function HomePage() {
       {/* ======================= SEE IT WORKING ======================= */}
       <VideoSection />
 
-      {/* ======================= FOUNDER ======================= */}
-      <section className="mx-auto max-w-[1200px] px-4 pb-24 sm:px-6 md:pb-32">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-[#FFF8E6] via-white to-[#EEF3FB] p-8 md:p-14">
-            <div className="relative grid grid-cols-1 gap-8 md:grid-cols-[auto_1fr] md:items-start">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/evc-mark.png" alt="ESOP Value Clarity" className="h-16 w-auto" />
-              <div>
-                <Eyebrow>From the founder</Eyebrow>
-                <p className="mt-4 max-w-3xl text-xl leading-9 text-[#042653] md:text-[1.6rem] md:leading-[2.6rem]">
-                  “Equity is supposed to make people feel like owners. Most of
-                  the time it makes them feel confused. I built EVC so anyone
-                  holding ESOPs in India can see, in rupees, what their grant
-                  means, and so the companies and advisors behind those grants
-                  stop rebuilding that answer by hand.”
-                </p>
-                <div className="mt-8 flex items-center gap-4">
-                  {/* Swap for a real photo: /public/founder.jpg */}
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-[#042653] text-base font-semibold text-[#F2B421]">
-                    S
-                  </span>
-                  <div>
-                    <p className="font-semibold">Sheshank</p>
-                    <p className="text-sm text-slate-500">Founder, ESOP Value Clarity</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
+      {/* ======================= WHY TRUST A ONE-FOUNDER COMPANY ======================= */}
+      <FounderTrustSection />
 
       {/* ======================= PARTNER PROGRAMME ======================= */}
       <PartnerProgram />
@@ -3816,6 +3793,494 @@ function Objections() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   "CAN'T WE JUST BUILD THIS WITH AI?"
+   Every item below is something EVC's code already does.
+   Keep it that way: add an item only after it ships.
+============================================================ */
+
+const AI_GROUPS: { icon: typeof Cpu; title: string; items: string[] }[] = [
+  {
+    icon: Landmark,
+    title: "The law moved. Did your prompt?",
+    items: [
+      "Income-tax Act, 2025 in force from 1 April 2026: ESOP perquisite now s.17(1)(d), salary TDS now s.392",
+      "Startup tax deferral: 60 months for allotments from 1 April 2026, 48 months before",
+      "Long-term gains on unlisted and foreign shares at 12.5% after 24 months",
+      "Surcharge with marginal relief, 4% cess, 87A rebate for residents only",
+    ],
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "Numbers a chatbot will make up",
+    items: [
+      "SBI TT buying rate for every transaction date since January 2020",
+      "Daily closing prices and stock splits for each foreign share",
+      "Rule 115 rate date: last day of the previous month, applied per sale",
+    ],
+  },
+  {
+    icon: FileSearch,
+    title: "Traps hidden in broker files",
+    items: [
+      "A $0 cost basis on US broker files is ignored, not taxed as pure gain",
+      "ESPP cost taken at market value, not the discounted price",
+      "Sales matched to the named lot first, then FIFO; overselling is blocked",
+      "Schedule FA peak value worked out day by day, not guessed at year end",
+      "Schedule CG date buckets for advance-tax interest",
+      "Resident, RNOR and NRI, with the India share of the perquisite for NRIs",
+    ],
+  },
+  {
+    icon: Workflow,
+    title: "The part nobody prompts for",
+    items: [
+      "PAS-3, MGT-14, TDS and ITR due dates, with emails 30, 7 and 1 day before",
+      "Admin and Viewer logins, and a history of who changed what",
+      "Passcode share links, Excel working papers and PDF reports",
+    ],
+  },
+];
+
+const AI_TOTAL = AI_GROUPS.reduce((sum, g) => sum + g.items.length, 0);
+
+function BuildWithAiSection() {
+  const { ref, inView } = useInView<HTMLDivElement>(0.12);
+  const [shown, setShown] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (shown >= AI_TOTAL) return;
+    const id = window.setTimeout(() => setShown((n) => n + 1), 140);
+    return () => window.clearTimeout(id);
+  }, [inView, shown]);
+
+  let counter = 0;
+
+  return (
+    <section id="why-not-ai" className="relative overflow-hidden bg-[#020d1f] py-24 text-white md:py-32">
+      <div className="evc-grid pointer-events-none absolute inset-0 opacity-50" />
+      <div className="evc-aurora pointer-events-none absolute inset-0 opacity-40" />
+      <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6">
+        <Reveal>
+          <EyebrowDark>Go on, ask it</EyebrowDark>
+          <h2 className="mt-4 max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+            Yes, AI can write this code. <span className="text-[#F2B421]">It can’t be accountable for it.</span>
+          </h2>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+            Anyone can prompt an ESOP calculator into existence in an afternoon. I use AI to build EVC too. But code was
+            never what you were paying for. You pay for someone who knows the rules, keeps them right when the law changes,
+            and answers when a number is questioned in front of a client, a board or the tax department.
+          </p>
+        </Reveal>
+
+        <div ref={ref} className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          {/* Left: two tests anyone can run */}
+          <div className="flex flex-col gap-5">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#F2B421]">Try this right now</p>
+              <p className="mt-3 text-[15px] leading-7 text-slate-200">
+                Open any chatbot and ask:{" "}
+                <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[13px] text-white">
+                  What was SBI’s TT buying rate for USD on 30 September 2024?
+                </span>{" "}
+                Ask again tomorrow. Then check SBI’s own published rate.
+              </p>
+              <p className="mt-3 text-[15px] leading-7 text-slate-300">
+                EVC already holds that rate for every day since January 2020, and picks the right date for every vest, sale
+                and dividend under Rule 115. A CA filing Schedule FA can’t work from a guess.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#F2B421]">1 April 2026</p>
+              <p className="mt-3 text-[15px] leading-7 text-slate-200">
+                India replaced the Income-tax Act of 1961. The ESOP perquisite moved from section 17(2)(vi) to 17(1)(d).
+                Salary TDS moved from section 192 to 392.
+              </p>
+              <p className="mt-3 text-[15px] leading-7 text-slate-300">
+                Every spreadsheet, template and prompt written before that date now quotes the wrong law. Nobody comes back to
+                fix the prompt. EVC was updated.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-[#F2B421]/30 bg-[#F2B421]/[0.07] p-6">
+              <p className="text-4xl font-semibold tracking-[-0.04em] text-[#F2B421]">70–80%</p>
+              <p className="mt-2 text-[15px] leading-7 text-slate-200">
+                of what software costs over its life is upkeep: fixes, security and rule changes. AI made the first build
+                cheap. It didn’t touch the rest.
+              </p>
+              <a
+                href="https://www.vanta.com/resources/why-cheaper-code-isnt-always-cheap"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-white"
+              >
+                Source: Vanta, “Build vs buy” <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Right: what EVC already has */}
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/evc-mark.png" alt="" className="h-5 w-auto rounded-sm bg-white p-[1px]" />
+                What your prompt doesn’t know. EVC does.
+              </div>
+              <span className="rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-[#F2B421]">
+                {Math.min(shown, AI_TOTAL)} / {AI_TOTAL} already built
+              </span>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              {AI_GROUPS.map((group) => (
+                <div key={group.title}>
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    <group.icon className="h-4 w-4 text-[#F2B421]" />
+                    {group.title}
+                  </p>
+                  <ul className="mt-3 space-y-2.5">
+                    {group.items.map((item) => {
+                      counter += 1;
+                      const on = counter <= shown;
+                      return (
+                        <li
+                          key={item}
+                          className={`flex items-start gap-2.5 text-sm leading-6 transition duration-500 ${on ? "text-slate-100 opacity-100" : "text-slate-500 opacity-40"}`}
+                        >
+                          <span
+                            className={`mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full transition duration-500 ${on ? "bg-[#F2B421] text-[#020d1f]" : "bg-white/10 text-transparent"}`}
+                          >
+                            <Check className="h-2.5 w-2.5" />
+                          </span>
+                          {item}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-8 border-t border-white/10 pt-5 text-sm leading-6 text-slate-400">
+              A chatbot sounds just as sure when it’s wrong. A penalty notice doesn’t care which model you used. EVC gives
+              the same answer every time and shows every step, so the person signing the return can check it.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   WORTH THE MONEY
+   Prices come from the same files as checkout. The hourly cost
+   is the visitor's own input; nothing here is a claimed saving.
+============================================================ */
+
+type WorthKey = "firm" | "startup" | "employee";
+const WORTH_KEYS: WorthKey[] = ["firm", "startup", "employee"];
+
+function WorthItSection() {
+  const [plan, setPlan] = useState<WorthKey>("firm");
+  const [hourly, setHourly] = useState(1500);
+
+  const sample = runModel(SAMPLE.totalOptions, 50 * CRORE);
+
+  const plans: Record<
+    WorthKey,
+    { label: string; price: number; per: string; units: number; unitLabel: string; penalty: string; href: string; cta: string }
+  > = {
+    firm: {
+      label: "CA / CS firm",
+      price: ADVISOR_PLAN.priceRupees,
+      per: "per client company",
+      units: ADVISOR_PLAN.includedClients,
+      unitLabel: "client companies",
+      penalty: "One late PAS-3 can cost the client and each officer ₹1,000 a day, up to ₹1 lakh each. Schedule FA left out can draw ₹10 lakh.",
+      href: "/pricing#advisor",
+      cta: "See the Advisor plan",
+    },
+    startup: {
+      label: "Startup",
+      price: STARTUP_PLAN.priceRupees,
+      per: "per option holder",
+      units: STARTUP_PLAN.includedOptionHolders,
+      unitLabel: "option holders",
+      penalty: "One late PAS-3 alone can cost ₹1,000 a day, up to ₹1 lakh for the company and each officer in default. A late MGT-14 can cost up to ₹2 lakh.",
+      href: "/pricing#startup",
+      cta: "See the Startup plan",
+    },
+    employee: {
+      label: "Employee",
+      price: 24999,
+      per: "per year",
+      units: 1,
+      unitLabel: "your grants",
+      penalty: `On our sample grant the estimated tax is ${inrShort(sample.tax)}. A year of PRO is ${((24999 / Math.max(1, sample.tax)) * 100).toFixed(1)}% of that one tax bill, and the free calculator costs nothing.`,
+      href: "/pricing#pro",
+      cta: "See PRO, or start free",
+    },
+  };
+
+  const p = plans[plan];
+  const perUnit = Math.round(p.price / p.units);
+  const breakEvenHours = Math.ceil(p.price / hourly);
+
+  return (
+    <section id="worth-it" className="mx-auto max-w-[1200px] px-4 py-24 sm:px-6 md:py-32">
+      <Reveal>
+        <Eyebrow>Worth the money?</Eyebrow>
+        <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+          A whole year of EVC costs less than one mistake.
+        </h2>
+        <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+          A late PAS-3 can cost up to ₹1 lakh for the company and up to ₹1 lakh for each officer in default. Foreign
+          shares left out of Schedule FA can cost ₹10 lakh. The Advisor plan is ₹{nfIN.format(ADVISOR_PLAN.priceRupees)} a
+          year for {ADVISOR_PLAN.includedClients} clients. No invented savings here: put in your own hourly cost and see.
+        </p>
+      </Reveal>
+
+      <Reveal delay={100}>
+        <div className="mt-12 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_40px_90px_-60px_rgba(4,38,83,0.6)]">
+          <div className="flex flex-wrap gap-2 border-b border-slate-100 bg-slate-50 p-3">
+            {WORTH_KEYS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setPlan(key)}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  plan === key ? "bg-[#042653] text-white shadow-sm" : "text-slate-500 hover:bg-white hover:text-[#042653]"
+                }`}
+              >
+                {plans[key].label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+            <div className="p-6 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Price</p>
+              <p className="mt-2 text-4xl font-semibold tracking-[-0.03em] text-[#042653]">
+                ₹{nfIN.format(p.price)}
+                <span className="ml-2 text-base font-medium text-slate-500">a year</span>
+              </p>
+              {p.units > 1 && (
+                <p className="mt-2 text-sm text-slate-600">
+                  Covers {p.units} {p.unitLabel}: <strong>₹{nfIN.format(perUnit)}</strong> {p.per} a year, about{" "}
+                  <strong>₹{nfIN.format(Math.round(perUnit / 12))}</strong> a month.
+                </p>
+              )}
+
+              <label htmlFor="evc-hourly" className="mt-8 block text-sm font-semibold text-[#042653]">
+                What one hour of your team’s time costs you
+              </label>
+              <div className="mt-3 flex items-center gap-4">
+                <input
+                  id="evc-hourly"
+                  type="range"
+                  min={250}
+                  max={5000}
+                  step={250}
+                  value={hourly}
+                  onChange={(e) => setHourly(Number(e.target.value))}
+                  className="w-full accent-[#042653]"
+                />
+                <span className="w-24 shrink-0 rounded-lg bg-slate-100 px-3 py-1.5 text-right font-mono text-sm font-semibold">
+                  ₹{nfIN.format(hourly)}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Move the slider to your own number. ₹1,500 is only a starting point.</p>
+            </div>
+
+            <div className="flex flex-col justify-between gap-6 bg-[#042653] p-6 text-white md:p-8">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Pays for itself after</p>
+                <p className="mt-2 text-6xl font-semibold tracking-[-0.04em] text-[#F2B421]">
+                  {breakEvenHours}
+                  <span className="ml-2 text-xl font-medium text-white">hours saved in a year</span>
+                </p>
+                {p.units > 1 && (
+                  <p className="mt-3 text-sm text-slate-300">
+                    That’s about {(breakEvenHours / p.units).toFixed(1)} hours per {plan === "firm" ? "client" : "option holder"} across
+                    the year.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-slate-100">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#F2B421]">What’s at stake</p>
+                <p className="mt-2">{p.penalty}</p>
+              </div>
+
+              <Link
+                href={p.href}
+                className="inline-flex w-fit items-center gap-2 rounded-full bg-[#F2B421] px-5 py-2.5 text-sm font-semibold text-[#020d1f] transition hover:brightness-110"
+              >
+                {p.cta} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+
+      <p className="mt-4 text-xs text-slate-500">
+        Penalties: Companies Act s.39(5) and s.117(2), Black Money Act s.43; see the compliance section above for sources.
+        The sample grant is labelled as a sample and run through EVC’s tax engine. Prices before GST, if any.
+      </p>
+    </section>
+  );
+}
+
+/* ============================================================
+   WHY TRUST A ONE-FOUNDER COMPANY
+   Every card is backed by something that exists today.
+============================================================ */
+
+function FounderTrustSection() {
+  const reasons = [
+    {
+      icon: BadgeCheck,
+      title: `${CUSTOMERS.join(" and ")} pay for it`,
+      text: "Two companies already trust one founder with their ESOP data, and pay for it. You wouldn’t be the first. You’d be next.",
+    },
+    {
+      icon: Download,
+      title: "If I vanish, you lose nothing",
+      text: "Every register, report, tax workbook and change log downloads to Excel today. Your records are never held hostage by EVC.",
+    },
+    {
+      icon: FileSearch,
+      title: "Don’t trust me. Check me.",
+      text: "Every figure shows its working, the rule behind it and where the data came from. Your CA can verify it without ever speaking to me.",
+    },
+    {
+      icon: Users,
+      title: "I can’t afford to lose you",
+      text: "A big vendor won’t notice if you leave. I will. That’s why your email gets an answer from the founder, not a ticket number.",
+    },
+    {
+      icon: Zap,
+      title: "Fixed in days, not quarters",
+      text: "Six releases between 22 and 25 November, listed below. Ask a large vendor how long your feature request will take.",
+    },
+    {
+      icon: LockKeyhole,
+      title: "Your data, guarded like mine",
+      text: "Hashed passwords, private document storage, Admin and Viewer roles, a log of every change, and a DPDP privacy policy with a named grievance officer: me.",
+    },
+  ];
+
+  return (
+    <section id="why-trust" className="border-y border-slate-200 bg-[#F7F9FC]">
+      <div className="mx-auto max-w-[1200px] px-4 py-24 sm:px-6 md:py-32">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+          <div className="lg:sticky lg:top-24">
+            <Reveal>
+              <Eyebrow>Who’s behind EVC</Eyebrow>
+              <h2 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                One founder. No investors. Nowhere to hide.
+              </h2>
+              <p className="mt-5 text-lg leading-8 text-slate-600">
+                EVC is built by one person in Hyderabad. That is a risk, and you should weigh it. Here is the other side:
+                no sales team promising what the product can’t do, no investor pushing me to lock you in, and no support
+                queue. When something is wrong, the person who wrote the code reads your message and fixes it.
+              </p>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6">
+                <p className="text-[17px] leading-8 text-[#042653]">
+                  “In August 2026 my internship ended in a round of budget cuts. I didn’t go looking for another job. I
+                  went full-time on EVC. Equity is supposed to make people feel like owners, and most of the time it
+                  makes them feel confused, while the people behind it rebuild the same answers by hand. Every rupee EVC
+                  earns comes from a customer who decided it was worth it. I intend to keep earning that.”
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-11 w-11 place-items-center rounded-full bg-[#042653] text-base font-semibold text-[#F2B421]">
+                      S
+                    </span>
+                    <div>
+                      <p className="font-semibold">Sheshank Sidheshwar</p>
+                      <p className="text-sm text-slate-500">Founder, ESOP Value Clarity</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href="https://www.linkedin.com/company/esop-value-clarity/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-[#042653] hover:border-[#042653]"
+                    >
+                      LinkedIn
+                    </a>
+                    <a
+                      href="https://www.youtube.com/@esopvalueclarity"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-[#042653] hover:border-[#042653]"
+                    >
+                      YouTube
+                    </a>
+                    <Link
+                      href="/meeting"
+                      className="rounded-full bg-[#042653] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#0a3a78]"
+                    >
+                      Book a call
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {reasons.map((item, index) => (
+                <Reveal key={item.title} delay={index * 70}>
+                  <TiltCard className="h-full rounded-2xl border border-slate-200 bg-white p-5">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFF4D6] text-[#B7800E]">
+                      <item.icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="mt-4 font-semibold">{item.title}</h3>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-600">{item.text}</p>
+                  </TiltCard>
+                </Reveal>
+              ))}
+            </div>
+
+            <Reveal delay={200}>
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  <CalendarDays className="h-4 w-4 text-[#B7800E]" />
+                  Shipped 22–25 November 2026
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {WHATS_NEW.map((item) => (
+                    <span key={item} className="rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-[#042653] ring-1 ring-slate-200">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-4 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+                  Udyam-registered sole proprietorship, Hyderabad · Payments through Razorpay ·{" "}
+                  <Link href="/privacy" className="font-semibold text-[#042653] hover:underline">
+                    How we handle your data
+                  </Link>
+                </p>
+              </div>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
