@@ -1058,7 +1058,11 @@ function HeroShowcase({ employee }: { employee: HeroEmployeeSample }) {
                   type="button"
                   role="tab"
                   aria-selected={active}
-                  onClick={() => setState({ index: i, p: 0 })}
+                  onClick={() => {
+                    setState({ index: i, p: 0 });
+                    setAudience(MODE_TO_AUDIENCE[m.key]);
+                    trackAudience(MODE_TO_AUDIENCE[m.key], "hero_tab");
+                  }}
                   className={`relative flex items-center justify-center gap-2 overflow-hidden rounded-xl px-2 py-2.5 text-sm font-semibold transition ${
                     active ? "bg-white text-[#042653]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
                   }`}
@@ -3994,6 +3998,12 @@ function WorthItSection() {
   const [plan, setPlan] = useState<WorthKey>("firm");
   const [hourly, setHourly] = useState(1500);
 
+  useEffect(() => {
+    const saved = readAudience();
+    if (saved) setPlan(AUDIENCE_TO_WORTH[saved]);
+    return onAudience((a) => setPlan(AUDIENCE_TO_WORTH[a]));
+  }, []);
+
   const sample = runModel(SAMPLE.totalOptions, 50 * CRORE);
 
   const plans: Record<
@@ -4057,7 +4067,11 @@ function WorthItSection() {
               <button
                 key={key}
                 type="button"
-                onClick={() => setPlan(key)}
+                onClick={() => {
+                  setPlan(key);
+                  setAudience(WORTH_TO_AUDIENCE[key]);
+                  trackAudience(WORTH_TO_AUDIENCE[key], "worth_tab");
+                }}
                 className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
                   plan === key ? "bg-[#042653] text-white shadow-sm" : "text-slate-500 hover:bg-white hover:text-[#042653]"
                 }`}
@@ -4384,9 +4398,94 @@ function FinalCta() {
    STICKY CTA (appears after the hero, hides near the end)
 ============================================================ */
 
+/* ============================================================
+   AUDIENCE (shared by the hero tabs, the worth-it tabs and the
+   sticky bar). It changes only when the visitor clicks, never on
+   scroll. Kept for the browser tab session only.
+============================================================ */
+
+type Audience = "employee" | "startup" | "firm";
+
+const AUDIENCE_KEY = "evc-audience";
+const AUDIENCE_EVENT = "evc-audience";
+
+const MODE_TO_AUDIENCE: Record<ModeKey, Audience> = { employees: "employee", startups: "startup", firms: "firm" };
+const WORTH_TO_AUDIENCE: Record<WorthKey, Audience> = { employee: "employee", startup: "startup", firm: "firm" };
+const AUDIENCE_TO_WORTH: Record<Audience, WorthKey> = { employee: "employee", startup: "startup", firm: "firm" };
+
+function isAudience(value: unknown): value is Audience {
+  return value === "employee" || value === "startup" || value === "firm";
+}
+
+function readAudience(): Audience | null {
+  try {
+    const v = window.sessionStorage.getItem(AUDIENCE_KEY);
+    return isAudience(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function setAudience(audience: Audience) {
+  try {
+    window.sessionStorage.setItem(AUDIENCE_KEY, audience);
+  } catch {
+    /* storage blocked: the choice still applies on this page */
+  }
+  window.dispatchEvent(new CustomEvent<Audience>(AUDIENCE_EVENT, { detail: audience }));
+}
+
+function onAudience(handler: (audience: Audience) => void) {
+  function listener(event: Event) {
+    const detail = (event as CustomEvent<Audience>).detail;
+    if (isAudience(detail)) handler(detail);
+  }
+  window.addEventListener(AUDIENCE_EVENT, listener);
+  return () => window.removeEventListener(AUDIENCE_EVENT, listener);
+}
+
+/* Google Analytics: which audience is actually visiting. */
+function trackAudience(audience: Audience, source: string) {
+  const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+  w.gtag?.("event", "audience_select", { audience, source });
+}
+
+const STICKY: Record<Audience, { line: string; sub: string; cta: string; href: string }> = {
+  firm: {
+    line: "Foreign RSU tax and ESOP compliance for your clients",
+    sub: "",
+    cta: "Book a walkthrough",
+    href: "/meeting",
+  },
+  startup: {
+    line: "Cap table, ESOPs and PAS-3 deadlines in one place",
+    sub: "",
+    cta: "See the Startup plan",
+    href: "/pricing#startup",
+  },
+  employee: {
+    line: "What’s your grant worth after tax?",
+    sub: " Find out free.",
+    cta: "Start free",
+    href: "/simulator",
+  },
+};
+
+const CHOOSER: { audience: Audience; label: string; short: string; target: string }[] = [
+  { audience: "employee", label: "I’m an employee", short: "Employee", target: "output" },
+  { audience: "startup", label: "I run a startup", short: "Startup", target: "startups" },
+  { audience: "firm", label: "I’m a CA/CS firm", short: "CA/CS firm", target: "products" },
+];
+
 function StickyCta() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [audience, setAud] = useState<Audience | null>(null);
+
+  useEffect(() => {
+    setAud(readAudience());
+    return onAudience(setAud);
+  }, []);
 
   useEffect(() => {
     function onScroll() {
@@ -4400,7 +4499,15 @@ function StickyCta() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  function choose(item: (typeof CHOOSER)[number]) {
+    setAudience(item.audience);
+    trackAudience(item.audience, "sticky_bar");
+    document.getElementById(item.target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   if (dismissed) return null;
+
+  const current = audience ? STICKY[audience] : null;
 
   return (
     <div
@@ -4408,22 +4515,53 @@ function StickyCta() {
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
     >
-      <div className="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-white/10 bg-[#020d1f]/90 p-2 pl-3 text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+      <div className="flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-[#020d1f]/90 p-2 pl-3 text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.7)] backdrop-blur-xl">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white p-1">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/evc-mark.png" alt="" className="h-full w-full object-contain" />
         </span>
-        <p className="min-w-0 flex-1 truncate text-sm">
-          <span className="font-semibold">What is your grant worth in hand?</span>
-          <span className="hidden text-slate-400 sm:inline"> Find out free.</span>
-        </p>
-        <Link
-          href="/simulator"
-          className="evc-btn-gold inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-[#F2B421] px-4 text-sm font-semibold text-[#020d1f]"
-        >
-          Start free
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+
+        {current ? (
+          <>
+            <p key={audience} className="evh-swap min-w-0 flex-1 truncate text-sm">
+              <span className="font-semibold">{current.line}</span>
+              {current.sub && <span className="hidden text-slate-400 sm:inline">{current.sub}</span>}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAud(null)}
+              className="hidden shrink-0 rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-white/10 hover:text-white sm:block"
+            >
+              Not you?
+            </button>
+            <Link
+              href={current.href}
+              onClick={() => audience && trackAudience(audience, "sticky_cta_click")}
+              className="evc-btn-gold inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-[#F2B421] px-4 text-sm font-semibold text-[#020d1f]"
+            >
+              {current.cta}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <p className="hidden shrink-0 text-sm font-semibold md:block">Which one are you?</p>
+            <div className="flex min-w-0 flex-1 gap-1.5">
+              {CHOOSER.map((item) => (
+                <button
+                  key={item.audience}
+                  type="button"
+                  onClick={() => choose(item)}
+                  className="h-10 min-w-0 flex-1 truncate rounded-xl border border-white/15 px-2 text-xs font-semibold text-slate-100 transition hover:border-[#F2B421] hover:bg-[#F2B421] hover:text-[#020d1f] sm:text-sm"
+                >
+                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="sm:hidden">{item.short}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button
           type="button"
           aria-label="Dismiss"
