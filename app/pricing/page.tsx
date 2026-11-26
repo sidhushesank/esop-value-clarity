@@ -21,13 +21,18 @@ import {
   Building2,
   Check,
   ChevronDown,
+  Coffee,
   Crown,
   Loader2,
   LockKeyhole,
+  MessageCircle,
   Minus,
+  Receipt,
+  Scale,
   Sparkles,
   User,
   Users,
+  X,
 } from "lucide-react";
 
 import Footer from "@/components/sections/Footer";
@@ -129,6 +134,9 @@ const ORG_ROWS: { group: string; rows: { label: string; startup: Cell; advisor: 
       { label: "Private grant page for each employee, with Accept", startup: true, advisor: false, team: false },
       { label: "Signed grant letters, downloadable by employees", startup: true, advisor: false, team: false },
       { label: "Import cap table and grants from Excel", startup: true, advisor: false, team: false },
+      { label: "Exercises and allotment: PAS-3, TDS or deferral, Form 3921", startup: true, advisor: false, team: false },
+      { label: "ESOP expense report: Ind AS 102, ICAI Guidance Note, ASC 718", startup: true, advisor: false, team: false },
+      { label: "India or US company setting", startup: true, advisor: false, team: false },
     ],
   },
   {
@@ -136,7 +144,16 @@ const ORG_ROWS: { group: string; rows: { label: string; startup: Cell; advisor: 
     rows: [
       { label: "ESOP Diligence Pack: register checks, resolutions, exports", startup: false, advisor: true, team: false },
       { label: "Tax-Event Ledger: perquisite and TDS estimates", startup: false, advisor: true, team: false },
-      { label: "Deadline e-mail reminders", startup: false, advisor: true, team: false },
+      { label: "Foreign Equity Tax Pack: RSU/ESPP gains, Schedule FA, FTC, Form 67", startup: false, advisor: true, team: false },
+      { label: "SBI TT rates, share prices and splits fetched for every date", startup: false, advisor: true, team: false },
+    ],
+  },
+  {
+    group: "Deadlines and control",
+    rows: [
+      { label: "Compliance calendar with e-mails 30, 7 and 1 day before", startup: true, advisor: true, team: false },
+      { label: "Team logins: Admin and Viewer", startup: true, advisor: true, team: false },
+      { label: "Change history with export", startup: true, advisor: true, team: false },
     ],
   },
   {
@@ -175,6 +192,14 @@ const FAQS: { q: string; a: string }[] = [
   {
     q: "We need more employees, more clients or a different billing cycle.",
     a: "Tell us what you need using the form below and we will arrange a plan that fits.",
+  },
+  {
+    q: "You're one founder. What happens to my data if EVC shuts down?",
+    a: "Every register, report, tax ledger, foreign tax workbook and change history downloads to Excel today. Your records never depend on EVC staying around.",
+  },
+  {
+    q: "Why no monthly plan for companies and firms?",
+    a: "Filings, reminders and registers run across a full year, so the company plans are annual. If you need a different cycle, use the form below and we'll arrange it.",
   },
   {
     q: "Is this financial or tax advice?",
@@ -402,6 +427,8 @@ export default function PricingPage() {
   const pageRef = useRef<HTMLElement | null>(null);
   const plansRef = useRef<HTMLDivElement | null>(null);
 
+  const [who, setWho] = useWho();
+
   const audiencePill = useSlidingPill<Audience>(audience);
   const cyclePill = useSlidingPill<BillingCycle>(cycle);
 
@@ -438,7 +465,12 @@ export default function PricingPage() {
   useEffect(() => {
     function applyHash() {
       const hash = window.location.hash.replace("#", "");
-      if (!hash) return;
+      if (!hash) {
+        // No link target: open the tab that matches who the visitor said they are on the home page.
+        const saved = readWho();
+        if (saved) setAudience(saved === "employee" ? "individuals" : "organisations");
+        return;
+      }
       if (["startup", "advisor", "team"].includes(hash)) setAudience("organisations");
       if (hash === "pro") setAudience("individuals");
       window.setTimeout(() => {
@@ -552,6 +584,19 @@ export default function PricingPage() {
     document.getElementById("contact-product")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function chooseWho(next: Who, source: string) {
+    setWho(next);
+    saveWho(next, source);
+    setAudience(next === "employee" ? "individuals" : "organisations");
+  }
+
+  function goToPlan(target: string) {
+    setAudience(target === "pro" ? "individuals" : "organisations");
+    window.setTimeout(() => {
+      document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  }
+
   function switchAudience(next: Audience) {
     setAudience(next);
     if (plansRef.current && plansRef.current.getBoundingClientRect().top < 0) {
@@ -578,16 +623,17 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 className="pr-fade mx-auto mt-5 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-[#042653] sm:text-6xl" style={{ animationDelay: "60ms" }}>
-            Simple pricing for every{" "}
+            Cheaper than{" "}
             <span className="relative inline-block whitespace-nowrap">
-              equity decision.
+              one mistake.
               <svg aria-hidden="true" viewBox="0 0 300 16" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-3 w-full sm:-bottom-3 sm:h-4">
                 <path className="pr-draw" d="M3 11 C 70 3, 150 3, 297 9" fill="none" stroke="#F2B421" strokeWidth="5" strokeLinecap="round" />
               </svg>
             </span>
           </h1>
           <p className="pr-fade mx-auto mt-7 max-w-2xl text-lg leading-8 text-slate-600" style={{ animationDelay: "120ms" }}>
-            Start free. Pay when it matters, whether the equity is yours, your company&apos;s or your clients&apos;.
+            Start free. Pay when the equity, the filing or the client is real. No auto-renewal, no hidden seats, and no
+            salesperson calling you on a Sunday.
           </p>
 
           {/* Audience switch */}
@@ -789,8 +835,10 @@ export default function PricingPage() {
                   "Cap table as of any date, fully diluted",
                   "ESOP pool and grants, with checks before you issue",
                   "A private page for each employee: vesting, tax, take-home, Accept",
-                  "Signed grant letters, downloadable by employees",
-                  "Import your cap table and grants from Excel",
+                  "Exercises → PAS-3, TDS or deferral, Form 3921",
+                  "ESOP expense report: Ind AS 102 / ASC 718",
+                  "Compliance calendar with e-mail reminders",
+                  "Admin and Viewer logins, change history",
                 ]}
                 cta={{ label: "Get the Startup plan", onClick: () => void checkout("STARTUP"), loading: busy === "STARTUP", disabled: busy !== null && busy !== "STARTUP" }}
                 secondary={{ label: "Request a free trial", onClick: () => contact("STARTUP", "trial") }}
@@ -810,7 +858,10 @@ export default function PricingPage() {
                   "One console for every client company",
                   "ESOP Diligence Pack: register checks, resolutions, exports",
                   "Tax-Event Ledger: perquisite and TDS estimates",
-                  "Deadline e-mail reminders",
+                  "Foreign Equity Tax Pack: RSU/ESPP gains, Schedule FA, Form 67",
+                  "SBI TT rates and share prices for every date",
+                  "Compliance calendar across all clients",
+                  "Team logins and change history",
                 ]}
                 cta={{ label: "Get the Advisor plan", onClick: () => void checkout("ADVISOR"), loading: busy === "ADVISOR", disabled: busy !== null && busy !== "ADVISOR" }}
                 secondary={{ label: "Request a free trial", onClick: () => contact("ADVISOR", "trial") }}
@@ -878,6 +929,21 @@ export default function PricingPage() {
       </section>
 
       {/* =====================================================
+          TALK ME OUT OF IT
+      ====================================================== */}
+      <TalkMeOutOfIt who={who} onWho={(w) => chooseWho(w, "pricing_chat")} />
+
+      {/* =====================================================
+          THE RECEIPT
+      ====================================================== */}
+      <Receipt />
+
+      {/* =====================================================
+          THE PRICE OF NOT PAYING
+      ====================================================== */}
+      <PriceOfNotPaying />
+
+      {/* =====================================================
           COMPARISON TABLE
       ====================================================== */}
       <section className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 md:py-24">
@@ -935,6 +1001,8 @@ export default function PricingPage() {
       <div id="contact-product">
         <Footer />
       </div>
+
+      <PricingStickyBar who={who} onWho={(w) => chooseWho(w, "pricing_bar")} onGo={goToPlan} />
 
       <style jsx global>{`
         /* ---------- entrance ---------- */
@@ -1173,6 +1241,101 @@ export default function PricingPage() {
           }
         }
 
+        /* ---------- talk me out of it ---------- */
+        .evc-pricing .pr-msg {
+          animation: pr-msg 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes pr-msg {
+          from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+        .evc-pricing .pr-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 9999px;
+          background: #020d1f;
+          opacity: 0.35;
+          animation: pr-dot 1s ease-in-out infinite;
+        }
+        @keyframes pr-dot {
+          0%,
+          100% {
+            transform: translateY(0);
+            opacity: 0.35;
+          }
+          50% {
+            transform: translateY(-4px);
+            opacity: 0.9;
+          }
+        }
+
+        /* ---------- receipt ---------- */
+        .evc-pricing .pr-print {
+          animation: pr-print 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+          transform-origin: top;
+        }
+        @keyframes pr-print {
+          from {
+            clip-path: inset(0 0 100% 0);
+            transform: translateY(-18px);
+          }
+          to {
+            clip-path: inset(0 0 0 0);
+            transform: none;
+          }
+        }
+        .evc-pricing .pr-line {
+          animation: pr-line 0.35s ease-out both;
+        }
+        @keyframes pr-line {
+          from {
+            opacity: 0;
+            transform: translateX(-6px);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+        .evc-pricing .pr-zigzag {
+          background:
+            linear-gradient(135deg, #fff 50%, transparent 50%) 0 0 / 14px 14px repeat-x,
+            linear-gradient(-135deg, #fff 50%, transparent 50%) 0 0 / 14px 14px repeat-x;
+          filter: drop-shadow(0 6px 6px rgba(4, 38, 83, 0.12));
+        }
+        .evc-pricing .pr-barcode {
+          background: repeating-linear-gradient(
+            90deg,
+            #0b1220 0 2px,
+            transparent 2px 4px,
+            #0b1220 4px 5px,
+            transparent 5px 8px,
+            #0b1220 8px 11px,
+            transparent 11px 12px
+          );
+          opacity: 0.85;
+        }
+
+        /* ---------- price of not paying ---------- */
+        .evc-pricing .pr-bar {
+          transform-origin: left;
+          transform: scaleX(0);
+        }
+        .evc-pricing .is-in .pr-bar {
+          animation: pr-bar 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes pr-bar {
+          to {
+            transform: scaleX(1);
+          }
+        }
+
         /* ---------- reduced motion ---------- */
         @media (prefers-reduced-motion: reduce) {
           .evc-pricing *,
@@ -1182,7 +1345,8 @@ export default function PricingPage() {
           }
           .evc-pricing .pr-reveal,
           .evc-pricing .pr-tick,
-          .evc-pricing .pr-check {
+          .evc-pricing .pr-check,
+          .evc-pricing .pr-bar {
             opacity: 1 !important;
             transform: none !important;
           }
@@ -1192,6 +1356,701 @@ export default function PricingPage() {
         }
       `}</style>
     </main>
+  );
+}
+
+/* ============================================================
+   SHARED AUDIENCE (same key as the home page, so a visitor who
+   said "I'm a CA firm" there lands on the right plans here)
+============================================================ */
+
+type Who = "employee" | "startup" | "firm";
+
+const WHO_KEY = "evc-audience";
+const WHO_EVENT = "evc-audience";
+
+function isWho(v: unknown): v is Who {
+  return v === "employee" || v === "startup" || v === "firm";
+}
+
+function readWho(): Who | null {
+  try {
+    const v = window.sessionStorage.getItem(WHO_KEY);
+    return isWho(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveWho(who: Who, source: string) {
+  try {
+    window.sessionStorage.setItem(WHO_KEY, who);
+  } catch {
+    /* storage blocked: the choice still applies on this page */
+  }
+  window.dispatchEvent(new CustomEvent<Who>(WHO_EVENT, { detail: who }));
+  const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+  w.gtag?.("event", "audience_select", { audience: who, source });
+}
+
+function useWho() {
+  const [who, setWho] = useState<Who | null>(null);
+  useEffect(() => {
+    setWho(readWho());
+    function listener(event: Event) {
+      const d = (event as CustomEvent<Who>).detail;
+      if (isWho(d)) setWho(d);
+    }
+    window.addEventListener(WHO_EVENT, listener);
+    return () => window.removeEventListener(WHO_EVENT, listener);
+  }, []);
+  return [who, setWho] as const;
+}
+
+const WHO_LABEL: Record<Who, string> = { employee: "Employee", startup: "Startup", firm: "CA / CS firm" };
+
+/* ============================================================
+   TALK ME OUT OF IT
+   Every answer must stay true. Funny is fine; invented is not.
+============================================================ */
+
+const OBJECTIONS: Record<Who, { q: string; a: string }[]> = {
+  employee: [
+    {
+      q: "₹24,999 for a calculator?",
+      a: "The calculator is free. Forever. PRO is for when the decision is real: exercise now or later, which regime, what lands in your account after tax.",
+    },
+    {
+      q: "My ESOPs are probably worth nothing.",
+      a: "Possibly. Then EVC tells you before you spend lakhs exercising them. Cheapest bad news you’ll ever buy.",
+    },
+    {
+      q: "HR already sent me an Excel sheet.",
+      a: "Lovely. Does it know your slab, the new regime, surcharge with marginal relief and 4% cess? Put HR’s numbers in EVC and see if they agree.",
+    },
+    {
+      q: "I’ll just ask ChatGPT.",
+      a: "Ask it twice. If both answers match to the rupee, keep your money. We’ll wait.",
+    },
+    {
+      q: "I’m an NRI. This won’t apply to me.",
+      a: "It applies, just differently. EVC handles Resident, RNOR and NRI, including the share of your perquisite India can actually tax.",
+    },
+    {
+      q: "Can I try it before I pay?",
+      a: "You already can. Simulator, cap table builder, saved calculations and history are free. No card, no trial timer.",
+    },
+  ],
+  startup: [
+    {
+      q: "We run the cap table in Excel.",
+      a: "Everyone does, until an investor’s lawyer asks for the register as of last March. EVC gives you the cap table as of any date, fully diluted.",
+    },
+    {
+      q: "₹14,999 is a lot for a startup.",
+      a: `It’s ${inr(Math.round(STARTUP_PLAN.priceRupees / STARTUP_PLAN.includedOptionHolders))} per option holder for the whole year. A late PAS-3 can cost ₹1,000 a day.`,
+    },
+    {
+      q: "Our CS handles the filings.",
+      a: "Good. EVC gives them the allotment data, the due dates and an email 30, 7 and 1 day before. They’ll start replying to you faster.",
+    },
+    {
+      q: "Employees never read their grant letters anyway.",
+      a: "Exactly. So each one gets a private page with vesting, tax and take-home in rupees, and an Accept button. Fewer “what is my ESOP worth?” Slack messages.",
+    },
+    {
+      q: "What about the auditor and Ind AS 102?",
+      a: "The expense report does Ind AS 102, the ICAI Guidance Note or ASC 718, graded or straight-line, with the journal entry. Excel and PDF.",
+    },
+    {
+      q: "Can we try it first?",
+      a: "Yes. Click “Request a free trial” and I’ll set it up for you myself.",
+    },
+  ],
+  firm: [
+    {
+      q: "We’ve done this in Excel for years.",
+      a: "And it works, until client fifteen and RSU lot two hundred. EVC reads the broker file, applies the SBI rate for each date and hands you the working paper.",
+    },
+    {
+      q: "₹60,000 is steep for a small practice.",
+      a: `It’s ${inr(Math.round(ADVISOR_PLAN.priceRupees / ADVISOR_PLAN.includedClients))} per client company a year, about ${inr(Math.round(ADVISOR_PLAN.priceRupees / ADVISOR_PLAN.includedClients / 12))} a month. If it saves your team 40 hours in a year at ₹1,500 an hour, it has paid for itself.`,
+    },
+    {
+      q: "Which broker files does it read?",
+      a: "Excel or CSV exports from Morgan Stanley at Work (E*TRADE), Schwab and Fidelity, matched by column names. Others work through our template. PDFs, not yet.",
+    },
+    {
+      q: "Our clients’ data is sensitive.",
+      a: "So we treat it that way: hashed passwords, private storage, Admin and Viewer logins, a log of every change, and a privacy policy written for the DPDP Act.",
+    },
+    {
+      q: "What if you shut down?",
+      a: "Then you open Excel. Every register, ledger and tax workbook already downloads, in formats your team uses today.",
+    },
+    {
+      q: "Can we try it before paying?",
+      a: "Yes. Ask for a free trial and I’ll set it up for your firm myself.",
+    },
+  ],
+};
+
+type ChatLine = { id: number; from: "you" | "evc"; text: string };
+
+function TalkMeOutOfIt({ who, onWho }: { who: Who | null; onWho: (w: Who) => void }) {
+  const tab: Who = who ?? "firm";
+  const [log, setLog] = useState<ChatLine[]>([]);
+  const [typing, setTyping] = useState(false);
+  const [asked, setAsked] = useState<string[]>([]);
+  const idRef = useRef(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => {
+    setLog([]);
+    setAsked([]);
+    setTyping(false);
+    if (timer.current) window.clearTimeout(timer.current);
+  }, [tab]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }, [log, typing]);
+
+  useEffect(() => () => {
+    if (timer.current) window.clearTimeout(timer.current);
+  }, []);
+
+  function ask(item: { q: string; a: string }) {
+    if (typing) return;
+    idRef.current += 1;
+    setLog((l) => [...l, { id: idRef.current, from: "you", text: item.q }]);
+    setAsked((a) => [...a, item.q]);
+    setTyping(true);
+    const delay = prefersReducedMotion() ? 0 : Math.min(1600, 500 + item.a.length * 6);
+    timer.current = window.setTimeout(() => {
+      idRef.current += 1;
+      setLog((l) => [...l, { id: idRef.current, from: "evc", text: item.a }]);
+      setTyping(false);
+    }, delay);
+  }
+
+  const remaining = OBJECTIONS[tab].filter((o) => !asked.includes(o.q));
+
+  return (
+    <section id="talk-me-out-of-it" className="relative overflow-hidden bg-[#020d1f] py-20 text-white md:py-28">
+      <div className="pr-grid pointer-events-none absolute inset-0 opacity-[0.05]" />
+      <div className="pr-orb pointer-events-none absolute -left-40 top-10 h-[420px] w-[420px] rounded-full bg-[#5B9BFF]/15 blur-[120px]" />
+      <div className="pr-orb pr-orb-2 pointer-events-none absolute -right-32 bottom-0 h-[380px] w-[380px] rounded-full bg-[#F2B421]/15 blur-[120px]" />
+
+      <div className="relative mx-auto grid max-w-[1200px] gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+        <div data-reveal className="pr-reveal">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#F2B421]/30 bg-[#F2B421]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#F2B421]">
+            <MessageCircle className="h-3.5 w-3.5" /> Go on, haggle
+          </p>
+          <h2 className="mt-5 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+            Try to talk yourself out of it.
+          </h2>
+          <p className="mt-5 max-w-md text-lg leading-8 text-slate-300">
+            Every reason not to buy, answered honestly. If one of these answers is wrong for you, don’t pay. Pick who you
+            are, then tap an objection.
+          </p>
+
+          <div className="mt-8 inline-flex rounded-2xl border border-white/10 bg-white/[0.04] p-1.5">
+            {(["employee", "startup", "firm"] as Who[]).map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => onWho(w)}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  tab === w ? "bg-white text-[#042653]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                }`}
+              >
+                {WHO_LABEL[w]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div data-reveal className="pr-reveal overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] shadow-[0_40px_100px_-40px_rgba(0,0,0,0.8)] backdrop-blur" style={{ transitionDelay: "100ms" }}>
+          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
+            <span className="relative grid h-9 w-9 place-items-center rounded-full bg-white p-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/evc-mark.png" alt="" className="h-full w-full object-contain" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#020d1f] bg-emerald-400" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold">Sheshank, founder</p>
+              <p className="text-xs text-slate-400">{typing ? "typing…" : "Replies with the truth, not a discount"}</p>
+            </div>
+          </div>
+
+          <div ref={scrollRef} className="h-[340px] space-y-3 overflow-y-auto px-5 py-5">
+            {log.length === 0 && !typing ? (
+              <div className="grid h-full place-items-center text-center">
+                <p className="max-w-xs text-sm text-slate-400">
+                  Your objections go here. Tap one below. Be as rude as you like.
+                </p>
+              </div>
+            ) : null}
+            {log.map((line) =>
+              line.from === "you" ? (
+                <div key={line.id} className="pr-msg flex justify-end">
+                  <p className="max-w-[85%] rounded-2xl rounded-br-md bg-white/10 px-4 py-2.5 text-[15px] leading-6 text-slate-100">{line.text}</p>
+                </div>
+              ) : (
+                <div key={line.id} className="pr-msg flex justify-start">
+                  <p className="max-w-[85%] rounded-2xl rounded-bl-md bg-[#F2B421] px-4 py-2.5 text-[15px] font-medium leading-6 text-[#020d1f]">
+                    {line.text}
+                  </p>
+                </div>
+              )
+            )}
+            {typing ? (
+              <div className="flex justify-start">
+                <span className="inline-flex gap-1 rounded-2xl rounded-bl-md bg-[#F2B421]/90 px-4 py-3.5">
+                  <span className="pr-dot" />
+                  <span className="pr-dot" style={{ animationDelay: "120ms" }} />
+                  <span className="pr-dot" style={{ animationDelay: "240ms" }} />
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="border-t border-white/10 p-4">
+            {remaining.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {remaining.map((o) => (
+                  <button
+                    key={o.q}
+                    type="button"
+                    disabled={typing}
+                    onClick={() => ask(o)}
+                    className="pr-ripple rounded-full border border-white/15 px-3.5 py-2 text-left text-sm text-slate-100 transition hover:border-[#F2B421] hover:bg-[#F2B421]/10 disabled:opacity-50"
+                  >
+                    {o.q}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-slate-300">Out of objections? That’s usually a good sign.</p>
+                <a
+                  href={tab === "employee" ? "#pro" : tab === "startup" ? "#startup" : "#advisor"}
+                  className="pr-btn-gold relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-xl bg-[#F2B421] px-4 text-sm font-semibold text-[#020d1f]"
+                >
+                  <span className="relative">See the plan</span>
+                  <ArrowRight className="relative h-4 w-4" />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   THE RECEIPT
+   Line items are features that exist today. Totals are the real
+   prices from the same constants checkout uses.
+============================================================ */
+
+type ReceiptKey = "PRO" | "STARTUP" | "ADVISOR" | "TEAM";
+
+const RECEIPTS: Record<ReceiptKey, { title: string; price: number; per: string; lines: string[]; jokes: [string, string][] }> = {
+  PRO: {
+    title: "PRO · Yearly",
+    price: 24999,
+    per: "for 12 months",
+    lines: [
+      "Grant letter read, every field confirmed by you",
+      "Vesting and cliff timeline",
+      "Cash needed to exercise",
+      "Tax: old vs new regime, surcharge, marginal relief, cess",
+      "Resident, RNOR and NRI",
+      "Exit scenarios, side by side",
+      "Offer Intelligence: compare job offers",
+      "One-page PDF report",
+    ],
+    jokes: [
+      ["2 a.m. ESOP anxiety", "−90%"],
+      ["Calls from a salesperson", "0"],
+    ],
+  },
+  STARTUP: {
+    title: "Startup plan · Annual",
+    price: STARTUP_PLAN.priceRupees,
+    per: `${STARTUP_PLAN.includedOptionHolders} option holders`,
+    lines: [
+      "Cap table as of any date, fully diluted",
+      "ESOP schemes, pool and grants",
+      "Private employee page with Accept",
+      "Grant letters employees can download",
+      "Exercises → PAS-3, TDS or deferral, Form 3921",
+      "ESOP expense report: Ind AS 102 / ASC 718",
+      "Compliance calendar, emails 30·7·1 days before",
+      "Admin and Viewer logins, full change history",
+    ],
+    jokes: [
+      ["“What is my ESOP worth?” messages", "fewer"],
+      ["Rebuilding the register before a round", "0"],
+    ],
+  },
+  ADVISOR: {
+    title: "Advisor plan · Annual",
+    price: ADVISOR_PLAN.priceRupees,
+    per: `${ADVISOR_PLAN.includedClients} client companies`,
+    lines: [
+      "ESOP Diligence Pack, readiness score, PDF/Excel",
+      "Tax-Event Ledger: perquisite, TDS, deferral clock",
+      "Foreign Equity Tax Pack for individuals",
+      "SBI TT rates for every date since 2020",
+      "Schedule FA (A2, A3, daily peak), CG buckets",
+      "Dividends, foreign tax credit, Form 67",
+      "9-sheet Excel working paper per client",
+      "Calendar across all clients, team logins",
+    ],
+    jokes: [
+      ["Tab five quietly breaking", "0"],
+      ["Junior’s weekend in Excel", "returned"],
+    ],
+  },
+  TEAM: {
+    title: "Team Intelligence · Annual",
+    price: TEAM_PRICE,
+    per: `${TEAM_MEMBERS} members`,
+    lines: [
+      `PRO for up to ${TEAM_MEMBERS} people`,
+      "Member preview, compare and analysis",
+      "Workspace-level analytics",
+      "One admin, 12 months",
+    ],
+    jokes: [["Same ESOP question asked 20 times", "once"]],
+  },
+};
+
+function Receipt() {
+  const [key, setKey] = useState<ReceiptKey>("ADVISOR");
+  const [run, setRun] = useState(0);
+  const r = RECEIPTS[key];
+  const today = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+  function pick(k: ReceiptKey) {
+    setKey(k);
+    setRun((n) => n + 1);
+  }
+
+  return (
+    <section id="receipt" className="mx-auto max-w-[1200px] px-4 py-20 sm:px-6 md:py-28">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
+        <div data-reveal className="pr-reveal">
+          <p className="inline-flex items-center gap-2 rounded-full bg-[#FFF4D6] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A5A00]">
+            <Receipt className="h-3.5 w-3.5" /> Itemised
+          </p>
+          <h2 className="mt-5 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-[#042653] sm:text-5xl">
+            Here’s exactly what your money buys.
+          </h2>
+          <p className="mt-5 max-w-md text-lg leading-8 text-slate-600">
+            No “and much more”. Every line on the receipt is something EVC does today. Pick a plan and watch it print.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {(Object.keys(RECEIPTS) as ReceiptKey[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => pick(k)}
+                className={`pr-ripple rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  key === k ? "bg-[#042653] text-white shadow-md" : "border border-slate-200 bg-white text-slate-600 hover:border-[#042653]/40 hover:text-[#042653]"
+                }`}
+              >
+                {k === "PRO" ? "PRO" : k === "STARTUP" ? "Startup" : k === "ADVISOR" ? "Advisor" : "Team"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div data-reveal className="pr-reveal relative mx-auto w-full max-w-[420px]">
+          <div className="pointer-events-none absolute -inset-8 rounded-[40px] bg-[#F2B421]/15 blur-3xl" />
+          <div className="relative h-3 rounded-t-xl bg-[#042653] shadow-inner" />
+          <div key={`${key}-${run}`} className="pr-print relative mx-3 overflow-hidden bg-white px-6 pb-8 pt-6 font-mono text-[13px] text-slate-700 shadow-[0_30px_60px_-30px_rgba(4,38,83,0.6)]">
+            <div className="text-center">
+              <p className="text-base font-bold tracking-widest text-[#042653]">ESOP VALUE CLARITY</p>
+              <p className="text-[11px] text-slate-500">Hyderabad · esopvalueclarity.com</p>
+              <p className="mt-1 text-[11px] text-slate-500">{today}</p>
+            </div>
+            <p className="my-3 border-t border-dashed border-slate-300" />
+            <p className="font-bold text-[#042653]">{r.title}</p>
+            <p className="text-[11px] text-slate-500">{r.per}</p>
+            <ul className="mt-3 space-y-1.5">
+              {r.lines.map((line, i) => (
+                <li key={line} className="pr-line flex justify-between gap-3" style={{ animationDelay: `${200 + i * 110}ms` }}>
+                  <span>{line}</span>
+                  <span className="shrink-0 text-emerald-600">incl.</span>
+                </li>
+              ))}
+            </ul>
+            <p className="my-3 border-t border-dashed border-slate-300" />
+            <ul className="space-y-1.5 text-slate-500">
+              {r.jokes.map(([label, value]: [string, string], i: number) => (
+                <li key={label} className="pr-line flex justify-between gap-3" style={{ animationDelay: `${200 + (r.lines.length + i) * 110}ms` }}>
+                  <span>{label}</span>
+                  <span className="shrink-0">{value}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="my-3 border-t-2 border-double border-slate-400" />
+            <div className="pr-line flex items-end justify-between" style={{ animationDelay: `${300 + (r.lines.length + r.jokes.length) * 110}ms` }}>
+              <span className="font-bold">TOTAL</span>
+              <span className="text-2xl font-bold text-[#042653]">{inr(r.price)}</span>
+            </div>
+            <p className="pr-line mt-1 text-right text-[11px] text-slate-500" style={{ animationDelay: `${350 + (r.lines.length + r.jokes.length) * 110}ms` }}>
+              {inr(r.price / 365)} a day · no auto-renewal
+            </p>
+            <p className="my-3 border-t border-dashed border-slate-300" />
+            <p className="text-center text-[11px] leading-5 text-slate-500">
+              Cashier: Sheshank (also the developer)
+              <br />
+              Thank you for not doing this in Excel.
+            </p>
+            <div className="pr-barcode mx-auto mt-3 h-8 w-48" />
+          </div>
+          <div className="pr-zigzag relative mx-3 h-3" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   THE PRICE OF NOT PAYING
+   Penalty figures and their sources match the home page.
+============================================================ */
+
+const STAKES: { label: string; amount: number; kind: "plan" | "fine"; note: string; href?: string }[] = [
+  { label: "Startup plan, a whole year", amount: STARTUP_PLAN.priceRupees, kind: "plan", note: "With a receipt" },
+  { label: "Advisor plan, a whole year, 25 clients", amount: ADVISOR_PLAN.priceRupees, kind: "plan", note: "With a receipt" },
+  {
+    label: "Late PAS-3: maximum for the company, and again for each officer",
+    amount: 100000,
+    kind: "fine",
+    note: "Companies Act s.39(5)",
+    href: "https://www.taxclue.in/tools/pas-3-late-filing-penalty-calculator",
+  },
+  {
+    label: "Late MGT-14: maximum for the company",
+    amount: 200000,
+    kind: "fine",
+    note: "Companies Act s.117(2)",
+    href: "https://www.taxscan.in/top-stories/delay-of-215-days-in-filing-board-resolution-in-form-mgt-14-mca-imposes-penalty-1437235",
+  },
+  {
+    label: "Foreign shares left out of Schedule FA",
+    amount: 1000000,
+    kind: "fine",
+    note: "Black Money Act s.43",
+    href: "https://taxguru.in/?p=925008",
+  },
+];
+
+function PriceOfNotPaying() {
+  const max = Math.max(...STAKES.map((s) => s.amount));
+  const perClientDay = ADVISOR_PLAN.priceRupees / ADVISOR_PLAN.includedClients / 365;
+
+  return (
+    <section id="price-of-not-paying" className="border-y border-slate-200 bg-white">
+      <div className="mx-auto max-w-[1200px] px-4 py-20 sm:px-6 md:py-28">
+        <div data-reveal className="pr-reveal max-w-3xl">
+          <p className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-700">
+            <Scale className="h-3.5 w-3.5" /> The other price list
+          </p>
+          <h2 className="mt-5 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-[#042653] sm:text-5xl">
+            One of these comes with a receipt. The rest come with a notice.
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            You’re not choosing between EVC and ₹0. You’re choosing between EVC and the risk of a missed date or a wrong
+            schedule.
+          </p>
+        </div>
+
+        <div data-reveal className="pr-reveal mt-12 space-y-4">
+          {STAKES.map((s, i) => {
+            const pct = Math.max(3, (s.amount / max) * 100);
+            const plan = s.kind === "plan";
+            return (
+              <div key={s.label} className="grid grid-cols-1 gap-2 md:grid-cols-[280px_minmax(0,1fr)] md:items-center md:gap-6">
+                <div>
+                  <p className={`text-sm font-semibold ${plan ? "text-[#042653]" : "text-slate-700"}`}>{s.label}</p>
+                  {s.href ? (
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 underline-offset-2 hover:underline">
+                      {s.note}
+                    </a>
+                  ) : (
+                    <p className="text-xs text-emerald-700">{s.note}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 flex-1 overflow-hidden rounded-xl bg-slate-100">
+                    <div
+                      className={`pr-bar h-full rounded-xl ${plan ? "bg-gradient-to-r from-[#042653] to-[#2a5ba8]" : "bg-gradient-to-r from-red-500 to-orange-400"}`}
+                      style={{ width: `${pct}%`, animationDelay: `${i * 140}ms` }}
+                    />
+                  </div>
+                  <span className={`w-28 shrink-0 text-right font-semibold tabular-nums ${plan ? "text-[#042653]" : "text-red-600"}`}>{inr(s.amount)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div data-reveal className="pr-reveal mt-12 grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              icon: Coffee,
+              big: `${inr(perClientDay)}`,
+              small: "per client company per day on the Advisor plan. Less than the office chai.",
+            },
+            {
+              icon: Users,
+              big: inr(STARTUP_PLAN.priceRupees / STARTUP_PLAN.includedOptionHolders),
+              small: "per option holder for a whole year on the Startup plan.",
+            },
+            {
+              icon: Crown,
+              big: inr(24999 / 365),
+              small: "a day for PRO yearly, to get a decision worth lakhs right.",
+            },
+          ].map((c) => (
+            <div key={c.small} className="rounded-2xl border border-slate-200 bg-[#F7F9FC] p-5">
+              <c.icon className="h-5 w-5 text-[#B7800E]" />
+              <p className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-[#042653]">{c.big}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{c.small}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   STICKY BAR (follows who the visitor said they are)
+============================================================ */
+
+const BAR: Record<Who, { line: string; cta: string; target: string }> = {
+  employee: { line: `PRO yearly works out to ${inr(24999 / 365)} a day. The calculator stays free.`, cta: "See PRO", target: "pro" },
+  startup: {
+    line: `${inr(STARTUP_PLAN.priceRupees / STARTUP_PLAN.includedOptionHolders)} per option holder a year. Cap table, ESOPs, PAS-3 dates.`,
+    cta: "See the Startup plan",
+    target: "startup",
+  },
+  firm: {
+    line: `${inr(ADVISOR_PLAN.priceRupees / ADVISOR_PLAN.includedClients / 12)} per client a month. Foreign RSU tax and ESOP compliance.`,
+    cta: "See the Advisor plan",
+    target: "advisor",
+  },
+};
+
+function PricingStickyBar({ who, onWho, onGo }: { who: Who | null; onWho: (w: Who) => void; onGo: (target: string) => void }) {
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [chooser, setChooser] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      const end = document.getElementById("contact-product");
+      const past = window.scrollY > window.innerHeight * 0.8;
+      const nearEnd = end ? end.getBoundingClientRect().top < window.innerHeight : false;
+      setVisible(past && !nearEnd);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (dismissed) return null;
+  const current = who && !chooser ? BAR[who] : null;
+
+  return (
+    <div
+      className={`fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 transition-all duration-500 ${
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
+      }`}
+    >
+      <div className="flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-white/10 bg-[#020d1f]/90 p-2 pl-3 text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white p-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/evc-mark.png" alt="" className="h-full w-full object-contain" />
+        </span>
+        {current && who ? (
+          <>
+            <p key={who} className="pr-swap min-w-0 flex-1 truncate text-sm font-semibold">
+              {current.line}
+            </p>
+            <button
+              type="button"
+              onClick={() => setChooser(true)}
+              className="hidden shrink-0 rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-white/10 hover:text-white sm:block"
+            >
+              Not you?
+            </button>
+            <button
+              type="button"
+              onClick={() => onGo(current.target)}
+              className="pr-btn-gold relative inline-flex h-10 shrink-0 items-center gap-1.5 overflow-hidden rounded-xl bg-[#F2B421] px-4 text-sm font-semibold text-[#020d1f]"
+            >
+              <span className="relative">{current.cta}</span>
+              <ArrowRight className="relative h-4 w-4" />
+            </button>
+          </>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <p className="hidden shrink-0 text-sm font-semibold md:block">Which one are you?</p>
+            <div className="flex min-w-0 flex-1 gap-1.5">
+              {(["employee", "startup", "firm"] as Who[]).map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => {
+                    setChooser(false);
+                    onWho(w);
+                    onGo(BAR[w].target);
+                  }}
+                  className="h-10 min-w-0 flex-1 truncate rounded-xl border border-white/15 px-2 text-xs font-semibold text-slate-100 transition hover:border-[#F2B421] hover:bg-[#F2B421] hover:text-[#020d1f] sm:text-sm"
+                >
+                  {w === "employee" ? (
+                    <>
+                      <span className="hidden sm:inline">I’m an employee</span>
+                      <span className="sm:hidden">Employee</span>
+                    </>
+                  ) : w === "startup" ? (
+                    <>
+                      <span className="hidden sm:inline">I run a startup</span>
+                      <span className="sm:hidden">Startup</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">I’m a CA/CS firm</span>
+                      <span className="sm:hidden">CA/CS firm</span>
+                    </>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          aria-label="Dismiss"
+          onClick={() => setDismissed(true)}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
   );
 }
 

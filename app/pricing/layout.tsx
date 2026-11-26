@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing: ESOP Management Software and Cap Table Plans",
   description:
-    "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
+    "ESOP Value Clarity pricing: free ESOP calculator, PRO for employees, and annual plans for startups (cap table, ESOPs, PAS-3, Ind AS 102) and CA/CS firms (ESOP compliance, foreign RSU tax, Schedule FA).",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "ESOP Management Software Pricing | ESOP Value Clarity",
     description:
-      "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
+      "ESOP Value Clarity pricing: free ESOP calculator, PRO for employees, and annual plans for startups (cap table, ESOPs, PAS-3, Ind AS 102) and CA/CS firms (ESOP compliance, foreign RSU tax, Schedule FA).",
     url: "/pricing",
     type: "website",
     siteName: "ESOP Value Clarity",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ESOP Management Software Pricing | ESOP Value Clarity",
     description:
-      "Simple pricing for ESOP Value Clarity: free ESOP simulator, PRO for individuals, and annual plans for startups (cap table and ESOP grants), CA and CS firms, and teams.",
+      "ESOP Value Clarity pricing: free ESOP calculator, PRO for employees, and annual plans for startups (cap table, ESOPs, PAS-3, Ind AS 102) and CA/CS firms (ESOP compliance, foreign RSU tax, Schedule FA).",
     images: ["/og-image.png"],
   },
 };
