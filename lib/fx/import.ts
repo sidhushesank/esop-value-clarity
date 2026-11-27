@@ -135,8 +135,8 @@ type FieldKey =
   | "price" | "amount" | "fees" | "currency" | "lotRef" | "costInr";
 
 export const FX_FIELDS: { key: FieldKey; label: string; required: boolean; synonyms: string[] }[] = [
-  { key: "type", label: "Type", required: true, synonyms: ["type", "transactiontype", "action", "activity", "event", "recordtype", "transaction"] },
-  { key: "date", label: "Date", required: true, synonyms: ["date", "transactiondate", "tradedate", "vestdate", "releasedate", "saledate", "settlementdate", "exercisedate", "paydate", "purchasedate"] },
+  { key: "type", label: "Type", required: true, synonyms: ["type", "transactiontype", "action", "activity", "event", "recordtype", "transaction", "buysell"] },
+  { key: "date", label: "Date", required: true, synonyms: ["date", "rundate", "transactiondate", "tradedate", "vestdate", "releasedate", "saledate", "settlementdate", "exercisedate", "paydate", "purchasedate"] },
   { key: "symbol", label: "Symbol", required: true, synonyms: ["symbol", "ticker", "stocksymbol", "security", "scrip", "stock"] },
   { key: "company", label: "Company", required: false, synonyms: ["company", "companyname", "issuer", "securityname", "description", "name"] },
   { key: "broker", label: "Broker", required: false, synonyms: ["broker", "platform", "custodian", "provider", "brokername"] },
@@ -188,7 +188,7 @@ export function classifyAction(v: unknown): ActionClass {
   if (/(tax|withh|^nra)/.test(t) && !/taxable/.test(t)) return { kind: "use", type: "TAX_WITHHELD", fmvCost: false };
   if (/reinvest(ed|ment)?shares?/.test(t)) return { kind: "use", type: "BUY", fmvCost: false };
   if (/div/.test(t)) return { kind: "use", type: "DIVIDEND", fmvCost: false };
-  if (/^(sell|sale|sold)|sale$|sold$|^ss$|selltocover|salestocover/.test(t)) return { kind: "use", type: "SELL", fmvCost: false };
+  if (/^(sell|sale|sold)|sale$|sold$|^ss$|selltocover|salestocover|^yousold/.test(t)) return { kind: "use", type: "SELL", fmvCost: false };
   if (/(espp|exercise|option)/.test(t)) return { kind: "use", type: "BUY", fmvCost: true };
   if (/(vest|release|rsu|deposit|stockplan|lapse|award|restricted)/.test(t)) return { kind: "use", type: "VEST", fmvCost: false };
   if (/(buy|purchase|bought|reinvest)/.test(t)) return { kind: "use", type: "BUY", fmvCost: false };
@@ -242,6 +242,8 @@ export function parseTransactions(
   const skip = (label: string) => skipped.set(label, (skipped.get(label) ?? 0) + 1);
 
   for (const r of rows) {
+    // Broker exports end with note lines in one cell (Fidelity's "Date downloaded…", disclaimers). Not transactions.
+    if (r.cells.filter((c) => !blank(c)).length <= 1) continue;
     const e: string[] = [];
     const action = classifyAction(get(r, "type"));
     if (action && action.kind === "skip") {
