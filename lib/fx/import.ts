@@ -236,6 +236,13 @@ export function parseTransactions(
   const get = (r: Row, k: FieldKey) => (map[k] === null ? null : r.cells[map[k] as number]);
   const str = (v: unknown) => (blank(v) ? null : String(v).trim().slice(0, 120));
 
+  // Some brokers split charges over two columns (Fidelity: "Commission ($)" and "Fees ($)"). Add them up.
+  const feeSynonyms = FX_FIELDS.find((f) => f.key === "fees")?.synonyms ?? [];
+  const feeCols = headers
+    .map((h, i) => ({ h: norm(h), i }))
+    .filter(({ h }) => feeSynonyms.includes(h) || h.includes("commission") || /^fees?/.test(h))
+    .map(({ i }) => i);
+
   const valid: FxTxnInput[] = [];
   const errors: { rowNumber: number; errors: string[] }[] = [];
   const skipped = new Map<string, number>();
@@ -271,7 +278,21 @@ export function parseTransactions(
     let quantity = num("quantity", "Quantity");
     let price = num("price", "Price");
     let amount = num("amount", "Amount");
-    const fees = num("fees", "Fees");
+    let fees: number | null = null;
+    if (feeCols.length > 1) {
+      for (const i of feeCols) {
+        const v = r.cells[i];
+        if (blank(v)) continue;
+        const p = money(v);
+        if (!p.ok) {
+          e.push(`Fees ${p.error}.`);
+          continue;
+        }
+        fees = (fees ?? 0) + Math.abs(p.value);
+      }
+    } else {
+      fees = num("fees", "Fees");
+    }
     const costInr = num("costInr", "Cost INR per share");
 
     if ((type === "VEST" || type === "BUY") && !quantity) {
