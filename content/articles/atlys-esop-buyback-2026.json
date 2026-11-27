@@ -1,0 +1,160 @@
+{
+  "slug": "atlys-esop-buyback-2026",
+  "publishedAt": "2026-11-27",
+  "updatedAt": "2026-11-27",
+  "category": "Company news",
+  "stage": "Company news",
+  "audience": ["Employees", "Founders", "HR"],
+  "readTime": "6 min read",
+  "videoTime": "3 min video",
+  "title": "Atlys ESOP buyback 2026: ₹4 crore, up to 25% of vested options",
+  "description": "Atlys ran its first ESOP buyback in April 2026: ₹4 crore, up to 25% of vested options. What it means for employees and how the payout is likely taxed.",
+  "keywords": ["Atlys ESOP buyback", "Atlys ESOP", "visa startup ESOP buyback", "ESOP buyback 2026", "ESOP buyback tax India 2026", "startup ESOP liquidity India"],
+  "icon": "WalletCards",
+  "quickAnswer": [
+    "Visa-processing startup Atlys announced its first ESOP buyback, worth ₹4 crore, on 8 April 2026.",
+    "Eligible employees could sell up to 25% of their vested stock options, according to Inc42, PTI and other outlets.",
+    "The buyback followed Atlys's $36 million Series C led by Susquehanna Asia Venture Capital; reports did not disclose the price, the valuation or how many employees took part.",
+    "How an employee is taxed depends on the route: cash paid for surrendered options is usually taxed as salary, while shares bought back by the company from 1 April 2026 are taxed as capital gains."
+  ],
+  "heroStats": [
+    {"label": "Buyback size", "value": "₹4 crore"},
+    {"label": "Cap per employee", "value": "Up to 25% of vested options"},
+    {"label": "Announced", "value": "8 April 2026"},
+    {"label": "Recent round", "value": "$36M Series C"}
+  ],
+  "modelCards": [
+    {"label": "Event type", "value": "First ESOP buyback (liquidity event)"},
+    {"label": "Not disclosed", "value": "Price, valuation, participant count, buyer entity"},
+    {"label": "Tax depends on", "value": "Route (options vs shares) and payment date"}
+  ],
+  "sections": [
+    {
+      "id": "what-happened",
+      "eyebrow": "The news",
+      "title": "What Atlys announced",
+      "body": [
+        "Atlys, a visa-processing platform founded by Mohak Nahta, announced its first ESOP buyback on 8 April 2026. Inc42, the Press Trust of India (carried by The Week) and Indian Startup News all reported the same core figures that day, and Entrepreneur India and Angel One followed on 9 April. This post looks back at an event from April 2026; it is not new this week.",
+        "The buyback was worth ₹4 crore. Eligible employees could sell up to a quarter of their vested stock options. Indian Startup News and Entrepreneur India said the programme was open across roles and functions. None of the five reports said whether former employees were included or how eligibility was defined.",
+        "Nahta was quoted by Inc42 and PTI as saying the company had always believed the people building Atlys should share in the value they create, and that the buyback gave eligible employees liquidity now while letting them keep long-term ownership as the company grows."
+      ],
+      "cards": [
+        {"label": "Amount", "value": "₹4 crore"},
+        {"label": "Sell limit", "value": "Up to 25% of vested options"},
+        {"label": "Former employees", "value": "Not reported"}
+      ]
+    },
+    {
+      "id": "context",
+      "eyebrow": "Context",
+      "title": "The funding and business backdrop",
+      "body": [
+        "All five outlets linked the buyback to Atlys's $36 million Series C, led by Susquehanna Asia Venture Capital with participation from MakeMyTrip, Elevation Capital, Long Journey Ventures and Peak XV Partners. Inc42 said the buyback was likely carried out alongside the round; other outlets said it came shortly after. Inc42 and Indian Startup News put total funding raised at more than $73 million.",
+        "Reports said Atlys processes more than 7 lakh visas a year. Inc42 and PTI said the business had grown 11 times since 2024, and PTI said the UAE, US, UK and Australia make up nearly half of it. Indian Startup News reported FY25 revenue of ₹31.84 crore (up from ₹9.61 crore in FY24) and a net loss of ₹60.08 crore (₹23.41 crore a year earlier); it did not name its source and the other outlets did not report financials.",
+        "Inc42 placed the deal in a wider trend: by its count, 12 Indian startups ran ESOP buybacks in 2025, giving more than 9,200 employees over ₹1,409 crore of liquidity."
+      ]
+    },
+    {
+      "id": "what-it-means",
+      "eyebrow": "For employees",
+      "title": "What a 25% cap means for an Atlys employee",
+      "body": [
+        "A cap of 25% of vested options means an employee turns part of their paper wealth into cash while keeping most of their stake. Only vested options count, so someone who joined recently, with little or nothing vested, may have had little to sell.",
+        "Because reports did not disclose the price per option or the valuation used, outsiders cannot work out what any individual received. The total of ₹4 crore spread across a company's eligible staff is a modest pool, which is typical of a first buyback: it tests demand and sets a reference price for the next one.",
+        "For employees, the most useful thing a buyback gives is a price. Even if they sold nothing, it is a data point for valuing the options they still hold."
+      ]
+    },
+    {
+      "id": "tax",
+      "eyebrow": "Tax",
+      "title": "How the payout is likely taxed, by route",
+      "body": [
+        "Reports did not say whether Atlys paid cash for options or first let employees exercise and then bought the shares, or whether the company or an investor was the buyer. The tax answer depends on exactly that, and on when the money was paid. Employees should take their own figures to a CA.",
+        "Since the Income-tax Act, 2025 took effect on 1 April 2026, a company buying back its own shares is taxed in the shareholder's hands as capital gains, as Business Today and Business Standard reported from Budget 2026. A buyback announced on 8 April 2026 and paid after that falls under the new rule. Payments between 1 October 2024 and 31 March 2026 were treated as deemed dividend instead."
+      ],
+      "bullets": [
+        "Options surrendered for cash, no shares issued: the payout is usually taxed as salary at your slab rate, with TDS through payroll.",
+        "Exercise, then immediate sale or buyback: the gap between fair market value and exercise price is a salary perquisite; if the sale price equals that fair market value, there is little or no further capital gain.",
+        "Shares already held and bought back by the company from 1 April 2026: capital gains on sale price minus the fair market value at exercise. Unlisted shares held more than 24 months are long-term and taxed at 12.5%; otherwise at slab rates.",
+        "Shares bought by an investor (secondary sale): also capital gains, on the same holding-period rules."
+      ],
+      "warning": "Reports did not disclose the route, price or payment date for Atlys. The routes above are general rules, not a statement of how Atlys employees were taxed."
+    },
+    {
+      "id": "example",
+      "eyebrow": "Illustrative example",
+      "title": "A worked rupee example (not Atlys's numbers)",
+      "body": [
+        "Illustrative only. These are made-up figures to show the arithmetic, not Atlys's price, valuation or any employee's holding.",
+        "Say an employee has 4,000 vested options with an exercise price of ₹10, and a buyback is priced at ₹500 per share. A 25% cap lets them sell 1,000 options.",
+        "If the company pays cash for the options: 1,000 × (₹500 − ₹10) = ₹4,90,000, taxed as salary. At a 30% slab plus 4% cess (31.2%, ignoring surcharge), tax is ₹1,52,880, leaving ₹3,37,120.",
+        "If instead the employee exercised years ago when fair market value was ₹200, has held the shares for more than 24 months, and the company buys them back after 1 April 2026: capital gain is 1,000 × (₹500 − ₹200) = ₹3,00,000. At 12.5%, tax is ₹37,500 before cess. (The perquisite tax on ₹190 per share was already paid at exercise.)"
+      ],
+      "cards": [
+        {"label": "Options sold", "value": "1,000 (25% of 4,000)"},
+        {"label": "Cash-for-options payout", "value": "₹4,90,000"},
+        {"label": "Tax at 31.2%", "value": "₹1,52,880"}
+      ]
+    },
+    {
+      "id": "questions",
+      "eyebrow": "Elsewhere",
+      "title": "Questions to ask if your company announces a buyback",
+      "body": [
+        "Atlys's announcement left out the details that matter most to an individual employee. If your employer runs a buyback, ask for these in writing before the window opens."
+      ],
+      "bullets": [
+        "What is the price per share or option, and what valuation is it based on?",
+        "Is the company buying, or an investor? Am I selling options or shares?",
+        "Is the cap per person (like 25% of vested), and are former employees eligible?",
+        "When will the money be paid, and how much TDS will be deducted?",
+        "Do I need to pay the exercise price first, or is it netted from the payout?",
+        "Is a further buyback planned, and does selling now affect future eligibility?"
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Employee", "value": "A buyback gives you a price for the options you keep. Find out whether you are selling options or shares before you decide, because the tax differs."},
+    {"label": "Founder", "value": "A capped first buyback, often run near a funding round, offers some liquidity without large cash outflow. Publish the price and route clearly to avoid confusion."},
+    {"label": "HR", "value": "Send each eligible employee a statement showing vested options, the cap, price, payout date and expected TDS."},
+    {"label": "CA", "value": "Confirm the route and payment date first. Cash for options is salary; shares bought back from 1 April 2026 are capital gains under the new Act."}
+  ],
+  "checklist": [
+    "Confirm how many of your options are vested on the buyback record date.",
+    "Ask whether you are selling options or shares, and who the buyer is.",
+    "Get the price per share and the valuation basis in writing.",
+    "Estimate tax by route and payment date before deciding how much to sell.",
+    "Keep the buyback letter and payment advice for your income tax return."
+  ],
+  "mistakes": [
+    "Assuming every buyback is taxed as capital gains when options surrendered for cash are taxed as salary.",
+    "Applying the old deemed-dividend rule to a payment made after 1 April 2026.",
+    "Forgetting that only vested options count towards the cap.",
+    "Treating the buyback price as a guaranteed future value for remaining options.",
+    "Not checking how much TDS was deducted against your actual tax liability."
+  ],
+  "faq": [
+    {"question": "How much was the Atlys ESOP buyback?", "answer": "Atlys announced a ₹4 crore ESOP buyback on 8 April 2026, its first, according to Inc42, PTI and other outlets."},
+    {"question": "How much could Atlys employees sell in the buyback?", "answer": "Reports said eligible employees could sell up to 25% of their vested stock options."},
+    {"question": "Were former Atlys employees eligible for the buyback?", "answer": "None of the reports reviewed said whether former employees were included or how eligibility was defined."},
+    {"question": "At what price did Atlys buy back ESOPs?", "answer": "The price per option and the valuation used were not disclosed in the reports."},
+    {"question": "Is ESOP buyback money taxed as salary or capital gains in 2026?", "answer": "It depends on the route. Cash for surrendered options is usually salary. Shares bought back by a company from 1 April 2026 are taxed as capital gains: 12.5% for unlisted shares held over 24 months, slab rate otherwise."},
+    {"question": "Why do startups run ESOP buybacks after a funding round?", "answer": "A fresh round gives the company cash and a recent valuation to price the buyback. Inc42 said the Atlys buyback was likely carried out alongside its $36 million Series C."}
+  ],
+  "related": ["esop-buyback-india", "unacademy-esop-buyback-2026", "esop-exercise-cost"],
+  "sources": [
+    {"title": "Inc42: Visa processing startup Atlys buys back ESOPs worth ₹4 Cr (8 Apr 2026)", "url": "https://inc42.com/buzz/visa-processing-startup-atlys-buys-back-esops-worth-%E2%82%B94-cr/"},
+    {"title": "The Week (PTI): Atlys announces first ESOP buyback worth Rs 4 cr (8 Apr 2026)", "url": "https://www.theweek.in/wire-updates/business/2026/04/08/atlys-announces-first-esop-buyback-worth-rs-4-cr.html"},
+    {"title": "Indian Startup News: Atlys announces first-ever ESOP buyback worth Rs 4 crore (8 Apr 2026)", "url": "https://indianstartupnews.com/news/indian-visa-platform-atlys-announces-first-ever-esop-buyback-worth-rs-4-crore-11701938"},
+    {"title": "Entrepreneur India: Atlys announces INR 4 Cr ESOP buyback for employees (9 Apr 2026)", "url": "https://india.entrepreneur.com/news-and-trends/atlys-announces-inr-4-cr-esop-buyback-for-employees/504002"},
+    {"title": "Angel One: Atlys announces ESOP buyback worth ₹4 crore (9 Apr 2026)", "url": "https://www.angelone.in/news/unlisted-companies/visa-processing-platform-atlys-announces-esop-buyback-worth-4-crore"},
+    {"title": "Business Today: New share buyback rule from April 1 (1 Apr 2026)", "url": "https://www.businesstoday.in/markets/story/bt-explainer-new-share-buyback-rule-from-april-1-is-less-taxing-for-shareholders-heres-how-523556-2026-04-01"},
+    {"title": "Business Standard: Budget 2026, buyback proceeds to be treated as capital gains", "url": "https://www.business-standard.com/budget/news/budget-2026-buyback-proceeds-to-be-treated-as-capital-gains-126020101050_1.html"}
+  ],
+  "hub": {
+    "summary": "Atlys's first ESOP buyback (April 2026): ₹4 crore, up to 25% of vested options, after a $36M Series C. What it means for employees and how the payout is taxed by route.",
+    "audience": ["Employee", "Founder", "HR", "Tax"],
+    "tags": ["company news", "Atlys", "ESOP buyback", "liquidity", "2026"],
+    "tools": "ESOP calculator"
+  }
+}

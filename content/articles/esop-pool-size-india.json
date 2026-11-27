@@ -1,0 +1,162 @@
+{
+  "slug": "esop-pool-size-india",
+  "publishedAt": "2026-11-27",
+  "updatedAt": "2026-11-27",
+  "category": "Founders",
+  "stage": "Raising funds",
+  "audience": ["Founders", "HR", "Employees"],
+  "readTime": "9 min read",
+  "videoTime": "3 min video",
+  "title": "ESOP pool size in India: how much to reserve at each stage",
+  "description": "ESOP pool size benchmarks for Indian startups by stage, how to size a pool from your hiring plan, the pre-money pool shuffle, and approvals needed.",
+  "keywords": ["ESOP pool size India", "ESOP pool percentage", "ESOP pool seed Series A", "option pool shuffle", "ESOP pool top up", "how big should ESOP pool be", "ESOP pool pre-money"],
+  "icon": "Layers3",
+  "quickAnswer": [
+    "Indian startups commonly reserve about 8-12% of fully diluted shares for ESOPs at seed, 12-15% by Series A and 15-20% by late stage or pre-IPO, according to Treelife's 2026 benchmarks; King Stubb & Kasiva puts seed at 5-10%.",
+    "The best size is not a benchmark but the grants you plan to make over the next 18-24 months, plus a 20-25% buffer.",
+    "When investors ask for the pool to be created in the pre-money valuation, founders absorb all of its dilution, which can cost them a few percentage points compared with a post-money pool.",
+    "The Companies Act, 2013 sets no minimum or maximum pool size for private companies, but creating or topping up a pool needs a board resolution, a shareholder resolution and an MGT-14 filing."
+  ],
+  "heroStats": [
+    {"label": "Seed", "value": "8-12%"},
+    {"label": "Series A", "value": "12-15%"},
+    {"label": "Series B", "value": "15-18%"},
+    {"label": "Late stage / pre-IPO", "value": "15-20%"}
+  ],
+  "modelCards": [
+    {"label": "Size from", "value": "18-24 month hiring plan + 20-25% buffer"},
+    {"label": "Refresh when", "value": "Pool more than 70-75% used"},
+    {"label": "Statutory cap", "value": "None for private companies"}
+  ],
+  "sections": [
+    {
+      "id": "benchmarks",
+      "eyebrow": "Benchmarks",
+      "title": "Typical ESOP pool size by stage in India",
+      "body": [
+        "An ESOP pool is the block of shares a company sets aside to grant as stock options. It is quoted as a percentage of fully diluted shares, meaning all issued shares plus the whole pool, whether or not options have been granted yet.",
+        "Treelife's 2026 benchmarks for Indian startups are 8-12% at pre-seed and seed, 12-15% at Series A, 15-18% at Series B, and 15-20% at Series C through pre-IPO. Law firm King Stubb & Kasiva gives a slightly lower seed range of 5-10% and says most early-stage startups sit at 10-15%. Both warn that a pool of 20-25% without a hiring reason simply dilutes founders for nothing.",
+        "Indian pools have historically been smaller than American ones. A 2022 analysis on the India Tech newsletter, citing Trifecta Capital data, found 78% of Indian Series A startups had pools under 10%, and growth-stage pools averaged about 7.5-8% against 16-17% in the US. That data is now several years old, but it explains why investors in India often push for larger pools at Series A."
+      ],
+      "cards": [
+        {"label": "Pre-seed / seed", "value": "8-12% (Treelife) or 5-10% (KSK)"},
+        {"label": "Series A", "value": "12-15%, often topped up to 15% at closing"},
+        {"label": "Series B", "value": "15-18%, refreshed on the new base"},
+        {"label": "Series C to pre-IPO", "value": "15-20%, sized to senior hiring"}
+      ]
+    },
+    {
+      "id": "bottom-up",
+      "eyebrow": "Method",
+      "title": "Size the pool from your hiring plan, not a benchmark",
+      "body": [
+        "Both Treelife and King Stubb & Kasiva recommend working bottom up. List the hires you plan over the next 18-24 months, put a typical grant against each role, add refresh grants for people you need to keep, then add a buffer of 20-25% for hires you have not planned.",
+        "Benchmarks are a sanity check. Treelife notes that an investor's pool request is often a convention applied across the whole portfolio rather than a figure tied to your headcount, which is why a hiring plan is your best argument in that negotiation.",
+        "Illustrative only (assumed grant sizes, not market data): a startup planning 2 senior leaders at 1.0% each (2.0%), 6 senior managers at 0.25% (1.5%), 20 mid-level hires at 0.08% (1.6%) and 10 juniors at 0.02% (0.2%) needs 5.3%. Adding a 25% buffer gives 6.625%, so it would ask for a pool of about 7% rather than accepting a default 10%."
+      ],
+      "bullets": [
+        "Start with roles, not percentages: who must you hire in the next 18-24 months?",
+        "Price grants as a percentage of the company, then convert to share counts.",
+        "Include refresh grants for key people already on the team.",
+        "Add 20-25% buffer, then compare the result with stage benchmarks."
+      ]
+    },
+    {
+      "id": "formula",
+      "eyebrow": "Arithmetic",
+      "title": "How many shares a pool needs",
+      "body": [
+        "Because the pool is counted in the fully diluted total, a 10% pool is not 10% of today's shares. To reach a target percentage P, the pool needs existing shares × P ÷ (1 − P).",
+        "Illustrative: a company with 90,00,000 shares that wants a 10% pool needs 90,00,000 × 0.10 ÷ 0.90 = 10,00,000 pool shares. Total fully diluted shares become 1,00,00,000, and 10,00,000 is exactly 10% of that.",
+        "You can model this, and see how each round changes everyone's percentage, in EVC's free cap table builder."
+      ]
+    },
+    {
+      "id": "pool-shuffle",
+      "eyebrow": "Negotiation",
+      "title": "Pre-money vs post-money pools: the option pool shuffle",
+      "body": [
+        "Investors usually ask for the pool to be created or topped up before their money comes in, inside the pre-money valuation. That means existing shareholders, mainly founders, carry all of the pool's dilution and the investor carries none. Treelife estimates this costs founders roughly 2-4 percentage points compared with a pool created after the round.",
+        "Illustrative example (made-up numbers): founders own 90,00,000 shares. An investor puts in ₹10 crore at a ₹40 crore pre-money valuation (₹50 crore post-money, 20% to the investor) and wants a 10% post-money pool counted in the pre-money.",
+        "Total shares after the round = 90,00,000 ÷ (1 − 0.10 − 0.20) = 1,28,57,143. The pool gets 12,85,714 shares, the investor 25,71,429, and founders keep their 90,00,000, which is 70%. The price per share is ₹10 crore ÷ 25,71,429 = about ₹38.89, so founders' stake is worth about ₹35 crore, not the headline ₹40 crore pre-money.",
+        "If the same 10% pool were created after the round, it would dilute everyone equally: founders would hold 80% × 90% = 72%, the investor 18% and the pool 10%. The difference for founders is 2 percentage points."
+      ],
+      "cards": [
+        {"label": "Pool in pre-money", "value": "Founders 70%, investor 20%, pool 10%"},
+        {"label": "Pool after round", "value": "Founders 72%, investor 18%, pool 10%"},
+        {"label": "Founders' effective pre-money", "value": "About ₹35 crore vs ₹40 crore headline"}
+      ],
+      "warning": "Always ask whether the investor's pool percentage is pre-money or post-money, and write the pool into the term sheet as a share count, not only a percentage."
+    },
+    {
+      "id": "refresh",
+      "eyebrow": "Top-ups",
+      "title": "When to refresh the pool",
+      "body": [
+        "Without top-ups, each funding round shrinks the pool's percentage. Treelife suggests starting a refresh once 70-75% of the pool has been granted, when the unallocated pool falls below about 4% fully diluted, when a new round expects a refreshed pool, or when a senior hire will not fit in what remains.",
+        "Start early. Every top-up repeats the approval process, and Treelife estimates 4-8 weeks for approvals. At Series B and later, investors commonly expect the refresh to be calculated on the new post-money share count and sized against a rolling three-year hiring plan."
+      ]
+    },
+    {
+      "id": "law",
+      "eyebrow": "Approvals",
+      "title": "What Indian law requires to create or expand a pool",
+      "body": [
+        "For private companies, ESOPs are issued under Section 62(1)(b) of the Companies Act, 2013, read with Rule 12 of the Companies (Share Capital and Debentures) Rules, 2014. Treelife says neither the Act nor the Rules prescribe a minimum or maximum pool size. The 15% a year and 25% overall limits that people sometimes quote apply to sweat equity, not ESOP pools.",
+        "The steps Treelife lists: a board resolution approving the scheme and calling a general meeting; a shareholder resolution with an explanatory statement; checking the articles of association and increasing authorised capital if needed; and filing Form MGT-14 within 30 days. Grants to a single employee of 1% or more of issued capital in a year need a separate shareholder approval under Rule 12.",
+        "On the resolution type, sources differ. Treelife says private companies may use an ordinary resolution under MCA notification G.S.R. 464(E) of 5 June 2015, though many pass a special resolution as a precaution; King Stubb & Kasiva says a special resolution is generally required. Public companies need a special resolution. Listed companies follow the SEBI (Share Based Employee Benefits and Sweat Equity) Regulations, 2021."
+      ],
+      "warning": "Confirm the resolution type and Rule 12 requirements with your CS before the meeting notice goes out. Options granted under a scheme that was not properly approved may not be valid."
+    },
+    {
+      "id": "employees",
+      "eyebrow": "For employees",
+      "title": "Why pool size matters if you hold options",
+      "body": [
+        "A bigger pool does not mean bigger grants for you. What matters is the number of options you hold divided by fully diluted shares. When a pool is topped up, your percentage falls slightly, just as it does in a funding round.",
+        "Ask HR for the fully diluted share count when you get a grant. Without it, a number like 10,000 options means nothing. EVC's free ESOP calculator turns a grant into a percentage and a rupee value at different exit valuations."
+      ]
+    }
+  ],
+  "personaViews": [
+    {"label": "Founder", "value": "Size the pool from an 18-24 month hiring plan with a 20-25% buffer, and negotiate whether it sits in the pre-money or post-money."},
+    {"label": "HR", "value": "Track how much of the pool is granted. Start a refresh at about 70-75% used so senior hires are never blocked."},
+    {"label": "Employee", "value": "Your stake is your options divided by fully diluted shares, pool included. Ask for that number with every grant."},
+    {"label": "CA", "value": "Check the resolution type, Rule 12 disclosures, authorised capital and the MGT-14 filing before any grant is made from a new or enlarged pool."}
+  ],
+  "checklist": [
+    "Write an 18-24 month hiring plan with an indicative grant for each role.",
+    "Add refresh grants for key current staff and a 20-25% buffer.",
+    "Compare your figure with stage benchmarks and decide what to propose.",
+    "Agree in the term sheet whether the pool is pre-money or post-money, as a share count.",
+    "Pass board and shareholder resolutions and file MGT-14 before granting options."
+  ],
+  "mistakes": [
+    "Accepting a default 10-15% pool without a hiring plan to test it against.",
+    "Not noticing that a pre-money pool lowers founders' effective valuation.",
+    "Calculating pool shares as a percentage of current shares instead of fully diluted shares.",
+    "Waiting until the pool is empty before starting a top-up that takes weeks to approve.",
+    "Granting options before the scheme or top-up has been approved and filed."
+  ],
+  "faq": [
+    {"question": "What is a good ESOP pool size for a startup in India?", "answer": "Treelife's 2026 benchmarks are 8-12% at seed, 12-15% at Series A, 15-18% at Series B and 15-20% later. The right figure for your company is what your 18-24 month hiring plan needs plus a 20-25% buffer."},
+    {"question": "Is there a maximum ESOP pool size under the Companies Act?", "answer": "No. Treelife notes that the Companies Act, 2013 and the 2014 Share Capital Rules set no minimum or maximum pool size for ESOPs. The 15%/25% limits apply to sweat equity."},
+    {"question": "Should the ESOP pool be pre-money or post-money?", "answer": "Investors usually ask for pre-money, which puts all the pool's dilution on existing shareholders. Founders can negotiate a smaller pool, a post-money pool, or a share count tied to a hiring plan."},
+    {"question": "How do you calculate the number of shares for an ESOP pool?", "answer": "Pool shares = existing shares × P ÷ (1 − P), where P is the target percentage. For a 10% pool on 90,00,000 shares, that is 10,00,000 shares."},
+    {"question": "Does increasing the ESOP pool dilute employees?", "answer": "Yes, slightly. A top-up adds shares to the fully diluted total, so everyone's percentage falls, including existing option holders."},
+    {"question": "What approvals are needed to increase an ESOP pool in a private company?", "answer": "A board resolution, a shareholder resolution with an explanatory statement, an authorised capital increase if needed, and Form MGT-14 within 30 days. Check the resolution type with your CS."}
+  ],
+  "related": ["dilution-explained", "cap-table-india", "startup-raised-funding-dilution"],
+  "sources": [
+    {"title": "Treelife: ESOP Pool Size Calculation: Benchmark, Formula, Examples (Sep 2026)", "url": "https://treelife.in/finance/esop-pool-size-calculation/"},
+    {"title": "Treelife: ESOP Pool Creation for Startups: Size, Process, Approval (Sep 2026)", "url": "https://treelife.in/startups/esop-pool-creation-for-startups/"},
+    {"title": "King Stubb & Kasiva: Designing an ESOP pool before a fundraise (Jun 2026)", "url": "https://ksandk.com/labour-employment/esop-pool-fundraise-founder-guide-india/"},
+    {"title": "India Tech: Comparing ESOP policies of Indian and US startups (Jan 2022)", "url": "https://indiatech.substack.com/p/comparing-esop-policies-of-indian"}
+  ],
+  "hub": {
+    "summary": "How big an ESOP pool Indian startups reserve at seed, Series A, B and later, how to size one from a hiring plan, the pre-money pool shuffle, and the approvals needed.",
+    "audience": ["Founder", "HR", "Employee", "CA"],
+    "tags": ["ESOP pool", "fundraising", "dilution", "cap table", "founders"],
+    "tools": "Cap table builder"
+  }
+}
